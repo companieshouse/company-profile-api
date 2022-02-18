@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-public class RepositoryITest {
+class RepositoryITest {
 
     static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
             DockerImageName.parse("mongo:4.0.10"));
