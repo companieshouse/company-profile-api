@@ -1,0 +1,10 @@
+version: '3.1'
+services:
+  mongo:
+    image: mongo:3.6
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./company-profile.js:/docker-entrypoint-initdb.d/company-profile.js
+    environment:
+      - MONGO_INITDB_DATABASE=company_profile
