@@ -9,7 +9,7 @@ if [[ -z "${MESOS_SLAVE_PID}" ]]; then
     source ~/.chs_env/global_env
     source ~/.chs_env/company-profile-api/env
 
-    PORT="${OFFICER_DELTA_PROCESSOR_PORT}"
+    PORT="${COMPANY_PROFILE_API_PORT}"
 else
     PORT="$1"
     CONFIG_URL="$2"
