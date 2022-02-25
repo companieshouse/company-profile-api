@@ -1,0 +1,5 @@
+app_name: company-profile-api
+group: api
+weight: 991
+routes:
+   1: ^/company-profile-api/healthcheck
