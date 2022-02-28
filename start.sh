@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Start script for insolvency-delta-consumer
+# Start script for company-profile-api
 
 APP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
