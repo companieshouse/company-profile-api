@@ -19,7 +19,6 @@ public class CompanyProfileController {
     }
 
     // TODO Update with newly generated CompanyProfile object once DSND-524 is completed
-
     /**
      * Retrieve a company profile using a company number.
      * @param companyNumber the company number of the company
@@ -29,9 +28,8 @@ public class CompanyProfileController {
     public ResponseEntity<CompanyProfileApi> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         try {
-            // TODO check _id field in mongo is the company number
             Optional<CompanyProfileApi> companyProfile =
-                    companyProfileRepository.findById(companyNumber);
+                    companyProfileRepository.findCompanyProfileApiByCompanyNumber(companyNumber);
 
             if (companyProfile.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
