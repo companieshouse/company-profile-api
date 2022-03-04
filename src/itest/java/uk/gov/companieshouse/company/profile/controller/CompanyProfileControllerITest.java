@@ -12,7 +12,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.companieshouse.api.model.company.CompanyProfileApi;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -27,17 +29,20 @@ public class CompanyProfileControllerITest {
     @Test
     @DisplayName("Retrieve a company profile containing a given company number")
     void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
-        CompanyProfileApi companyProfile = new CompanyProfileApi();
-        companyProfile.setCompanyNumber("123456");
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber("123456");
+        mockCompanyProfile.setData(companyData);
+        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+
         String companyUrl = String.format("/company/%s", "123456");
 
-        when(companyProfileService.get("123456")).thenReturn(Optional.of(companyProfile));
+        when(companyProfileService.get("123456")).thenReturn(Optional.of(mockCompanyProfileDao));
 
-        ResponseEntity<CompanyProfileApi> companyProfileResponse =
-                restTemplate.getForEntity(companyUrl, CompanyProfileApi.class);
+        ResponseEntity<CompanyProfile> companyProfileResponse =
+                restTemplate.getForEntity(companyUrl, CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(companyProfileResponse.getBody()).usingRecursiveComparison().isEqualTo(companyProfile);
+        assertThat(companyProfileResponse.getBody()).usingRecursiveComparison().isEqualTo(mockCompanyProfile);
     }
 
     @Test
@@ -46,8 +51,8 @@ public class CompanyProfileControllerITest {
         when(companyProfileService.get("123456")).thenReturn(Optional.empty());
         String companyUrl = String.format("/company/%s", "123456");
 
-        ResponseEntity<CompanyProfileApi> companyProfileResponse =
-                restTemplate.getForEntity(companyUrl, CompanyProfileApi.class);
+        ResponseEntity<CompanyProfile> companyProfileResponse =
+                restTemplate.getForEntity(companyUrl, CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(companyProfileResponse.getBody()).isNull();

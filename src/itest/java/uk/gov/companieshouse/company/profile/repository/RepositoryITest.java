@@ -11,7 +11,9 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import uk.gov.companieshouse.api.model.company.CompanyProfileApi;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
@@ -40,22 +42,30 @@ class RepositoryITest {
 
     @Test
     void should_return_company_record_when_one_exists() {
-        CompanyProfileApi companyProfile = new CompanyProfileApi();
-        companyProfile.setCompanyNumber(MOCK_COMPANY_NUMBER);
-        this.companyProfileRepository.save(companyProfile);
+        CompanyProfile companyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyProfile.setData(companyData);
+        CompanyProfileDao companyProfileDao = new CompanyProfileDao(companyProfile);
+
+        this.companyProfileRepository.save(companyProfileDao);
+
+        System.out.println(this.companyProfileRepository.findAll().get(0));
 
         Assertions.assertTrue(
-                this.companyProfileRepository.findCompanyProfileApiByCompanyNumber(MOCK_COMPANY_NUMBER).isPresent());
+                this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(MOCK_COMPANY_NUMBER).isPresent());
     }
 
     @Test
     void should_return_empty_optional_when_company_record_does_not_exist() {
-        CompanyProfileApi companyProfile = new CompanyProfileApi();
-        companyProfile.setCompanyNumber("242424");
-        this.companyProfileRepository.save(companyProfile);
+        CompanyProfile companyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber("242424");
+        companyProfile.setData(companyData);
+        CompanyProfileDao companyProfileDao = new CompanyProfileDao(companyProfile);
+
+        this.companyProfileRepository.save(companyProfileDao);
 
         Assertions.assertTrue(
-                this.companyProfileRepository.findCompanyProfileApiByCompanyNumber("othernumber").isEmpty());
+                this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber("othernumber").isEmpty());
     }
 
 }

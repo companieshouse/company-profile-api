@@ -2,10 +2,10 @@ package uk.gov.companieshouse.company.profile.repository;
 
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import uk.gov.companieshouse.api.model.company.CompanyProfileApi;
+import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 
-
-// TODO Update with newly generated CompanyProfile object once DSND-524 is completed
-public interface CompanyProfileRepository extends MongoRepository<CompanyProfileApi, String> {
-    Optional<CompanyProfileApi> findCompanyProfileApiByCompanyNumber(String companyNumber);
+public interface CompanyProfileRepository extends MongoRepository<CompanyProfileDao, String> {
+    // company number is not a direct property of the entity so traversal is required
+    Optional<CompanyProfileDao> findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(
+            String companyNumber);
 }

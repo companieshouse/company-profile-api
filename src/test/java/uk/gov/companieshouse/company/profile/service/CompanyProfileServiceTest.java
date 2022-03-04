@@ -14,7 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.companieshouse.api.model.company.CompanyProfileApi;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -33,27 +35,29 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
-        CompanyProfileApi mockCompanyProfile = new CompanyProfileApi();
-        mockCompanyProfile.setCompanyNumber("123456");
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber("123456");
+        mockCompanyProfile.setData(companyData);
+        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
 
-        when(companyProfileRepository.findCompanyProfileApiByCompanyNumber(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfile));
+        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDao));
 
-        Optional<CompanyProfileApi> companyProfile = companyProfileService.get("123456");
+        Optional<CompanyProfileDao> companyProfileActual = companyProfileService.get("123456");
 
-        assertThat(companyProfile.get()).isSameAs(mockCompanyProfile);
+        assertThat(companyProfileActual.get()).isSameAs(mockCompanyProfileDao);
         verify(logger, times(2)).trace(anyString());
     }
 
     @Test
     @DisplayName("When no company profile is retrieved then return empty optional")
     void getNoCompanyProfileReturned() {
-        when(companyProfileRepository.findCompanyProfileApiByCompanyNumber(anyString()))
+        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
                 .thenReturn(Optional.empty());
 
-        Optional<CompanyProfileApi> companyProfile = companyProfileService.get("123456");
+        Optional<CompanyProfileDao> companyProfileActual = companyProfileService.get("123456");
 
-        assertTrue(companyProfile.isEmpty());
+        assertTrue(companyProfileActual.isEmpty());
         verify(logger, times(2)).trace(anyString());
     }
 }

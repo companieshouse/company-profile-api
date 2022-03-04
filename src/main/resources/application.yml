@@ -1,2 +1,6 @@
 logger:
   namespace: company-profile-api
+
+springfox:
+  documentation:
+    auto-startup: false

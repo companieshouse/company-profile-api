@@ -16,7 +16,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.companieshouse.api.model.company.CompanyProfileApi;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
@@ -37,15 +39,18 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Retrieve a company profile containing a given company number")
     void getCompanyProfile() throws Exception {
-        CompanyProfileApi companyProfile = new CompanyProfileApi();
-        companyProfile.setCompanyNumber("123456");
-        when(companyProfileService.get("123456")).thenReturn(Optional.of(companyProfile));
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber("123456");
+        mockCompanyProfile.setData(companyData);
+        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+
+        when(companyProfileService.get("123456")).thenReturn(Optional.of(mockCompanyProfileDao));
 
         String companyUrl = String.format("/company/%s", "123456");
 
         mockMvc.perform(get(companyUrl))
                 .andExpect(status().isOk())
-                .andExpect(content().string(objectMapper.writeValueAsString(companyProfile)));
+                .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
 
     }
 

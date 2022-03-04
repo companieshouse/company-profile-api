@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.companieshouse.api.model.company.CompanyProfileApi;
+import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 @RestController
@@ -17,8 +17,6 @@ public class CompanyProfileController {
         this.companyProfileService = companyProfileService;
     }
 
-    // TODO Update with newly generated CompanyProfile object once DSND-524 is completed
-
     /**
      * Retrieve a company profile using a company number.
      *
@@ -26,11 +24,12 @@ public class CompanyProfileController {
      * @return company profile api
      */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<CompanyProfileApi> getCompanyProfile(
+    public ResponseEntity<CompanyProfile> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         try {
             return companyProfileService.get(companyNumber)
-                    .map(companyProfile -> new ResponseEntity<>(companyProfile, HttpStatus.OK))
+                    .map(companyProfileDao ->
+                            new ResponseEntity<>(companyProfileDao.companyProfile, HttpStatus.OK))
                     .orElse(ResponseEntity.notFound().build());
         } catch (Exception exception) {
             // TODO Exception handler - code 401
