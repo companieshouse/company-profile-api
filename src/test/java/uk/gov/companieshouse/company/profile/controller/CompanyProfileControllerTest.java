@@ -28,6 +28,8 @@ import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 @WebMvcTest(controllers = CompanyProfileController.class)
 @ContextConfiguration(classes = CompanyProfileController.class)
 class CompanyProfileControllerTest {
+    private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private static final String COMPANY_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,15 +44,13 @@ class CompanyProfileControllerTest {
     @DisplayName("Retrieve a company profile containing a given company number")
     void getCompanyProfile() throws Exception {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
-        Data companyData = new Data().companyNumber("123456");
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
         CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
 
-        when(companyProfileService.get("123456")).thenReturn(Optional.of(mockCompanyProfileDao));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDao));
 
-        String companyUrl = String.format("/company/%s", "123456");
-
-        mockMvc.perform(get(companyUrl))
+        mockMvc.perform(get(COMPANY_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
     }
@@ -59,11 +59,9 @@ class CompanyProfileControllerTest {
     @DisplayName(
             "Given a company number with no matching company profile return a not found response")
     void getCompanyProfileNotFound() throws Exception {
-        when(companyProfileService.get("123456")).thenReturn(Optional.empty());
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        String companyUrl = String.format("/company/%s", "123456");
-
-        mockMvc.perform(get(companyUrl))
+        mockMvc.perform(get(COMPANY_URL))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
     }
@@ -72,10 +70,9 @@ class CompanyProfileControllerTest {
     @DisplayName("Search for bankrupt officers - returns a 500 INTERNAL SERVER ERROR")
     void getCompanyProfileInternalServerError() throws Exception {
         when(companyProfileService.get(any())).thenThrow(RuntimeException.class);
-        String companyUrl = String.format("/company/%s", "123456");
 
         assertThatThrownBy(() ->
-                mockMvc.perform(get(companyUrl))
+                mockMvc.perform(get(COMPANY_URL))
                         .andExpect(status().isInternalServerError())
                         .andExpect(content().string(""))
         ).hasCause(new RuntimeException());

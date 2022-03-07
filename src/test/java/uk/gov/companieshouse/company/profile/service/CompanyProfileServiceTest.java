@@ -22,6 +22,7 @@ import uk.gov.companieshouse.logging.Logger;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
+    private static final String MOCK_COMPANY_NUMBER = "6146287";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -36,14 +37,15 @@ class CompanyProfileServiceTest {
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
-        Data companyData = new Data().companyNumber("123456");
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
         CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
 
         when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDao));
 
-        Optional<CompanyProfileDao> companyProfileActual = companyProfileService.get("123456");
+        Optional<CompanyProfileDao> companyProfileActual =
+                companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertThat(companyProfileActual.get()).isSameAs(mockCompanyProfileDao);
         verify(logger, times(2)).trace(anyString());
@@ -55,7 +57,8 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
                 .thenReturn(Optional.empty());
 
-        Optional<CompanyProfileDao> companyProfileActual = companyProfileService.get("123456");
+        Optional<CompanyProfileDao> companyProfileActual =
+                companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertTrue(companyProfileActual.isEmpty());
         verify(logger, times(2)).trace(anyString());

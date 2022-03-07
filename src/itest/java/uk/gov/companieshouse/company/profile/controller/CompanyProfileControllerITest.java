@@ -19,6 +19,8 @@ import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CompanyProfileControllerITest {
+    private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private static final String COMPANY_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
@@ -30,16 +32,14 @@ public class CompanyProfileControllerITest {
     @DisplayName("Retrieve a company profile containing a given company number")
     void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
-        Data companyData = new Data().companyNumber("123456");
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
         CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
 
-        String companyUrl = String.format("/company/%s", "123456");
-
-        when(companyProfileService.get("123456")).thenReturn(Optional.of(mockCompanyProfileDao));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDao));
 
         ResponseEntity<CompanyProfile> companyProfileResponse =
-                restTemplate.getForEntity(companyUrl, CompanyProfile.class);
+                restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(companyProfileResponse.getBody()).usingRecursiveComparison().isEqualTo(mockCompanyProfile);
@@ -48,11 +48,10 @@ public class CompanyProfileControllerITest {
     @Test
     @DisplayName("Return a not found response when company profile does not exist")
     void getCompanyProfileWhenDoesNotExist() {
-        when(companyProfileService.get("123456")).thenReturn(Optional.empty());
-        String companyUrl = String.format("/company/%s", "123456");
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         ResponseEntity<CompanyProfile> companyProfileResponse =
-                restTemplate.getForEntity(companyUrl, CompanyProfile.class);
+                restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(companyProfileResponse.getBody()).isNull();
