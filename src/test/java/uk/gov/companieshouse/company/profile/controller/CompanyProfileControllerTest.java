@@ -1,12 +1,14 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +53,6 @@ class CompanyProfileControllerTest {
         mockMvc.perform(get(companyUrl))
                 .andExpect(status().isOk())
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
-
     }
 
     @Test
@@ -65,5 +66,18 @@ class CompanyProfileControllerTest {
         mockMvc.perform(get(companyUrl))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
+    }
+
+    @Test()
+    @DisplayName("Search for bankrupt officers - returns a 500 INTERNAL SERVER ERROR")
+    void getCompanyProfileInternalServerError() throws Exception {
+        when(companyProfileService.get(any())).thenThrow(RuntimeException.class);
+        String companyUrl = String.format("/company/%s", "123456");
+
+        assertThatThrownBy(() ->
+                mockMvc.perform(get(companyUrl))
+                        .andExpect(status().isInternalServerError())
+                        .andExpect(content().string(""))
+        ).hasCause(new RuntimeException());
     }
 }

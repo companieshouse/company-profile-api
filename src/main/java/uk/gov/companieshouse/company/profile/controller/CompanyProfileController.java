@@ -26,14 +26,9 @@ public class CompanyProfileController {
     @GetMapping("/company/{company_number}")
     public ResponseEntity<CompanyProfile> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
-        try {
-            return companyProfileService.get(companyNumber)
-                    .map(companyProfileDao ->
-                            new ResponseEntity<>(companyProfileDao.companyProfile, HttpStatus.OK))
-                    .orElse(ResponseEntity.notFound().build());
-        } catch (Exception exception) {
-            // TODO Exception handler - code 401
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return companyProfileService.get(companyNumber)
+                .map(companyProfileDao ->
+                        new ResponseEntity<>(companyProfileDao.companyProfile, HttpStatus.OK))
+                .orElse(ResponseEntity.notFound().build());
     }
 }
