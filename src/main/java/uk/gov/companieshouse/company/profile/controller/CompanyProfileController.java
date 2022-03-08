@@ -3,7 +3,9 @@ package uk.gov.companieshouse.company.profile.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -30,5 +32,14 @@ public class CompanyProfileController {
                 .map(companyProfileDao ->
                         new ResponseEntity<>(companyProfileDao.companyProfile, HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/company/{company_number}/links")
+    public ResponseEntity<String> updateCompanyProfile(
+            @PathVariable("company_number") String companyNumber,
+            @RequestBody CompanyProfile requestBody
+    ) {
+        companyProfileService.update(requestBody);
+        return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 }

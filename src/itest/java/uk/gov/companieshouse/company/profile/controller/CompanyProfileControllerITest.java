@@ -1,9 +1,12 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+
+import com.google.gson.Gson;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +24,15 @@ import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 public class CompanyProfileControllerITest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String COMPANY_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
+    private static final String PATCH_INSOLVENCY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    Gson gson = new Gson();
 
     @Test
     @DisplayName("Retrieve a company profile containing a given company number")
@@ -55,5 +61,22 @@ public class CompanyProfileControllerITest {
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(companyProfileResponse.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("PATCH insolvency links")
+    void patchInsolvencyLinks() throws Exception {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+
+
+        doNothing().when(companyProfileService).update(mockCompanyProfile);
+
+        String companyProfileResponse =
+                restTemplate.patchForObject(PATCH_INSOLVENCY_URL, mockCompanyProfile, String.class);
+
+        assertThat(companyProfileResponse.equals("OK"));
     }
 }

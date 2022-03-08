@@ -1,6 +1,9 @@
 package uk.gov.companieshouse.company.profile.repository;
 
+import com.google.gson.Gson;
+import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
@@ -21,6 +24,8 @@ class RepositoryITest {
 
     private static final String MOCK_COMPANY_NUMBER = "6146287";
 
+    Gson gson = new Gson();
+
     // static, so container starts before the application context and we can set properties
     @Container
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(
@@ -34,6 +39,10 @@ class RepositoryITest {
     @Autowired
     private CompanyProfileRepository companyProfileRepository;
 
+    @BeforeEach
+    void setup() {
+        this.companyProfileRepository.deleteAll();
+    }
 
     @Test
     void should_return_mongodb_as_running() {
@@ -66,6 +75,21 @@ class RepositoryITest {
 
         Assertions.assertTrue(
                 this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber("othernumber").isEmpty());
+    }
+
+    @Test
+    void should_return_company_profile_based_on_company_number() {
+        CompanyProfile companyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyProfile.setData(companyData);
+        CompanyProfileDao companyProfileDao = new CompanyProfileDao(companyProfile);
+
+        this.companyProfileRepository.save(companyProfileDao);
+
+        System.out.println(this.companyProfileRepository.findAll().get(0));
+
+        CompanyProfileDao companyProfileRetrievedFromDB = this.companyProfileRepository.findByCompanyNumber(MOCK_COMPANY_NUMBER);
+        assert(gson.toJson(companyProfileRetrievedFromDB)).equals(gson.toJson(companyProfileDao));
     }
 
 }

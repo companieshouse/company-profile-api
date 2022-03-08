@@ -2,6 +2,7 @@ package uk.gov.companieshouse.company.profile.service;
 
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
@@ -32,5 +33,19 @@ public class CompanyProfileService {
         logger.trace(String.format("DSND-374: Company profile with number %s retrieved: %s",
                 companyNumber, companyProfileDao));
         return companyProfileDao;
+    }
+
+    /**
+     * Updated insolvency links in company profile.
+     * @param companyProfileRequest company Profile information {@link CompanyProfile}
+     */
+    public void update(final CompanyProfile companyProfileRequest) {
+        CompanyProfileDao companyProfile = companyProfileRepository
+                .findByCompanyNumber(companyProfileRequest.getData().getCompanyNumber());
+        String insolvencyLink = companyProfileRequest.getData().getLinks().getInsolvency();
+        companyProfile.companyProfile.getData().getLinks().setInsolvency(insolvencyLink);
+        companyProfileRepository.save(companyProfile);
+        logger.debug(String.format("Data saved in company_profile collection : %s",
+                companyProfileRequest.toString()));
     }
 }
