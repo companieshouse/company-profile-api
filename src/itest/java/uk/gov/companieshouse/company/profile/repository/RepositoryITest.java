@@ -86,8 +86,6 @@ class RepositoryITest {
 
         this.companyProfileRepository.save(companyProfileDao);
 
-        System.out.println(this.companyProfileRepository.findAll().get(0));
-
         CompanyProfileDao companyProfileRetrievedFromDB = this.companyProfileRepository.findByCompanyNumber(MOCK_COMPANY_NUMBER);
         assert(gson.toJson(companyProfileRetrievedFromDB)).equals(gson.toJson(companyProfileDao));
     }
