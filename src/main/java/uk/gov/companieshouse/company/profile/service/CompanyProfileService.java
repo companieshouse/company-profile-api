@@ -39,13 +39,14 @@ public class CompanyProfileService {
      * Updated insolvency links in company profile.
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
-    public void update(final CompanyProfile companyProfileRequest) {
+    public void updateInsolvencyLink(final CompanyProfile companyProfileRequest) {
         CompanyProfileDao companyProfile = companyProfileRepository
-                .findByCompanyNumber(companyProfileRequest.getData().getCompanyNumber());
+                .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(
+                        companyProfileRequest.getData().getCompanyNumber()).get();
         String insolvencyLink = companyProfileRequest.getData().getLinks().getInsolvency();
         companyProfile.companyProfile.getData().getLinks().setInsolvency(insolvencyLink);
         companyProfileRepository.save(companyProfile);
-        logger.debug(String.format("Data saved in company_profile collection : %s",
+        logger.trace(String.format("DSND-376: Insolvency links updated: %s",
                 companyProfileRequest.toString()));
     }
 }

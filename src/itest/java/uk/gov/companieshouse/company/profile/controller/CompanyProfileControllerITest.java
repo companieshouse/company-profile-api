@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.company.CompanyProfile;
@@ -65,18 +67,17 @@ public class CompanyProfileControllerITest {
 
     @Test
     @DisplayName("PATCH insolvency links")
-    void patchInsolvencyLinks() throws Exception {
+    void patchInsolvencyLinks() {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+        doNothing().when(companyProfileService).updateInsolvencyLink(mockCompanyProfile);
 
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, null);
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                PATCH_INSOLVENCY_URL,
+                HttpMethod.PATCH, httpEntity, Void.class);
 
-        doNothing().when(companyProfileService).update(mockCompanyProfile);
-
-        String companyProfileResponse =
-                restTemplate.patchForObject(PATCH_INSOLVENCY_URL, mockCompanyProfile, String.class);
-
-        assertThat(companyProfileResponse.equals("OK"));
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }

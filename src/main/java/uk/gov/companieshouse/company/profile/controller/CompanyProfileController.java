@@ -35,11 +35,11 @@ public class CompanyProfileController {
     }
 
     @PatchMapping("/company/{company_number}/links")
-    public ResponseEntity<String> updateCompanyProfile(
+    public ResponseEntity<Void> updateCompanyProfile(
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile requestBody
     ) {
-        companyProfileService.update(requestBody);
-        return ResponseEntity.status(HttpStatus.OK).body("OK");
+        companyProfileService.updateInsolvencyLink(requestBody);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

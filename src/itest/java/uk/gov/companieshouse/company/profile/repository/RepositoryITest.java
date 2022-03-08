@@ -77,17 +77,4 @@ class RepositoryITest {
                 this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber("othernumber").isEmpty());
     }
 
-    @Test
-    void should_return_company_profile_based_on_company_number() {
-        CompanyProfile companyProfile = new CompanyProfile();
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        companyProfile.setData(companyData);
-        CompanyProfileDao companyProfileDao = new CompanyProfileDao(companyProfile);
-
-        this.companyProfileRepository.save(companyProfileDao);
-
-        CompanyProfileDao companyProfileRetrievedFromDB = this.companyProfileRepository.findByCompanyNumber(MOCK_COMPANY_NUMBER);
-        assert(gson.toJson(companyProfileRetrievedFromDB)).equals(gson.toJson(companyProfileDao));
-    }
-
 }

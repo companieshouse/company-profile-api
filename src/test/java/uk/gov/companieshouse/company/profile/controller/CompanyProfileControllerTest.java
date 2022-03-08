@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 
 import com.google.gson.Gson;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +24,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
@@ -92,8 +90,10 @@ class CompanyProfileControllerTest {
     @DisplayName("Company Profile PATCH request")
     public void callCompanyProfilePatch() throws Exception {
         CompanyProfile request = new CompanyProfile();
-        doNothing().when(companyProfileService).update(isA(CompanyProfile.class));
         String url = String.format("/company/%s/links", "02588581");
+
+        doNothing().when(companyProfileService).updateInsolvencyLink(isA(CompanyProfile.class));
+
         mockMvc.perform(patch(url).contentType(APPLICATION_JSON)
                 .content(gson.toJson(request))).andExpect(status().isOk());
     }
