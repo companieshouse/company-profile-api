@@ -2,7 +2,6 @@ package uk.gov.companieshouse.company.profile.repository;
 
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 
 public interface CompanyProfileRepository extends MongoRepository<CompanyProfileDao, String> {
