@@ -34,8 +34,6 @@ public class CompanyProfileControllerITest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    Gson gson = new Gson();
-
     @Test
     @DisplayName("Retrieve a company profile containing a given company number")
     void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
