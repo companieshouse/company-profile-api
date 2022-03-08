@@ -10,13 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.companieshouse.api.company.CompanyProfile;
-import uk.gov.companieshouse.company.profile.CompanyRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-public class CompanyProfileServiceTest {
+public class CompanyProfileControllerTest {
 
     private MockMvc mockMvc;
 
@@ -60,6 +58,7 @@ public class CompanyProfileServiceTest {
         mockMvc.perform(patch(url).contentType(APPLICATION_JSON)
                 .content(gson.toJson(request))).andExpect(status().isOk());
     }
+
 
 
 }

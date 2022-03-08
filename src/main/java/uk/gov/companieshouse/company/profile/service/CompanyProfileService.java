@@ -1,11 +1,12 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import com.google.gson.Gson;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.CompanyRepository;
 import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 import uk.gov.companieshouse.logging.Logger;
+
+import java.util.Optional;
 
 @Service
 public class CompanyProfileService {
@@ -30,4 +31,23 @@ public class CompanyProfileService {
         logger.debug(String.format("Data saved in company_profile collection : %s",
                 companyProfileRequest.toString()));
     }
+
+
+    /**
+     * Retrieve a company profile using its company number.
+     *
+     * @param companyNumber the company number
+     * @return a company profile if one with such a company number exists, otherwise an empty
+     *     optional
+     */
+    public Optional<CompanyProfileDao> get(String companyNumber) {
+        logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
+        Optional<CompanyProfileDao> companyProfileDao = companyRepository
+                .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(companyNumber);
+
+        logger.trace(String.format("DSND-374: Company profile with number %s retrieved: %s",
+                companyNumber, companyProfileDao));
+        return companyProfileDao;
+    }
+
 }

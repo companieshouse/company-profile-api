@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import org.junit.Before;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,13 +15,17 @@ import uk.gov.companieshouse.company.profile.CompanyRepository;
 import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
 import uk.gov.companieshouse.logging.Logger;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CompanyProfileServiceTest {
+
+    private static final String MOCK_COMPANY_NUMBER = "6146287";
 
     @Mock
     private CompanyRepository repository;
@@ -45,8 +50,8 @@ public class CompanyProfileServiceTest {
 
         underTest.update(companyProfileWithInsolvency);
 
-        Mockito.verify(repository, Mockito.times(1)).findByCompanyNumber(eq(companyProfile.getData().getCompanyNumber()));
-        Mockito.verify(repository, Mockito.times(1)).save(argThat(companyProfileDao -> {
+        verify(repository, Mockito.times(1)).findByCompanyNumber(eq(companyProfile.getData().getCompanyNumber()));
+        verify(repository, Mockito.times(1)).save(argThat(companyProfileDao -> {
             assert(companyProfileDao.companyProfile.getData().getLinks().getInsolvency()).equals(companyProfileWithInsolvency.getData().getLinks().getInsolvency());
             return true;
         }));
@@ -63,6 +68,39 @@ public class CompanyProfileServiceTest {
         data.setLinks(links);
         companyProfile.setData(data);
         return companyProfile;
+    }
+
+
+
+    @Test
+    @DisplayName("When company profile is retrieved successfully then it is returned")
+    void getCompanyProfile() {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+
+        when(repository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDao));
+
+        Optional<CompanyProfileDao> companyProfileActual =
+                underTest.get(MOCK_COMPANY_NUMBER);
+
+        assertThat(companyProfileActual.get()).isSameAs(mockCompanyProfileDao);
+        verify(logger, times(2)).trace(anyString());
+    }
+
+    @Test
+    @DisplayName("When no company profile is retrieved then return empty optional")
+    void getNoCompanyProfileReturned() {
+        when(repository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
+                .thenReturn(Optional.empty());
+
+        Optional<CompanyProfileDao> companyProfileActual =
+                underTest.get(MOCK_COMPANY_NUMBER);
+
+        assertTrue(companyProfileActual.isEmpty());
+        verify(logger, times(2)).trace(anyString());
     }
 
 }
