@@ -24,8 +24,6 @@ class RepositoryITest {
 
     private static final String MOCK_COMPANY_NUMBER = "6146287";
 
-    Gson gson = new Gson();
-
     // static, so container starts before the application context and we can set properties
     @Container
     static MongoDBContainer mongoDBContainer = new MongoDBContainer(
