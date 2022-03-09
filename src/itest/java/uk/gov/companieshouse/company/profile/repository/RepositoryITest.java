@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.repository;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
@@ -13,7 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
+import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
@@ -34,6 +35,10 @@ class RepositoryITest {
     @Autowired
     private CompanyProfileRepository companyProfileRepository;
 
+    @BeforeEach
+    void setup() {
+        this.companyProfileRepository.deleteAll();
+    }
 
     @Test
     void should_return_mongodb_as_running() {
@@ -45,9 +50,9 @@ class RepositoryITest {
         CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyProfile.setData(companyData);
-        CompanyProfileDao companyProfileDao = new CompanyProfileDao(companyProfile);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyProfile);
 
-        this.companyProfileRepository.save(companyProfileDao);
+        this.companyProfileRepository.save(companyProfileDocument);
 
         System.out.println(this.companyProfileRepository.findAll().get(0));
 
@@ -60,9 +65,9 @@ class RepositoryITest {
         CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber("242424");
         companyProfile.setData(companyData);
-        CompanyProfileDao companyProfileDao = new CompanyProfileDao(companyProfile);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyProfile);
 
-        this.companyProfileRepository.save(companyProfileDao);
+        this.companyProfileRepository.save(companyProfileDocument);
 
         Assertions.assertTrue(
                 this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber("othernumber").isEmpty());

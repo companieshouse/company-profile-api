@@ -1,26 +1,33 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
+import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CompanyProfileControllerITest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String COMPANY_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
+    private static final String PATCH_INSOLVENCY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
@@ -34,9 +41,9 @@ public class CompanyProfileControllerITest {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(mockCompanyProfile);
 
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDao));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
         ResponseEntity<CompanyProfile> companyProfileResponse =
                 restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
@@ -55,5 +62,38 @@ public class CompanyProfileControllerITest {
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(companyProfileResponse.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("PATCH insolvency links")
+    void patchInsolvencyLinks() throws Exception {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+        doNothing().when(companyProfileService).updateInsolvencyLink(mockCompanyProfile);
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, null);
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                PATCH_INSOLVENCY_URL,
+                HttpMethod.PATCH, httpEntity, Void.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    @DisplayName("PATCH insolvency links NOT FOUND")
+    void patchInsolvencyLinksNotFound() throws Exception {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+        doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(mockCompanyProfile);
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, null);
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                PATCH_INSOLVENCY_URL,
+                HttpMethod.PATCH, httpEntity, Void.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNull();
     }
 }

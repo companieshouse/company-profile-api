@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.company.profile.domain;
+package uk.gov.companieshouse.company.profile.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 
 @Document(collection = "company_profile")
-public class CompanyProfileDao {
+public class CompanyProfileDocument {
     @Id
     @JsonIgnore
     private ObjectId id;
@@ -16,7 +16,7 @@ public class CompanyProfileDao {
     @JsonProperty("companyProfile")
     public CompanyProfile companyProfile;
 
-    public CompanyProfileDao(CompanyProfile companyProfile) {
+    public CompanyProfileDocument(CompanyProfile companyProfile) {
         this.companyProfile = companyProfile;
     }
 }
