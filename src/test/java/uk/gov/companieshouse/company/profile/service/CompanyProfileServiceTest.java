@@ -1,6 +1,8 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -10,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.any;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -67,6 +70,22 @@ class CompanyProfileServiceTest {
 
         assertTrue(companyProfileActual.isEmpty());
         verify(logger, times(2)).trace(anyString());
+    }
+
+    @Test
+    @DisplayName("When insolvency is given but company doesnt exist with that company number, NoSuchElementException exception thrown")
+    void when_insolvency_data_is_given_then_data_should_be_saved_not_found() {
+        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
+        CompanyProfile companyProfileWithInsolvency = companyProfile;
+        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
+        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(any())).thenReturn(Optional.empty());
+
+        assertThrows(
+                NoSuchElementException.class,
+                () -> companyProfileService.updateInsolvencyLink(companyProfileWithInsolvency),
+                "Expected doThing() to throw, but it didn't"
+        );
+        verify(companyProfileRepository, times(1)).findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(eq(companyProfile.getData().getCompanyNumber()));
     }
 
 

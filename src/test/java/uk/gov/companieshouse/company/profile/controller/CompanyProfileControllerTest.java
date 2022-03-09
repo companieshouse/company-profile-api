@@ -3,6 +3,7 @@ package uk.gov.companieshouse.company.profile.controller;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -12,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import com.google.gson.Gson;
@@ -96,5 +99,17 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(url).contentType(APPLICATION_JSON)
                 .content(gson.toJson(request))).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Company Profile PATCH request, not found")
+    public void callCompanyProfilePatchNotFound() throws Exception {
+        CompanyProfile request = new CompanyProfile();
+        String url = String.format("/company/%s/links", "02588581");
+
+        doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(any());
+
+        mockMvc.perform(patch(url).contentType(APPLICATION_JSON)
+                .content(gson.toJson(request))).andExpect(status().isNotFound());
     }
 }
