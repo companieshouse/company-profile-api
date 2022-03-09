@@ -26,7 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
+import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
@@ -54,9 +54,9 @@ class CompanyProfileControllerTest {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(mockCompanyProfile);
 
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDao));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
         mockMvc.perform(get(COMPANY_URL))
                 .andExpect(status().isOk())

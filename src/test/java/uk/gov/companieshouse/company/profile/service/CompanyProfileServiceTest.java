@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
-import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
+import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -44,15 +44,15 @@ class CompanyProfileServiceTest {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        CompanyProfileDao mockCompanyProfileDao = new CompanyProfileDao(mockCompanyProfile);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(mockCompanyProfile);
 
         when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDao));
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        Optional<CompanyProfileDao> companyProfileActual =
+        Optional<CompanyProfileDocument> companyProfileActual =
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertThat(companyProfileActual.get()).isSameAs(mockCompanyProfileDao);
+        assertThat(companyProfileActual.get()).isSameAs(mockCompanyProfileDocument);
         verify(logger, times(2)).trace(anyString());
     }
 
@@ -62,7 +62,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
                 .thenReturn(Optional.empty());
 
-        Optional<CompanyProfileDao> companyProfileActual =
+        Optional<CompanyProfileDocument> companyProfileActual =
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertTrue(companyProfileActual.isEmpty());
@@ -75,7 +75,7 @@ class CompanyProfileServiceTest {
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(any())).thenReturn(Optional.of(new CompanyProfileDao(companyProfile)));
+        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(any())).thenReturn(Optional.of(new CompanyProfileDocument(companyProfile)));
 
         companyProfileService.updateInsolvencyLink(companyProfileWithInsolvency);
 

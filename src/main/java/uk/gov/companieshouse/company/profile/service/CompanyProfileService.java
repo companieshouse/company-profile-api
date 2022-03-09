@@ -3,7 +3,7 @@ package uk.gov.companieshouse.company.profile.service;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.company.CompanyProfile;
-import uk.gov.companieshouse.company.profile.domain.CompanyProfileDao;
+import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -25,9 +25,9 @@ public class CompanyProfileService {
      * @return a company profile if one with such a company number exists, otherwise an empty
      *     optional
      */
-    public Optional<CompanyProfileDao> get(String companyNumber) {
+    public Optional<CompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
-        Optional<CompanyProfileDao> companyProfileDao = companyProfileRepository
+        Optional<CompanyProfileDocument> companyProfileDao = companyProfileRepository
                 .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(companyNumber);
 
         logger.trace(String.format("DSND-374: Company profile with number %s retrieved: %s",
@@ -40,7 +40,7 @@ public class CompanyProfileService {
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(final CompanyProfile companyProfileRequest) {
-        CompanyProfileDao companyProfile = companyProfileRepository
+        CompanyProfileDocument companyProfile = companyProfileRepository
                 .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(
                         companyProfileRequest.getData().getCompanyNumber()).get();
         String insolvencyLink = companyProfileRequest.getData().getLinks().getInsolvency();
