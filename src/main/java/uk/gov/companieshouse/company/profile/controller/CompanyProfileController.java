@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,12 +35,23 @@ public class CompanyProfileController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Update a company insolvency link.
+     *
+     * @param companyNumber the company number of the company
+     * @param requestBody The company profile
+     */
     @PatchMapping("/company/{company_number}/links")
     public ResponseEntity<Void> updateCompanyProfile(
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile requestBody
     ) {
-        companyProfileService.updateInsolvencyLink(requestBody);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        try {
+            companyProfileService.updateInsolvencyLink(requestBody);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.notFound().build();
+        }
+
     }
 }

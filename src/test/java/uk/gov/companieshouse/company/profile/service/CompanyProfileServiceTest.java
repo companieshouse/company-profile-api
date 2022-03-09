@@ -71,7 +71,7 @@ class CompanyProfileServiceTest {
 
 
     @Test
-    void when_insolvency_data_is_given_then_data_should_be_saved() {
+    void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");

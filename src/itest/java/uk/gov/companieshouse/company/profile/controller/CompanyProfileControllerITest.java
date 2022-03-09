@@ -64,7 +64,7 @@ public class CompanyProfileControllerITest {
 
     @Test
     @DisplayName("PATCH insolvency links")
-    void patchInsolvencyLinks() {
+    void patchInsolvencyLinks() throws Exception {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);

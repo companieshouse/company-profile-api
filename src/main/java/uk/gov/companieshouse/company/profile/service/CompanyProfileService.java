@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.company.CompanyProfile;
@@ -39,10 +40,17 @@ public class CompanyProfileService {
      * Updated insolvency links in company profile.
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
-    public void updateInsolvencyLink(final CompanyProfile companyProfileRequest) {
-        CompanyProfileDocument companyProfile = companyProfileRepository
+    public void updateInsolvencyLink(final CompanyProfile companyProfileRequest)
+            throws NoSuchElementException {
+        Optional<CompanyProfileDocument> companyProfileOptional = companyProfileRepository
                 .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(
-                        companyProfileRequest.getData().getCompanyNumber()).get();
+                        companyProfileRequest.getData().getCompanyNumber());
+
+        if (companyProfileOptional.isEmpty()) {
+            throw new NoSuchElementException("Database entry not found");
+        }
+
+        CompanyProfileDocument companyProfile = companyProfileOptional.get();
         String insolvencyLink = companyProfileRequest.getData().getLinks().getInsolvency();
         companyProfile.companyProfile.getData().getLinks().setInsolvency(insolvencyLink);
         companyProfileRepository.save(companyProfile);
