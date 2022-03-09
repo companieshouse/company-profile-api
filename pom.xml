@@ -262,6 +262,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                     <excludes>
                         <exclude>**/*ITest.java</exclude>
                     </excludes>
