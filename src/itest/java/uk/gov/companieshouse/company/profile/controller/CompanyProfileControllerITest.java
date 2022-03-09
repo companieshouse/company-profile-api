@@ -2,8 +2,10 @@ package uk.gov.companieshouse.company.profile.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -76,5 +78,22 @@ public class CompanyProfileControllerITest {
                 HttpMethod.PATCH, httpEntity, Void.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    @DisplayName("PATCH insolvency links NOT FOUND")
+    void patchInsolvencyLinksNotFound() throws Exception {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+        doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(mockCompanyProfile);
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, null);
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                PATCH_INSOLVENCY_URL,
+                HttpMethod.PATCH, httpEntity, Void.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getBody()).isNull();
     }
 }
