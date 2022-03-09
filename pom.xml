@@ -255,6 +255,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                     <excludes>
                         <exclude>**/*ITest.java</exclude>
                     </excludes>
@@ -275,6 +276,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                     <skipITs>${skip.integration.tests}</skipITs>
                     <includes>
