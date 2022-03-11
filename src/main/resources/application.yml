@@ -1,6 +1,12 @@
 logger:
   namespace: company-profile-api
 
+chs:
+  kafka:
+    api:
+      endpoint: ${CHS_URL:localhost}
+      key: ${CHS_API_KEY:chsApiKey}
+
 springfox:
   documentation:
     auto-startup: false
