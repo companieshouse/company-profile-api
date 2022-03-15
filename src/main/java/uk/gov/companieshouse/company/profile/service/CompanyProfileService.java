@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.service;
 import com.mongodb.client.result.UpdateResult;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
