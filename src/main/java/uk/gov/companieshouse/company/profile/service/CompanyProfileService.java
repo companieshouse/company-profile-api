@@ -36,16 +36,23 @@ public class CompanyProfileService {
      *
      * @param companyNumber the company number
      * @return a company profile if one with such a company number exists, otherwise an empty
-     *     optional
+     *      optional
      */
     public Optional<CompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
-        Optional<CompanyProfileDocument> companyProfileDao = companyProfileRepository
-                .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(companyNumber);
+        Optional<CompanyProfileDocument> companyProfileDocument = companyProfileRepository
+                .findById(companyNumber);
 
-        logger.trace(String.format("DSND-374: Company profile with number %s retrieved: %s",
-                companyNumber, companyProfileDao));
-        return companyProfileDao;
+        companyProfileDocument.ifPresentOrElse(
+                companyProfile -> logger.trace(
+                        String.format("DSND-374: Company profile with number %s retrieved: %s",
+                                companyNumber, companyProfile)),
+                () -> logger.trace(
+                        String.format("DSND-374: Company profile with number %s not found",
+                                companyNumber))
+        );
+
+        return companyProfileDocument;
     }
 
     /**
@@ -54,10 +61,8 @@ public class CompanyProfileService {
      */
     public void updateInsolvencyLink(final CompanyProfile companyProfileRequest)
             throws NoSuchElementException {
-
         Optional<CompanyProfileDocument> companyProfileOptional = companyProfileRepository
-                .findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(
-                        companyProfileRequest.getData().getCompanyNumber());
+                .findById(companyProfileRequest.getData().getCompanyNumber());
 
         if (companyProfileOptional.isEmpty()) {
             throw new NoSuchElementException("Database entry not found");
@@ -65,10 +70,10 @@ public class CompanyProfileService {
 
         CompanyProfileDocument companyProfile = companyProfileOptional.get();
         String insolvencyLink = companyProfileRequest.getData().getLinks().getInsolvency();
-        companyProfile.companyProfile.getData().getLinks().setInsolvency(insolvencyLink);
+        companyProfile.companyProfile.getLinks().setInsolvency(insolvencyLink);
         companyProfileRepository.save(companyProfile);
         logger.trace(String.format("DSND-376: Insolvency links updated: %s",
-                companyProfileRequest.toString()));
+                companyProfileRequest));
 
         String companyNumber = companyProfileRequest.getData().getCompanyNumber();
 

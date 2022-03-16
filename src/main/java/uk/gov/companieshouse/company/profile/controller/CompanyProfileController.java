@@ -31,7 +31,9 @@ public class CompanyProfileController {
             @PathVariable("company_number") String companyNumber) {
         return companyProfileService.get(companyNumber)
                 .map(companyProfileDao ->
-                        new ResponseEntity<>(companyProfileDao.companyProfile, HttpStatus.OK))
+                        new ResponseEntity<>(
+                                new CompanyProfile().data(companyProfileDao.companyProfile),
+                                HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -39,7 +41,7 @@ public class CompanyProfileController {
      * Update a company insolvency link.
      *
      * @param companyNumber the company number of the company
-     * @param requestBody The company profile
+     * @param requestBody   The company profile
      */
     @PatchMapping("/company/{company_number}/links")
     public ResponseEntity<Void> updateCompanyProfile(

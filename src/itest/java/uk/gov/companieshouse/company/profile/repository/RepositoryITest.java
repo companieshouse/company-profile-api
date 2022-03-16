@@ -47,30 +47,26 @@ class RepositoryITest {
 
     @Test
     void should_return_company_record_when_one_exists() {
-        CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        companyProfile.setData(companyData);
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyProfile);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData);
+        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         this.companyProfileRepository.save(companyProfileDocument);
 
-        System.out.println(this.companyProfileRepository.findAll().get(0));
-
         Assertions.assertTrue(
-                this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(MOCK_COMPANY_NUMBER).isPresent());
+                this.companyProfileRepository.findById(MOCK_COMPANY_NUMBER).isPresent());
     }
 
     @Test
     void should_return_empty_optional_when_company_record_does_not_exist() {
-        CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber("242424");
-        companyProfile.setData(companyData);
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyProfile);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData);
+        companyProfileDocument.setId("242424");
 
         this.companyProfileRepository.save(companyProfileDocument);
 
         Assertions.assertTrue(
-                this.companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber("othernumber").isEmpty());
+                this.companyProfileRepository.findById("othernumber").isEmpty());
     }
 
 }

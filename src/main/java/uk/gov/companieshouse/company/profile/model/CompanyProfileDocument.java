@@ -1,19 +1,27 @@
 package uk.gov.companieshouse.company.profile.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import uk.gov.companieshouse.api.company.CompanyProfile;
+import org.springframework.data.mongodb.core.mapping.Field;
+import uk.gov.companieshouse.api.company.Data;
 
 @Document(collection = "company_profile")
 public class CompanyProfileDocument {
     @Id
     private String id;
 
-    @JsonProperty("companyProfile")
-    public CompanyProfile companyProfile;
+    @Field("data")
+    public Data companyProfile;
 
-    public CompanyProfileDocument(CompanyProfile companyProfile) {
+    public CompanyProfileDocument(Data companyProfile) {
         this.companyProfile = companyProfile;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
