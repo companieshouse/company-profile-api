@@ -41,7 +41,7 @@ public class CompanyProfileController {
      * Update a company insolvency link.
      *
      * @param companyNumber the company number of the company
-     * @param requestBody   The company profile
+     * @param requestBody The company profile
      */
     @PatchMapping("/company/{company_number}/links")
     public ResponseEntity<Void> updateCompanyProfile(

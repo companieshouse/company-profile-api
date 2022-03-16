@@ -21,10 +21,10 @@ public class CompanyProfileConverter implements Converter<Document, Data> {
 
     @Override
     public Data convert(Document source) {
-        // Exclude serializing properties with null values
+        // Exclude properties with null values from being serialised
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         try {
-            // use a custom converter for the ISO datetime stamps
+            // Use a custom converter for the ISO datetime stamps
             JsonWriterSettings writerSettings = JsonWriterSettings
                     .builder()
                     .dateTimeConverter(new JsonDateTimeConverter())
