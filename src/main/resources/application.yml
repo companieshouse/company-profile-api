@@ -1,6 +1,9 @@
 logger:
   namespace: company-profile-api
 
+mongo:
+  company-profile-collection: company_profile
+
 chs:
   kafka:
     api:
