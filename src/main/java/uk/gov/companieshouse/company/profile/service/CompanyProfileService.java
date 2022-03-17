@@ -8,13 +8,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import com.mongodb.client.result.UpdateResult;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
@@ -88,10 +81,15 @@ public class CompanyProfileService {
         if (updateResult.getModifiedCount() == 1) {
             logger.trace(String.format("DSND-376: Insolvency links updated for company number: %s",
                     companyNumber));
-            insolvencyApiService.invokeChsKafkaApi(companyNumber);
+            try {
+                insolvencyApiService.invokeChsKafkaApi(companyNumber);
+                logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
+                        + "number %s", companyNumber));
+            } catch (Exception exception) {
+                logger.info(String.format("Error invoking ChsKafka API for company number %s",
+                        companyNumber));
+            }
 
-            logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
-                    + "number %s", companyNumber));
         }
         if (updateResult.getMatchedCount() == 0) {
             throw new NoSuchElementException("Company profile not found");
