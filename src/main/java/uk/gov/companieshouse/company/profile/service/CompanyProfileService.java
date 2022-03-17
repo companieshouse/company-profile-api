@@ -1,10 +1,21 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import com.mongodb.client.result.UpdateResult;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import com.mongodb.client.result.UpdateResult;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
@@ -17,17 +28,19 @@ public class CompanyProfileService {
 
     private final Logger logger;
     private final CompanyProfileRepository companyProfileRepository;
+    private MongoTemplate mongoTemplate;
     private final InsolvencyApiService insolvencyApiService;
 
     /**
-     * @param logger to log statements.
-     * @param companyProfileRepository repository class to interact with mongodb.
-     * @param insolvencyApiService service to call chs-kafka api.
+     * Constructor.
      */
-    public CompanyProfileService(Logger logger, CompanyProfileRepository companyProfileRepository,
+    public CompanyProfileService(Logger logger,
+                                 CompanyProfileRepository companyProfileRepository,
+                                 MongoTemplate mongoTemplate,
                                  InsolvencyApiService insolvencyApiService) {
         this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
+        this.mongoTemplate = mongoTemplate;
         this.insolvencyApiService = insolvencyApiService;
     }
 
@@ -36,7 +49,7 @@ public class CompanyProfileService {
      *
      * @param companyNumber the company number
      * @return a company profile if one with such a company number exists, otherwise an empty
-     *      optional
+     *     optional
      */
     public Optional<CompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
@@ -61,25 +74,25 @@ public class CompanyProfileService {
      */
     public void updateInsolvencyLink(final CompanyProfile companyProfileRequest)
             throws NoSuchElementException {
-        Optional<CompanyProfileDocument> companyProfileOptional = companyProfileRepository
-                .findById(companyProfileRequest.getData().getCompanyNumber());
-
-        if (companyProfileOptional.isEmpty()) {
-            throw new NoSuchElementException("Database entry not found");
-        }
-
-        CompanyProfileDocument companyProfile = companyProfileOptional.get();
-        String insolvencyLink = companyProfileRequest.getData().getLinks().getInsolvency();
-        companyProfile.companyProfile.getLinks().setInsolvency(insolvencyLink);
-        companyProfileRepository.save(companyProfile);
-        logger.trace(String.format("DSND-376: Insolvency links updated: %s",
-                companyProfileRequest));
-
         String companyNumber = companyProfileRequest.getData().getCompanyNumber();
+        Query updateCriteria = new Query(Criteria.where("data.company_number").is(companyNumber));
+        Update updateQuery = new Update();
+        updateQuery.set("data.links.insolvency",
+                companyProfileRequest.getData().getLinks().getInsolvency());
+        UpdateResult updateResult = mongoTemplate.updateFirst(updateCriteria,
+                updateQuery,
+                "company_profile");
 
-        insolvencyApiService.invokeChsKafkaApi(companyNumber);
+        if (updateResult.getModifiedCount() == 1) {
+            logger.trace(String.format("DSND-376: Insolvency links updated for company number: %s",
+                    companyNumber));
+            insolvencyApiService.invokeChsKafkaApi(companyNumber);
 
-        logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
-                + "number %s", companyNumber));
+            logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
+                    + "number %s", companyNumber));
+        }
+        if (updateResult.getMatchedCount() == 0) {
+            throw new NoSuchElementException("Company profile not found");
+        }
     }
 }
