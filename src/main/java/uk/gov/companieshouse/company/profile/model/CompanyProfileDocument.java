@@ -1,22 +1,27 @@
 package uk.gov.companieshouse.company.profile.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import uk.gov.companieshouse.api.company.CompanyProfile;
+import org.springframework.data.mongodb.core.mapping.Field;
+import uk.gov.companieshouse.api.company.Data;
 
-@Document(collection = "company_profile")
+@Document(collection = "#{@environment.getProperty('mongo.company-profile-collection')}")
 public class CompanyProfileDocument {
     @Id
-    @JsonIgnore
-    private ObjectId id;
+    private String id;
 
-    @JsonProperty("companyProfile")
-    public CompanyProfile companyProfile;
+    @Field("data")
+    public Data companyProfile;
 
-    public CompanyProfileDocument(CompanyProfile companyProfile) {
+    public CompanyProfileDocument(Data companyProfile) {
         this.companyProfile = companyProfile;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

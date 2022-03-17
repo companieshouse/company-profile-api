@@ -38,10 +38,10 @@ public class CompanyProfileControllerITest {
     @Test
     @DisplayName("Retrieve a company profile containing a given company number")
     void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
-        CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        mockCompanyProfile.setData(companyData);
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(mockCompanyProfile);
+        CompanyProfile mockCompanyProfile = new CompanyProfile().data(companyData);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
@@ -49,7 +49,9 @@ public class CompanyProfileControllerITest {
                 restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(companyProfileResponse.getBody()).usingRecursiveComparison().isEqualTo(mockCompanyProfile);
+        assertThat(companyProfileResponse.getBody()).usingRecursiveComparison().isEqualTo(
+                mockCompanyProfile
+        );
     }
 
     @Test

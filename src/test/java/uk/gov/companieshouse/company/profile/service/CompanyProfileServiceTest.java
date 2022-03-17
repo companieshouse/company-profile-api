@@ -47,12 +47,11 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
-        CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        mockCompanyProfile.setData(companyData);
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(mockCompanyProfile);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
-        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
+        when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
         Optional<CompanyProfileDocument> companyProfileActual =
@@ -65,7 +64,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When no company profile is retrieved then return empty optional")
     void getNoCompanyProfileReturned() {
-        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(anyString()))
+        when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
         Optional<CompanyProfileDocument> companyProfileActual =
@@ -81,29 +80,35 @@ class CompanyProfileServiceTest {
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(any())).thenReturn(Optional.empty());
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(
                 NoSuchElementException.class,
                 () -> companyProfileService.updateInsolvencyLink(companyProfileWithInsolvency),
                 "Expected doThing() to throw, but it didn't"
         );
-        verify(companyProfileRepository, times(1)).findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(eq(companyProfile.getData().getCompanyNumber()));
+        verify(companyProfileRepository, times(1)).findById(
+                eq(companyProfile.getData().getCompanyNumber()));
     }
 
 
     @Test
     void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
-        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
-        CompanyProfile companyProfileWithInsolvency = companyProfile;
+        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        when(companyProfileRepository.findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(any())).thenReturn(Optional.of(new CompanyProfileDocument(companyProfile)));
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(
+                companyProfileWithInsolvency.getData()
+        );
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+
+        when(companyProfileRepository.findById(any())).thenReturn(
+                Optional.of(mockCompanyProfileDocument));
 
         companyProfileService.updateInsolvencyLink(companyProfileWithInsolvency);
 
-        verify(companyProfileRepository, times(1)).findCompanyProfileDaoByCompanyProfile_Data_CompanyNumber(eq(companyProfile.getData().getCompanyNumber()));
+        verify(companyProfileRepository, times(1)).findById(eq(MOCK_COMPANY_NUMBER));
         verify(companyProfileRepository, times(1)).save(argThat(companyProfileDao -> {
-            assert(companyProfileDao.companyProfile.getData().getLinks().getInsolvency()).equals(companyProfileWithInsolvency.getData().getLinks().getInsolvency());
+            assert(companyProfileDao.companyProfile.getLinks().getInsolvency()).equals(companyProfileWithInsolvency.getData().getLinks().getInsolvency());
             return true;
         }));
     }
@@ -111,7 +116,7 @@ class CompanyProfileServiceTest {
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
         CompanyProfile companyProfile = new CompanyProfile();
         Data data = new Data();
-        data.setCompanyNumber("12345");
+        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
 
         Links links = new Links();
         links.setOfficers("officer");

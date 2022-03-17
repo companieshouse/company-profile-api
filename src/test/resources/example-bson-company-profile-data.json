@@ -1,0 +1,27 @@
+{
+    "company_status" : "active",
+    "date_of_creation" : ISODate("2019-08-04T14:27:34.987Z"),
+    "type" : "ltd",
+    "has_insolvency_history" : false,
+    "company_name" : "Test Corp",
+    "links" : {
+      "self" : "/company/T0000000"
+    },
+    "company_number" : "00006400",
+    "jurisdiction" : "england-wales",
+    "registered_office_address" : {
+      "address_line_1" : "Crown Way",
+      "address_line_2" : "",
+      "postal_code" : "CF14 3UZ",
+      "country" : "Wales",
+      "locality" : "Cardiff",
+      "po_box" : ""
+    },
+    "accounts" : {
+      "overdue" : false,
+      "next_made_up_to" : ISODate("2020-06-23T14:27:34.987Z"),
+      "next_due" : ISODate("2021-03-25T15:27:34.987Z")
+    },
+    "is_community_interest_company" : false,
+    "etag" : "etag"
+}
