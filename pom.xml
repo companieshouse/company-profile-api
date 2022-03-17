@@ -195,9 +195,9 @@
                             <goal>prepare-agent</goal>
                         </goals>
                         <configuration>
-							<!-- Sets the path to the file which contains the execution model. -->
-							<destFile>${sonar.jacoco.reports}/jacoco.exec</destFile>
-							<propertyName>surefireArgLine</propertyName>
+			    <!-- Sets the path to the file which contains the execution model. -->
+		            <destFile>${sonar.jacoco.reports}/jacoco.exec</destFile>
+			    <propertyName>surefireArgLine</propertyName>
                         </configuration>
                     </execution>
                     <execution>
@@ -230,10 +230,10 @@
                             <goal>report</goal>
                         </goals>
                         <configuration>
-							<!-- Sets the path to the file which contains the execution data. -->
-							<dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
-							<!-- Sets the output directory for the code coverage report. -->
-							<outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
+			    <!-- Sets the path to the file which contains the execution data. -->
+			    <dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
+			    <!-- Sets the output directory for the code coverage report. -->
+			    <outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
