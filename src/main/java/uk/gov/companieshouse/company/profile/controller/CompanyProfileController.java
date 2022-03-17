@@ -31,7 +31,9 @@ public class CompanyProfileController {
             @PathVariable("company_number") String companyNumber) {
         return companyProfileService.get(companyNumber)
                 .map(companyProfileDao ->
-                        new ResponseEntity<>(companyProfileDao.companyProfile, HttpStatus.OK))
+                        new ResponseEntity<>(
+                                new CompanyProfile().data(companyProfileDao.companyProfile),
+                                HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
     }
 
