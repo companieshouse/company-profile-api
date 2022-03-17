@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
@@ -78,6 +79,8 @@ public class CompanyProfileService {
         Update updateQuery = new Update();
         updateQuery.set("data.links.insolvency",
                 companyProfileRequest.getData().getLinks().getInsolvency());
+        updateQuery.set("data.etag",
+                GenerateEtagUtil.generateEtag());
         UpdateResult updateResult = mongoTemplate.updateFirst(updateCriteria,
                 updateQuery,
                 "company_profile");

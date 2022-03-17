@@ -21,8 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
@@ -101,7 +103,8 @@ class CompanyProfileServiceTest {
                     return true;
                 }
         ), argThat(updateQuery -> {
-            assert(updateQuery.getUpdateObject().toJson()).equals(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
+            System.out.println(updateQuery.getUpdateObject().toJson());
+            assert(updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
             return true;
         }), eq(COMPANY_PROFILE_COLLECTION));
     }
@@ -121,7 +124,8 @@ class CompanyProfileServiceTest {
                     return true;
                 }
         ), argThat(updateQuery -> {
-            assert(updateQuery.getUpdateObject().toJson()).equals(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
+            System.out.println(updateQuery.getUpdateObject().toJson());
+            assert(updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
             return true;
         }), eq(COMPANY_PROFILE_COLLECTION));
     }
@@ -144,6 +148,6 @@ class CompanyProfileServiceTest {
     }
 
     private String expectedUpdateQuery(String insolvencyLink) {
-        return String.format("{\"$set\": {\"data.links.insolvency\": \"%s\"}}", insolvencyLink);
+        return String.format("{\"$set\": {\"data.links.insolvency\": \"%s\", \"data.etag\": \"", insolvencyLink);
     }
 }
