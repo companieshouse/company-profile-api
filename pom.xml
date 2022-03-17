@@ -35,11 +35,18 @@
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
 
-        <!--sonar configuration-->
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml,
-            ${project.basedir}/target/site/jacoco-it/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.jacoco.reports>${project.basedir}/target/site</sonar.jacoco.reports>
+		<!--sonar configuration-->
+		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar.projectKey>uk.gov.companieshouse:company-profile-api</sonar.projectKey>
+		<sonar.sources>src/main</sonar.sources>
+		<sonar.tests>src/test</sonar.tests>
+		<sonar.verbose>true</sonar.verbose>
+		<sonar.coverage.jacoco.xmlReportPaths>
+			${project.basedir}/target/site/jacoco/jacoco.xml,
+			${project.basedir}/target/site/jacoco-it/jacoco.xml
+		</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.jacoco.reports>${project.basedir}/target/site</sonar.jacoco.reports>
     </properties>
 
     <dependencies>
@@ -188,9 +195,9 @@
                             <goal>prepare-agent</goal>
                         </goals>
                         <configuration>
-                            <!-- Sets the path to the file which contains the execution model. -->
-                            <destFile>${sonar.jacoco.reports}/jacoco.exec</destFile>
-                            <propertyName>surefireArgLine</propertyName>
+							<!-- Sets the path to the file which contains the execution model. -->
+							<destFile>${sonar.jacoco.reports}/jacoco.exec</destFile>
+							<propertyName>surefireArgLine</propertyName>
                         </configuration>
                     </execution>
                     <execution>
@@ -223,8 +230,10 @@
                             <goal>report</goal>
                         </goals>
                         <configuration>
-                            <dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
-                            <outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -255,6 +264,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
+                    <argLine>${surefireArgLine}</argLine>
                     <argLine>-Dfile.encoding=UTF-8</argLine>
                     <excludes>
                         <exclude>**/*ITest.java</exclude>
@@ -276,6 +286,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <argLine>${failsafeArgLine}</argLine>
                     <argLine>-Dfile.encoding=UTF-8</argLine>
                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                     <skipITs>${skip.integration.tests}</skipITs>
