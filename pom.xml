@@ -28,6 +28,7 @@
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
         <structured-logging.version>1.9.14</structured-logging.version>
         <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
+        <api-helper-java.version>1.4.5</api-helper-java.version>
         <cucumber.version>7.2.3</cucumber.version>
         <jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
         <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
@@ -135,6 +136,11 @@
             <artifactId>cucumber-spring</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>api-helper-java</artifactId>
+            <version>${api-helper-java.version}</version>
         </dependency>
     </dependencies>
 
