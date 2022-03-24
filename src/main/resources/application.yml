@@ -1,8 +1,11 @@
 logger:
   namespace: company-profile-api
 
-mongo:
-  company-profile-collection: company_profile
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URL:mongodb://127.0.0.1:27021/company_profile}
+      collection: company_profile
 
 chs:
   kafka:

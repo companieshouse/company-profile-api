@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import java.util.NoSuchElementException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 @RestController
@@ -21,18 +23,19 @@ public class CompanyProfileController {
     }
 
     /**
-     * Retrieve a company profile using a company number.
+     * Retrieve a company profile for a given company number.
      *
-     * @param companyNumber the company number of the company
-     * @return company profile api
+     * @param companyNumber The company number of the company
+     * @return The company profile
      */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<CompanyProfile> getCompanyProfile(
+    public ResponseEntity<Data> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         return companyProfileService.get(companyNumber)
-                .map(companyProfileDao ->
+                .map(document ->
                         new ResponseEntity<>(
-                                new CompanyProfile().data(companyProfileDao.companyProfile),
+
+                                document.companyProfile,
                                 HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -40,7 +43,7 @@ public class CompanyProfileController {
     /**
      * Update a company insolvency link.
      *
-     * @param companyNumber the company number of the company
+     * @param companyNumber The company number of the company
      * @param requestBody The company profile
      */
     @PatchMapping("/company/{company_number}/links")
