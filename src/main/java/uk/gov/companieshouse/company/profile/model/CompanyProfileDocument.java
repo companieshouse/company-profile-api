@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import uk.gov.companieshouse.api.company.Data;
 
-@Document(collection = "#{@environment.getProperty('mongo.company-profile-collection')}")
+@Document(collection = "#{@environment.getProperty('spring.data.mongodb.collection')}")
 public class CompanyProfileDocument {
     @Id
     private String id;
