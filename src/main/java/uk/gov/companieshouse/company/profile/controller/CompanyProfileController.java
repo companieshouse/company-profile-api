@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 @RestController
@@ -27,12 +28,12 @@ public class CompanyProfileController {
      * @return company profile api
      */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<CompanyProfile> getCompanyProfile(
+    public ResponseEntity<Data> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         return companyProfileService.get(companyNumber)
                 .map(companyProfileDao ->
                         new ResponseEntity<>(
-                                new CompanyProfile().data(companyProfileDao.companyProfile),
+                                new CompanyProfile().data(companyProfileDao.companyProfile).getData(),
                                 HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
     }
