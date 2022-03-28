@@ -86,8 +86,8 @@ public class CompanyProfileService {
                 logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
                         + "number %s", companyNumber));
             } catch (Exception exception) {
-                logger.info(String.format("Error invoking ChsKafka API for company number %s",
-                        companyNumber));
+                logger.error(String.format("Error invoking ChsKafka API for company number %s %s",
+                        companyNumber, exception));
             }
 
         }
