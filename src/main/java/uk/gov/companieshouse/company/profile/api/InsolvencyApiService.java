@@ -21,7 +21,7 @@ public class InsolvencyApiService {
     /**
      * Invoke Insolvency API.
      */
-    public InsolvencyApiService(@Value("chs.kafka.api.endpoint")String chsKafkaUrl,
+    public InsolvencyApiService(@Value("${chs.kafka.api.endpoint}")String chsKafkaUrl,
                                 ApiClientService apiClientService, Logger logger) {
         this.chsKafkaUrl = chsKafkaUrl;
         this.apiClientService = apiClientService;
