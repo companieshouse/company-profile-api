@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -47,12 +48,13 @@ public class CompanyProfileController {
      * @param requestBody The company profile
      */
     @PatchMapping("/company/{company_number}/links")
-    public ResponseEntity<Void> updateCompanyProfile(
+    public ResponseEntity<Void> updateCompanyProfile(@RequestHeader("x-request-id")
+                                                                 String contextId,
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile requestBody
     ) {
         try {
-            companyProfileService.updateInsolvencyLink(requestBody);
+            companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.notFound().build();

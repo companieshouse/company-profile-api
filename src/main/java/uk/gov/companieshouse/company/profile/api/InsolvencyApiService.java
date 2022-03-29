@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.api;
 
+import java.time.OffsetDateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
@@ -33,13 +34,13 @@ public class InsolvencyApiService {
      * @param companyNumber company insolvency number
      * @return response returned from chs-kafka api
      */
-    public ApiResponse<Void> invokeChsKafkaApi(String companyNumber) {
+    public ApiResponse<Void> invokeChsKafkaApi(String contextId, String companyNumber) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
         internalApiClient.setBasePath(chsKafkaUrl);
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
-                        CHANGED_RESOURCE_URI, mapChangedResource(companyNumber));
+                        CHANGED_RESOURCE_URI, mapChangedResource(contextId, companyNumber));
 
         try {
             return changedResourcePost.execute();
@@ -49,15 +50,18 @@ public class InsolvencyApiService {
         }
     }
 
-    private ChangedResource mapChangedResource(String companyNumber) {
+    private ChangedResource mapChangedResource(String contextId, String companyNumber) {
         String resourceUri = "/company/" + companyNumber + "/company-insolvency";
 
         ChangedResourceEvent event = new ChangedResourceEvent();
         event.setType("changed");
+        event.publishedAt(String.valueOf(OffsetDateTime.now()));
+
         ChangedResource changedResource = new ChangedResource();
         changedResource.setResourceUri(resourceUri);
         changedResource.event(event);
         changedResource.setResourceKind("company-insolvency");
+        changedResource.setContextId(contextId);
 
         return changedResource;
     }

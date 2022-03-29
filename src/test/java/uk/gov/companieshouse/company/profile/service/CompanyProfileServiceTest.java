@@ -36,6 +36,7 @@ import uk.gov.companieshouse.logging.Logger;
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private static final String MOCK_CONTEXT_ID = "123456";
 
     private static String COMPANY_PROFILE_COLLECTION = "company_profile";
 
@@ -94,7 +95,7 @@ class CompanyProfileServiceTest {
         doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(), any(), eq(COMPANY_PROFILE_COLLECTION));
         assertThrows(
                 NoSuchElementException.class,
-                () -> companyProfileService.updateInsolvencyLink(companyProfileWithInsolvency),
+                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfileWithInsolvency),
                 "Expected doThing() to throw, but it didn't"
         );
 
@@ -117,7 +118,7 @@ class CompanyProfileServiceTest {
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
         doReturn(UpdateResult.acknowledged(1l, 1l, null)).when(mongoTemplate).updateFirst(any(), any(), eq(COMPANY_PROFILE_COLLECTION));
 
-        companyProfileService.updateInsolvencyLink(companyProfileWithInsolvency);
+        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfileWithInsolvency);
 
         verify(mongoTemplate, times(1)).updateFirst(argThat(findQuery -> {
                     assert(findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));

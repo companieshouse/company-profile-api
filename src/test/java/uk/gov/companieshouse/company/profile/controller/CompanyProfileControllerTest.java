@@ -1,8 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -24,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -96,9 +96,9 @@ class CompanyProfileControllerTest {
         CompanyProfile request = new CompanyProfile();
         String url = String.format("/company/%s/links", "02588581");
 
-        doNothing().when(companyProfileService).updateInsolvencyLink(isA(CompanyProfile.class));
+        doNothing().when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(patch(url).contentType(APPLICATION_JSON)
+        mockMvc.perform(patch(url).contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isOk());
     }
 
@@ -108,9 +108,9 @@ class CompanyProfileControllerTest {
         CompanyProfile request = new CompanyProfile();
         String url = String.format("/company/%s/links", "02588581");
 
-        doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(any());
+        doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(url).contentType(APPLICATION_JSON)
+        mockMvc.perform(patch(url).contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isNotFound());
     }
 }

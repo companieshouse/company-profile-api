@@ -45,7 +45,7 @@ public class InsolvencyApiClientServiceTest {
         when(privateChangedResourceHandler.postChangedResource(Mockito.any(), Mockito.any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
 
-        ApiResponse<?> apiResponse = insolvencyApiService.invokeChsKafkaApi("CH4000056");
+        ApiResponse<Void> apiResponse = insolvencyApiService.invokeChsKafkaApi("123456", "CH4000056");
 
         Assertions.assertThat(apiResponse).isNotNull();
 
@@ -64,7 +64,7 @@ public class InsolvencyApiClientServiceTest {
         when(changedResourcePost.execute()).thenThrow(RuntimeException.class);
 
 
-        Assert.assertThrows(RuntimeException.class, () -> insolvencyApiService.invokeChsKafkaApi("CH4000056"));
+        Assert.assertThrows(RuntimeException.class, () -> insolvencyApiService.invokeChsKafkaApi("123456","CH4000056"));
 
         verify(apiClientService, times(1)).getInternalApiClient();
         verify(internalApiClient, times(1)).privateChangedResourceHandler();
