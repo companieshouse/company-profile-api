@@ -32,7 +32,7 @@
         <cucumber.version>7.2.3</cucumber.version>
         <jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
         <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
-        <private-api-sdk-java.version>2.0.122</private-api-sdk-java.version>
+        <private-api-sdk-java.version>2.0.130</private-api-sdk-java.version>
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
 
