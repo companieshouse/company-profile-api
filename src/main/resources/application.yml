@@ -10,7 +10,7 @@ spring:
 chs:
   kafka:
     api:
-      endpoint: ${CHS_URL:localhost}
+      endpoint: ${CHS_KAFKA_API_URL:localhost}
       key: ${CHS_API_KEY:chsApiKey}
 
 springfox:

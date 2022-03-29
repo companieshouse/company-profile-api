@@ -63,11 +63,13 @@ public class CompanyProfileService {
 
     /**
      * Updated insolvency links in company profile.
+     * @param contextId fetched from the headers using the key x-request-id
+     * @param companyNumber company number
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
-    public void updateInsolvencyLink(final CompanyProfile companyProfileRequest)
+    public void updateInsolvencyLink(String contextId, String companyNumber,
+                                     final CompanyProfile companyProfileRequest)
             throws NoSuchElementException {
-        String companyNumber = companyProfileRequest.getData().getCompanyNumber();
         Query updateCriteria = new Query(Criteria.where("data.company_number").is(companyNumber));
         Update updateQuery = new Update();
         updateQuery.set("data.links.insolvency",
@@ -82,7 +84,7 @@ public class CompanyProfileService {
             logger.trace(String.format("DSND-376: Insolvency links updated for company number: %s",
                     companyNumber));
             try {
-                insolvencyApiService.invokeChsKafkaApi(companyNumber);
+                insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
                 logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
                         + "number %s", companyNumber));
             } catch (Exception exception) {
