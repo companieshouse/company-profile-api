@@ -54,7 +54,7 @@ class CompanyProfileServiceTest {
     @InjectMocks
     CompanyProfileService companyProfileService;
 
-    private Gson gson;
+    private Gson gson = new Gson();
 
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
@@ -106,12 +106,10 @@ class CompanyProfileServiceTest {
             assert(updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
             return true;
         }), eq(COMPANY_PROFILE_COLLECTION));
-//        verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
-//            System.out.println(gson.toJson(companyProfileDocument));
-//            System.out.println(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
-//           assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
-//           return true;
-//        }));
+        verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
+           assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
+           return true;
+        }));
     }
 
 
