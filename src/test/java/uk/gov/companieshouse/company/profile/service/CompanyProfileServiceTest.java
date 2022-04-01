@@ -7,13 +7,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.client.result.UpdateResult;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +54,8 @@ class CompanyProfileServiceTest {
     @InjectMocks
     CompanyProfileService companyProfileService;
 
+    private Gson gson;
+
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
@@ -91,23 +92,26 @@ class CompanyProfileServiceTest {
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-
+        when(companyProfileRepository.save(any())).thenReturn(null);
         doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(), any(), eq(COMPANY_PROFILE_COLLECTION));
-        assertThrows(
-                NoSuchElementException.class,
-                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfileWithInsolvency),
-                "Expected doThing() to throw, but it didn't"
-        );
+
+        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfileWithInsolvency);
+
 
         verify(mongoTemplate, times(1)).updateFirst(argThat(findQuery -> {
                     assert(findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
                     return true;
                 }
         ), argThat(updateQuery -> {
-            System.out.println(updateQuery.getUpdateObject().toJson());
             assert(updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
             return true;
         }), eq(COMPANY_PROFILE_COLLECTION));
+//        verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
+//            System.out.println(gson.toJson(companyProfileDocument));
+//            System.out.println(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
+//           assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
+//           return true;
+//        }));
     }
 
 
@@ -142,6 +146,12 @@ class CompanyProfileServiceTest {
         data.setLinks(links);
         companyProfile.setData(data);
         return companyProfile;
+    }
+
+    private CompanyProfileDocument generateCompanyProfileDocument(CompanyProfile companyProfile) {
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyProfile.getData());
+        companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+        return companyProfileDocument;
     }
 
     private String expectedFindQuery(String companyNumber) {
