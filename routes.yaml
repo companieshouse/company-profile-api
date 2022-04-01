@@ -3,5 +3,4 @@ group: api
 weight: 900
 routes:
    1: ^/company-profile-api/healthcheck
-   2: ^/company/[a-zA-Z0-9]*
-   3: ^/company/(.*)/links.*
+   2: ^/company/(.*)/links
