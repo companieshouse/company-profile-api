@@ -18,7 +18,7 @@ public class CommonApiSteps {
     @Autowired
     protected TestRestTemplate restTemplate;
 
-    @Given("the application is running")
+    @Given("Company profile api service is running")
     public void theApplicationRunning() {
         assertThat(restTemplate).isNotNull();
         lastResponse = null;

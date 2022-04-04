@@ -14,23 +14,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-class RepositoryITest {
+class RepositoryITest extends AbstractMongoConfig {
 
     private static final String MOCK_COMPANY_NUMBER = "6146287";
-
-    // static, so container starts before the application context and we can set properties
-    @Container
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer(
-            DockerImageName.parse("mongo:4.0.10"));
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
-    }
 
     @Autowired
     private CompanyProfileRepository companyProfileRepository;
@@ -38,11 +29,6 @@ class RepositoryITest {
     @BeforeEach
     void setup() {
         this.companyProfileRepository.deleteAll();
-    }
-
-    @Test
-    void should_return_mongodb_as_running() {
-        Assertions.assertTrue(mongoDBContainer.isRunning());
     }
 
     @Test

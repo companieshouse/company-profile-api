@@ -12,5 +12,5 @@ import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
         classes = CompanyProfileApiApplication.class)
 @DirtiesContext
 @ActiveProfiles({"test"})
-public class CucumberSpringConfiguration {
+public class CucumberSpringConfiguration extends AbstractMongoConfig {
 }

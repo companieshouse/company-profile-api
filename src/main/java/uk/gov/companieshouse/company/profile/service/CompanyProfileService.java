@@ -83,18 +83,23 @@ public class CompanyProfileService {
         if (updateResult.getModifiedCount() == 1) {
             logger.trace(String.format("DSND-376: Insolvency links updated for company number: %s",
                     companyNumber));
-            try {
-                insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
-                logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
-                        + "number %s", companyNumber));
-            } catch (Exception exception) {
-                logger.error(String.format("Error invoking ChsKafka API for company number %s %s",
-                        companyNumber, exception));
-            }
-
         }
+
         if (updateResult.getMatchedCount() == 0) {
-            throw new NoSuchElementException("Company profile not found");
+            logger.trace(String.format("No company profile found, creating new one"));
+            CompanyProfileDocument companyProfileDocument =
+                    new CompanyProfileDocument(companyProfileRequest.getData());
+            companyProfileDocument.setId(companyProfileRequest.getData().getCompanyNumber());
+            companyProfileRepository.save(companyProfileDocument);
+        }
+
+        try {
+            insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
+                    + "number %s", companyNumber));
+        } catch (Exception exception) {
+            logger.error(String.format("Error invoking ChsKafka API for company number %s %s",
+                    companyNumber, exception));
         }
     }
 }

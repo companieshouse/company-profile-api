@@ -13,6 +13,8 @@ public class CompanyProfileDocument {
     @Field("data")
     public Data companyProfile;
 
+    public CompanyProfileDocument(){}
+
     public CompanyProfileDocument(Data companyProfile) {
         this.companyProfile = companyProfile;
     }
@@ -23,5 +25,13 @@ public class CompanyProfileDocument {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Data getCompanyProfile() {
+        return companyProfile;
+    }
+
+    public void setCompanyProfile(Data companyProfile) {
+        this.companyProfile = companyProfile;
     }
 }
