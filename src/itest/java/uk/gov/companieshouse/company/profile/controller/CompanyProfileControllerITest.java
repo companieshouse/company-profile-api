@@ -1,14 +1,8 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +14,9 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CompanyProfileControllerITest {
@@ -34,26 +31,22 @@ public class CompanyProfileControllerITest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    // TODO: Fix this integration test.
+    @Test
+    @DisplayName("Retrieve a company profile containing a given company number")
+    void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        CompanyProfile mockCompanyProfile = new CompanyProfile().data(companyData);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
-    //    @Test
-    //    @DisplayName("Retrieve a company profile containing a given company number")
-    //    void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
-    //        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-    //        CompanyProfile mockCompanyProfile = new CompanyProfile().data(companyData);
-    //        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData);
-    //        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-    //
-    //        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
-    //
-    //        ResponseEntity<CompanyProfile> companyProfileResponse =
-    //                restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
-    //
-    //        assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    //        assertThat(companyProfileResponse.getBody()).usingRecursiveComparison().isEqualTo(
-    //                mockCompanyProfile
-    //        );
-    //    }
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
+
+        ResponseEntity<CompanyProfile> companyProfileResponse =
+                restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
+
+        assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
 
     @Test
     @DisplayName("Return a not found response when company profile does not exist")
