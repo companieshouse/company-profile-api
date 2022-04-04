@@ -68,8 +68,7 @@ public class CompanyProfileService {
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
-                                     final CompanyProfile companyProfileRequest)
-            throws NoSuchElementException {
+                                     final CompanyProfile companyProfileRequest) {
         Query updateCriteria = new Query(Criteria.where("data.company_number").is(companyNumber));
         Update updateQuery = new Update();
         updateQuery.set("data.links.insolvency",
