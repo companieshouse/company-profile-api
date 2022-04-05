@@ -16,3 +16,5 @@ chs:
 springfox:
   documentation:
     auto-startup: false
+server:
+  port: 8081
