@@ -1,8 +1,8 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import com.mongodb.client.result.UpdateResult;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
+import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
@@ -21,7 +23,7 @@ public class CompanyProfileService {
 
     private final Logger logger;
     private final CompanyProfileRepository companyProfileRepository;
-    private MongoTemplate mongoTemplate;
+    private final MongoTemplate mongoTemplate;
     private final InsolvencyApiService insolvencyApiService;
 
     /**
@@ -42,12 +44,18 @@ public class CompanyProfileService {
      *
      * @param companyNumber the company number
      * @return a company profile if one with such a company number exists, otherwise an empty
-     *     optional
+     * optional
      */
     public Optional<CompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
-        Optional<CompanyProfileDocument> companyProfileDocument = companyProfileRepository
-                .findById(companyNumber);
+        Optional<CompanyProfileDocument> companyProfileDocument;
+        try {
+            companyProfileDocument = companyProfileRepository.findById(companyNumber);
+        } catch (IllegalArgumentException illegalArgumentEx) {
+            throw new BadRequestException(illegalArgumentEx.getMessage());
+        } catch (DataAccessException dbException) {
+            throw new ServiceUnavailableException(dbException.getMessage());
+        }
 
         companyProfileDocument.ifPresentOrElse(
                 companyProfile -> logger.trace(
@@ -63,8 +71,9 @@ public class CompanyProfileService {
 
     /**
      * Updated insolvency links in company profile.
-     * @param contextId fetched from the headers using the key x-request-id
-     * @param companyNumber company number
+     *
+     * @param contextId             fetched from the headers using the key x-request-id
+     * @param companyNumber         company number
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
@@ -85,20 +94,23 @@ public class CompanyProfileService {
         }
 
         if (updateResult.getMatchedCount() == 0) {
-            logger.trace(String.format("No company profile found, creating new one"));
+            logger.trace(String.format("No company profile with number %s found, creating new " +
+                    "one", companyNumber));
             CompanyProfileDocument companyProfileDocument =
                     new CompanyProfileDocument(companyProfileRequest.getData());
             companyProfileDocument.setId(companyProfileRequest.getData().getCompanyNumber());
-            companyProfileRepository.save(companyProfileDocument);
+
+            try {
+                companyProfileRepository.save(companyProfileDocument);
+            } catch (IllegalArgumentException illegalArgumentEx) {
+                throw new BadRequestException(illegalArgumentEx.getMessage());
+            } catch (DataAccessException dbException) {
+                throw new ServiceUnavailableException(dbException.getMessage());
+            }
         }
 
-        try {
-            insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
-                    + "number %s", companyNumber));
-        } catch (Exception exception) {
-            logger.error(String.format("Error invoking ChsKafka API for company number %s %s",
-                    companyNumber, exception));
-        }
+        insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
+        logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
+                + "number %s", companyNumber));
     }
 }

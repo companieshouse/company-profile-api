@@ -1,7 +1,9 @@
 package uk.gov.companieshouse.company.profile.api;
 
 import java.time.OffsetDateTime;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
@@ -9,6 +11,7 @@ import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
@@ -22,7 +25,7 @@ public class InsolvencyApiService {
     /**
      * Invoke Insolvency API.
      */
-    public InsolvencyApiService(@Value("${chs.kafka.api.endpoint}")String chsKafkaUrl,
+    public InsolvencyApiService(@Value("${chs.kafka.api.endpoint}") String chsKafkaUrl,
                                 ApiClientService apiClientService, Logger logger) {
         this.chsKafkaUrl = chsKafkaUrl;
         this.apiClientService = apiClientService;
@@ -31,6 +34,7 @@ public class InsolvencyApiService {
 
     /**
      * Call chs-kafka api.
+     *
      * @param companyNumber company insolvency number
      * @return response returned from chs-kafka api
      */
@@ -45,8 +49,16 @@ public class InsolvencyApiService {
         try {
             return changedResourcePost.execute();
         } catch (ApiErrorResponseException exp) {
-            logger.error("Error occurred while calling /resource-changed endpoint", exp);
-            throw new RuntimeException();
+            HttpStatus statusCode = HttpStatus.valueOf(exp.getStatusCode());
+            if (statusCode == HttpStatus.SERVICE_UNAVAILABLE) {
+                logger.error(String.format("Service unavailable while calling /resource-changed " +
+                        "for company number %s", companyNumber), exp);
+                throw new ServiceUnavailableException(exp.getMessage());
+            } else {
+                logger.error(String.format("Error occurred while calling /resource-changed for " +
+                        "company number %s", companyNumber), exp);
+                throw new RuntimeException(exp);
+            }
         }
     }
 

@@ -1,8 +1,13 @@
 package uk.gov.companieshouse.company.profile.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -12,9 +17,8 @@ import java.util.Objects;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.util.FileCopyUtils;
 import uk.gov.companieshouse.api.company.Data;
 
@@ -22,12 +26,14 @@ import uk.gov.companieshouse.api.company.Data;
 class CompanyProfileConverterTest {
     String companyProfileData;
 
-    @Autowired
-    @Qualifier("mongoConverterMapper")
+    @SpyBean(name = "mongoConverterMapper")
     private ObjectMapper objectMapper;
+
+    private CompanyProfileConverter companyProfileConverter;
 
     @BeforeEach
     void setup() throws IOException {
+        companyProfileConverter = new CompanyProfileConverter(objectMapper);
         String inputPath = "example-bson-company-profile-data.json";
         companyProfileData =
                 FileCopyUtils.copyToString(new InputStreamReader(Objects.requireNonNull(
@@ -35,10 +41,10 @@ class CompanyProfileConverterTest {
     }
 
     @Test
-    void convert() throws IOException {
+    void convertSuccessfully() throws IOException {
         Document companyProfileBson = Document.parse(companyProfileData);
 
-        Data companyProfile = new CompanyProfileConverter(objectMapper).convert(companyProfileBson);
+        Data companyProfile = companyProfileConverter.convert(companyProfileBson);
 
         String expectedDataPath = "company-profile-data-expected.json";
         String expectedCompanyProfileData =
@@ -51,5 +57,17 @@ class CompanyProfileConverterTest {
                 .isEqualTo(JsonInclude.Value.construct(
                         JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL));
         assertThat(companyProfile).usingRecursiveComparison().isEqualTo(expectedData);
+    }
+
+    @Test
+    void convertUnsuccessfully() throws JsonProcessingException {
+        Document companyProfileInvalidBson = Document.parse(companyProfileData);
+
+        doThrow(JsonProcessingException.class).when(objectMapper).readValue(anyString(),
+                eq(Data.class));
+
+        assertThrows(RuntimeException.class,
+                () -> new CompanyProfileConverter(objectMapper).convert(companyProfileInvalidBson));
+
     }
 }
