@@ -1,13 +1,14 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import com.mongodb.client.result.UpdateResult;
+
 import java.util.Optional;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
@@ -44,23 +45,23 @@ public class CompanyProfileService {
      *
      * @param companyNumber the company number
      * @return a company profile if one with such a company number exists, otherwise an empty
-     * optional
+     *     optional
      */
     public Optional<CompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
         Optional<CompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
-        } catch (IllegalArgumentException illegalArgumentEx) {
-            throw new BadRequestException(illegalArgumentEx.getMessage());
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
+        } catch (IllegalArgumentException illegalArgumentEx) {
+            throw new BadRequestException(illegalArgumentEx.getMessage());
         }
 
         companyProfileDocument.ifPresentOrElse(
                 companyProfile -> logger.trace(
                         String.format("DSND-374: Company profile with number %s retrieved: %s",
-                                companyNumber, companyProfile)),
+                                companyNumber, companyProfile.getCompanyProfile().toString())),
                 () -> logger.trace(
                         String.format("DSND-374: Company profile with number %s not found",
                                 companyNumber))
@@ -94,18 +95,18 @@ public class CompanyProfileService {
         }
 
         if (updateResult.getMatchedCount() == 0) {
-            logger.trace(String.format("No company profile with number %s found, creating new " +
-                    "one", companyNumber));
+            logger.trace(String.format("No company profile with number %s found, creating a new "
+                    + "one", companyNumber));
             CompanyProfileDocument companyProfileDocument =
                     new CompanyProfileDocument(companyProfileRequest.getData());
             companyProfileDocument.setId(companyProfileRequest.getData().getCompanyNumber());
 
             try {
                 companyProfileRepository.save(companyProfileDocument);
-            } catch (IllegalArgumentException illegalArgumentEx) {
-                throw new BadRequestException(illegalArgumentEx.getMessage());
             } catch (DataAccessException dbException) {
                 throw new ServiceUnavailableException(dbException.getMessage());
+            } catch (IllegalArgumentException illegalArgumentEx) {
+                throw new BadRequestException(illegalArgumentEx.getMessage());
             }
         }
 

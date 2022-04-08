@@ -1,33 +1,35 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.client.result.UpdateResult;
+import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
+import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
@@ -87,28 +89,55 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("When insolvency is given but company doesnt exist with that company number, NoSuchElementException exception thrown")
+    @DisplayName("When there's a connection issue while performing the GET request then throw a "
+            + "service unavailable exception")
+    void getConnectionIssueServiceUnavailable() {
+        when(companyProfileRepository.findById(anyString()))
+                .thenThrow(new DataAccessResourceFailureException("Connection broken"));
+
+        Assert.assertThrows(ServiceUnavailableException.class,
+                () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
+        verify(logger, times(1)).trace(anyString());
+    }
+
+    @Test
+    @DisplayName("When an illegal argument exception is thrown while performing the GET request then throw a "
+            + "bad request exception")
+    void getInvalidBadRequest() {
+        when(companyProfileRepository.findById(anyString()))
+                .thenThrow(new IllegalArgumentException());
+
+        Assert.assertThrows(BadRequestException.class,
+                () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
+        verify(logger, times(1)).trace(anyString());
+    }
+
+    @Test
+    @DisplayName("When insolvency is given but company doesnt exist with that company number, " +
+            "NoSuchElementException exception thrown")
     void when_insolvency_data_is_given_then_data_should_be_saved_not_found() {
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
         when(companyProfileRepository.save(any())).thenReturn(null);
-        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(), any(), eq(COMPANY_PROFILE_COLLECTION));
+        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(),
+                any(), eq(COMPANY_PROFILE_COLLECTION));
 
-        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfileWithInsolvency);
+        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfileWithInsolvency);
 
 
         verify(mongoTemplate, times(1)).updateFirst(argThat(findQuery -> {
-                    assert(findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
+                    assert (findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
                     return true;
                 }
         ), argThat(updateQuery -> {
-            assert(updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
+            assert (updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
             return true;
         }), eq(COMPANY_PROFILE_COLLECTION));
         verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
-           assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
-           return true;
+            assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
+            return true;
         }));
     }
 
@@ -118,19 +147,56 @@ class CompanyProfileServiceTest {
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        doReturn(UpdateResult.acknowledged(1l, 1l, null)).when(mongoTemplate).updateFirst(any(), any(), eq(COMPANY_PROFILE_COLLECTION));
+        doReturn(UpdateResult.acknowledged(1l, 1l, null)).when(mongoTemplate).updateFirst(any(),
+                any(), eq(COMPANY_PROFILE_COLLECTION));
 
-        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfileWithInsolvency);
+        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfileWithInsolvency);
 
         verify(mongoTemplate, times(1)).updateFirst(argThat(findQuery -> {
-                    assert(findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
+                    assert (findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
                     return true;
                 }
         ), argThat(updateQuery -> {
             System.out.println(updateQuery.getUpdateObject().toJson());
-            assert(updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
+            assert (updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
             return true;
         }), eq(COMPANY_PROFILE_COLLECTION));
+    }
+
+    @Test
+    @DisplayName("When there's a connection issue while performing the PATCH request then throw a "
+            + "service unavailable exception")
+    void patchConnectionIssueServiceUnavailable() {
+        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
+        CompanyProfile companyProfileWithInsolvency = companyProfile;
+        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
+        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(),
+                any(), eq(COMPANY_PROFILE_COLLECTION));
+
+        when(companyProfileRepository.save(any())).thenThrow(
+                new DataAccessResourceFailureException("Connection broken"));
+
+        Assert.assertThrows(ServiceUnavailableException.class,
+                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                        companyProfileWithInsolvency));
+    }
+
+    @Test
+    @DisplayName("When an illegal argument exception is thrown while performing the PATCH request then throw a "
+            + "bad request exception")
+    void patchInvalidBadRequest() {
+        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
+        CompanyProfile companyProfileWithInsolvency = companyProfile;
+        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
+        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(),
+                any(), eq(COMPANY_PROFILE_COLLECTION));
+
+        when(companyProfileRepository.save(any())).thenThrow(new IllegalArgumentException());
+
+        Assert.assertThrows(BadRequestException.class,
+                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                        companyProfileWithInsolvency));
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
@@ -147,7 +213,8 @@ class CompanyProfileServiceTest {
     }
 
     private CompanyProfileDocument generateCompanyProfileDocument(CompanyProfile companyProfile) {
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyProfile.getData());
+        CompanyProfileDocument companyProfileDocument =
+                new CompanyProfileDocument(companyProfile.getData());
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
         return companyProfileDocument;
     }
@@ -157,6 +224,7 @@ class CompanyProfileServiceTest {
     }
 
     private String expectedUpdateQuery(String insolvencyLink) {
-        return String.format("{\"$set\": {\"data.links.insolvency\": \"%s\", \"data.etag\": \"", insolvencyLink);
+        return String.format("{\"$set\": {\"data.links.insolvency\": \"%s\", \"data.etag\": \"",
+                insolvencyLink);
     }
 }

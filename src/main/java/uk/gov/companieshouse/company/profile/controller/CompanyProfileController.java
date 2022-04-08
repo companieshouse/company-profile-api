@@ -35,7 +35,6 @@ public class CompanyProfileController {
         return companyProfileService.get(companyNumber)
                 .map(document ->
                         new ResponseEntity<>(
-
                                 document.companyProfile,
                                 HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());

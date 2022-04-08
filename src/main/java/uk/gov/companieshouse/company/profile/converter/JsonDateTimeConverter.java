@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import org.bson.json.Converter;
 import org.bson.json.StrictJsonWriter;
+import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
@@ -30,8 +31,8 @@ public class JsonDateTimeConverter implements Converter<Long> {
             String formattedDate = DATE_TIME_FORMATTER.format(instant);
             writer.writeString(formattedDate);
         } catch (Exception ex) {
-            LOGGER.error(ex.getMessage());
-            throw new RuntimeException(ex);
+            LOGGER.error("Deserialisation failed", ex);
+            throw new BadRequestException(ex.getMessage());
         }
     }
 }

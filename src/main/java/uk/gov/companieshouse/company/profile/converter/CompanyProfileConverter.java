@@ -8,6 +8,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
@@ -33,6 +34,8 @@ public class CompanyProfileConverter implements Converter<Document, Data> {
                     .dateTimeConverter(new JsonDateTimeConverter())
                     .build();
             return mapper.readValue(source.toJson(writerSettings), Data.class);
+        } catch (BadRequestException badRequestEx) {
+            throw badRequestEx;
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage());
             throw new RuntimeException(ex);
