@@ -31,7 +31,7 @@ public class JsonDateTimeConverter implements Converter<Long> {
             String formattedDate = DATE_TIME_FORMATTER.format(instant);
             writer.writeString(formattedDate);
         } catch (Exception ex) {
-            LOGGER.error("Deserialisation failed", ex);
+            LOGGER.error("ISODate deserialisation failed", ex);
             throw new BadRequestException(ex.getMessage());
         }
     }

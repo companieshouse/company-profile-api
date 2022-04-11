@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +33,7 @@ public class ControllerExceptionHandler {
                 .body(buildExceptionResponse(errMsg));
     }
 
+
     /**
      * BadRequestException 400 handler.
      * Thrown when data is given in the wrong format.
@@ -39,7 +41,7 @@ public class ControllerExceptionHandler {
      * @param ex exception to handle.
      * @return error response to return.
      */
-    @ExceptionHandler(value = {BadRequestException.class})
+    @ExceptionHandler(value = {BadRequestException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<Object> handleBadRequestException(Exception ex) {
         String errMsg = "Bad request";
         LOGGER.error(errMsg, ex);
