@@ -6,8 +6,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import org.bson.json.Converter;
 import org.bson.json.StrictJsonWriter;
+import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 public class JsonDateTimeConverter implements Converter<Long> {
+
+    public static final String APPLICATION_NAME_SPACE = "company-profile-api";
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_INSTANT
             .withZone(ZoneId.of("UTC"));
@@ -25,7 +31,8 @@ public class JsonDateTimeConverter implements Converter<Long> {
             String formattedDate = DATE_TIME_FORMATTER.format(instant);
             writer.writeString(formattedDate);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            LOGGER.error("ISODate deserialisation failed", ex);
+            throw new BadRequestException(ex.getMessage());
         }
     }
 }
