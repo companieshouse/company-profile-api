@@ -81,8 +81,12 @@ public class CompanyProfileService {
                                      final CompanyProfile companyProfileRequest) {
         Query updateCriteria = new Query(Criteria.where("data.company_number").is(companyNumber));
         Update updateQuery = new Update();
-        updateQuery.set("data.links.insolvency",
-                companyProfileRequest.getData().getLinks().getInsolvency());
+        try {
+            updateQuery.set("data.links.insolvency",
+                    companyProfileRequest.getData().getLinks().getInsolvency());
+        } catch (Exception ex) {
+            throw new BadRequestException(ex.getMessage());
+        }
         updateQuery.set("data.etag",
                 GenerateEtagUtil.generateEtag());
         UpdateResult updateResult = mongoTemplate.updateFirst(updateCriteria,
