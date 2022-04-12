@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
 public class CompanyProfileControllerITest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
-    private static final String COMPANY_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
-    private static final String PATCH_INSOLVENCY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
+    private static final String COMPANY_URL = String.format("/company/%s/links",
+            MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
@@ -75,7 +75,7 @@ public class CompanyProfileControllerITest {
 
         HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
         ResponseEntity<Void> responseEntity = restTemplate.exchange(
-                PATCH_INSOLVENCY_URL,
+                COMPANY_URL,
                 HttpMethod.PATCH, httpEntity, Void.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -96,7 +96,7 @@ public class CompanyProfileControllerITest {
 
         HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
         ResponseEntity<Void> responseEntity = restTemplate.exchange(
-                PATCH_INSOLVENCY_URL,
+                COMPANY_URL,
                 HttpMethod.PATCH, httpEntity, Void.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
