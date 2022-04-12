@@ -39,8 +39,8 @@ import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 @ContextConfiguration(classes = CompanyProfileController.class)
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
-    private static final String COMPANY_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
-    private static final String COMPANY_URL_LINKS = String.format("%s/links", COMPANY_URL);
+    private static final String COMPANY_URL = String.format("/company/%s/links",
+            MOCK_COMPANY_NUMBER);
 
     @Autowired
     private MockMvc mockMvc;
@@ -129,7 +129,7 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).updateInsolvencyLink(anyString(), anyString(),
                 isA(CompanyProfile.class));
 
-        mockMvc.perform(patch(COMPANY_URL_LINKS).contentType(APPLICATION_JSON).header("x-request-id", "123456")
+        mockMvc.perform(patch(COMPANY_URL).contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isOk());
     }
 
@@ -140,7 +140,7 @@ class CompanyProfileControllerTest {
 
         doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL_LINKS).contentType(APPLICATION_JSON).header("x-request-id", "123456")
+        mockMvc.perform(patch(COMPANY_URL).contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isNotFound());
     }
 
@@ -153,7 +153,7 @@ class CompanyProfileControllerTest {
         doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL_LINKS)
+                mockMvc.perform(patch(COMPANY_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .content(gson.toJson(request)))
@@ -170,7 +170,7 @@ class CompanyProfileControllerTest {
         doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL_LINKS)
+                mockMvc.perform(patch(COMPANY_URL)
                                 .contentType(APPLICATION_JSON)
                                 .header("x-request-id", "123456")
                                 .content(gson.toJson(request)))
@@ -185,7 +185,7 @@ class CompanyProfileControllerTest {
         doThrow(RuntimeException.class).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL_LINKS)
+                mockMvc.perform(patch(COMPANY_URL)
                                 .contentType(APPLICATION_JSON)
                                 .header("x-request-id", "123456")
                                 .content(gson.toJson(request)))

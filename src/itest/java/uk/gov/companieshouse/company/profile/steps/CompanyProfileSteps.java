@@ -89,7 +89,7 @@ public class CompanyProfileSteps {
 
     @When("I send GET request with company number {string}")
     public void i_send_get_request_with_company_number(String companyNumber) {
-        String uri = "/company/{company_number}";
+        String uri = "/company/{company_number}/links";
         ResponseEntity<Data> response = restTemplate.exchange(uri, HttpMethod.GET, null,
                 Data.class, companyNumber);
 
