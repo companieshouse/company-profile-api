@@ -29,7 +29,7 @@ public class CompanyProfileController {
      * @param companyNumber The company number of the company
      * @return The company profile
      */
-    @GetMapping("/company/{company_number}")
+    @GetMapping("/company/{company_number}/links")
     public ResponseEntity<Data> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         return companyProfileService.get(companyNumber)
