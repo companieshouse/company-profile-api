@@ -30,12 +30,12 @@ public class CompanyProfileController {
      * @return The company profile
      */
     @GetMapping("/company/{company_number}/links")
-    public ResponseEntity<Data> getCompanyProfile(
+    public ResponseEntity<CompanyProfile> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         return companyProfileService.get(companyNumber)
                 .map(document ->
                         new ResponseEntity<>(
-                                document.companyProfile,
+                                new CompanyProfile().data(document.companyProfile),
                                 HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
     }

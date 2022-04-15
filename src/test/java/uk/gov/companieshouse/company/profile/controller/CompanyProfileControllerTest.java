@@ -66,7 +66,7 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(get(COMPANY_URL))
                 .andExpect(status().isOk())
-                .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile.getData())));
+                .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
     }
 
     @Test

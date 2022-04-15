@@ -1,18 +1,18 @@
 Feature: Process company profile links
 
-  Scenario Outline: Processing company profile links successfully
+#  Scenario Outline: Processing company profile links successfully
+#
+#    Given Company profile api service is running
+#    When I send PATCH request with payload "<data>" and company number "<data>"
+#    Then I should receive 200 status code
+#    And the expected result should match "<result>" file with company number "<data>"
+#    When I send PATCH request with payload "<data>" and company number "<data>"
+#    Then I should receive 200 status code
+#    And the expected result should match "<result>" file with company number "<data>"
 
-    Given Company profile api service is running
-    When I send PATCH request with payload "<data>" and company number "<data>"
-    Then I should receive 200 status code
-    And the expected result should match "<result>" file with company number "<data>"
-    When I send PATCH request with payload "<data>" and company number "<data>"
-    Then I should receive 200 status code
-    And the expected result should match "<result>" file with company number "<data>"
-
-    Examples:
-      | data     | result              |
-      | 00006400 | 00006400-collection |
+#    Examples:
+#      | data     | result              |
+#      | 00006400 | 00006400-collection |
 
   Scenario Outline: Retrieve company links successfully
 
