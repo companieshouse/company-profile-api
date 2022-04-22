@@ -2,6 +2,7 @@ package uk.gov.companieshouse.company.profile.steps;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,9 +20,11 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
+import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class CompanyProfileSteps {
 
@@ -79,9 +82,11 @@ public class CompanyProfileSteps {
     public void the_company_links_exists_for(String dataFile) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
 
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData());
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
 
         mongoTemplate.save(companyProfileDocument);

@@ -2,6 +2,10 @@ package uk.gov.companieshouse.company.profile.service;
 
 import com.mongodb.client.result.UpdateResult;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.dao.DataAccessException;
@@ -16,6 +20,7 @@ import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
+import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -26,6 +31,9 @@ public class CompanyProfileService {
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
     private final InsolvencyApiService insolvencyApiService;
+
+    static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     /**
      * Constructor.
@@ -79,39 +87,28 @@ public class CompanyProfileService {
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
                                      final CompanyProfile companyProfileRequest) {
-        Query updateCriteria = new Query(Criteria.where("data.company_number").is(companyNumber));
-        Update updateQuery = new Update();
+
+        Optional<CompanyProfileDocument> companyProfileDocumentOptional =
+                companyProfileRepository.findById(companyNumber);
+
+        CompanyProfileDocument cpDocument = companyProfileDocumentOptional.orElseThrow(
+                () -> new BadRequestException(String.format(
+                        "Resource not found for company number: %s", companyNumber)));
+
+        companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
+
+        cpDocument.setCompanyProfile(companyProfileRequest.getData());
+
+        Updated updated = new Updated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+                null, "company-profile");
+        cpDocument.setUpdated(updated);
+
         try {
-            updateQuery.set("data.links.insolvency",
-                    companyProfileRequest.getData().getLinks().getInsolvency());
-        } catch (Exception ex) {
-            throw new BadRequestException(ex.getMessage());
-        }
-        updateQuery.set("data.etag",
-                GenerateEtagUtil.generateEtag());
-        UpdateResult updateResult = mongoTemplate.updateFirst(updateCriteria,
-                updateQuery,
-                "company_profile");
-
-        if (updateResult.getModifiedCount() == 1) {
-            logger.trace(String.format("DSND-376: Insolvency links updated for company number: %s",
-                    companyNumber));
-        }
-
-        if (updateResult.getMatchedCount() == 0) {
-            logger.trace(String.format("No company profile with number %s found, creating a new "
-                    + "one", companyNumber));
-            CompanyProfileDocument companyProfileDocument =
-                    new CompanyProfileDocument(companyProfileRequest.getData());
-            companyProfileDocument.setId(companyProfileRequest.getData().getCompanyNumber());
-
-            try {
-                companyProfileRepository.save(companyProfileDocument);
-            } catch (DataAccessException dbException) {
-                throw new ServiceUnavailableException(dbException.getMessage());
-            } catch (IllegalArgumentException illegalArgumentEx) {
-                throw new BadRequestException(illegalArgumentEx.getMessage());
-            }
+            companyProfileRepository.save(cpDocument);
+        } catch (DataAccessException dbException) {
+            throw new ServiceUnavailableException(dbException.getMessage());
+        } catch (IllegalArgumentException illegalArgumentEx) {
+            throw new BadRequestException(illegalArgumentEx.getMessage());
         }
 
         insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);

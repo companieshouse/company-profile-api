@@ -5,16 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import com.google.gson.Gson;
-import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +29,7 @@ import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
+import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -62,7 +61,9 @@ class CompanyProfileServiceTest {
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
@@ -116,25 +117,23 @@ class CompanyProfileServiceTest {
     @DisplayName("When insolvency is given but company doesnt exist with that company number, " +
             "NoSuchElementException exception thrown")
     void when_insolvency_data_is_given_then_data_should_be_saved_not_found() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        Updated updated = new Updated(localDateTime,
+                null, "company-profile");
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
         when(companyProfileRepository.save(any())).thenReturn(null);
-        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(),
-                any(), eq(COMPANY_PROFILE_COLLECTION));
 
         companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfileWithInsolvency);
 
-
-        verify(mongoTemplate, times(1)).updateFirst(argThat(findQuery -> {
-                    assert (findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
-                    return true;
-                }
-        ), argThat(updateQuery -> {
-            assert (updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
-            return true;
-        }), eq(COMPANY_PROFILE_COLLECTION));
         verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
             assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
             return true;
@@ -144,35 +143,42 @@ class CompanyProfileServiceTest {
 
     @Test
     void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = new Updated(localDateTime,
+                null, "company-profile");
+
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
+
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        doReturn(UpdateResult.acknowledged(1l, 1l, null)).when(mongoTemplate).updateFirst(any(),
-                any(), eq(COMPANY_PROFILE_COLLECTION));
 
         companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfileWithInsolvency);
-
-        verify(mongoTemplate, times(1)).updateFirst(argThat(findQuery -> {
-                    assert (findQuery.getQueryObject().toJson()).equals(expectedFindQuery(companyProfileWithInsolvency.getData().getCompanyNumber()));
-                    return true;
-                }
-        ), argThat(updateQuery -> {
-            System.out.println(updateQuery.getUpdateObject().toJson());
-            assert (updateQuery.getUpdateObject().toJson()).contains(expectedUpdateQuery(companyProfileWithInsolvency.getData().getLinks().getInsolvency()));
-            return true;
-        }), eq(COMPANY_PROFILE_COLLECTION));
     }
 
     @Test
     @DisplayName("When there's a connection issue while performing the PATCH request then throw a "
             + "service unavailable exception")
     void patchConnectionIssueServiceUnavailable() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
+
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(),
-                any(), eq(COMPANY_PROFILE_COLLECTION));
 
         when(companyProfileRepository.save(any())).thenThrow(
                 new DataAccessResourceFailureException("Connection broken"));
@@ -186,11 +192,17 @@ class CompanyProfileServiceTest {
     @DisplayName("When an illegal argument exception is thrown while performing the PATCH request then throw a "
             + "bad request exception")
     void patchInvalidBadRequest() {
-        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
-        CompanyProfile companyProfileWithInsolvency = companyProfile;
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
+        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        doReturn(UpdateResult.acknowledged(0l, 0l, null)).when(mongoTemplate).updateFirst(any(),
-                any(), eq(COMPANY_PROFILE_COLLECTION));
 
         when(companyProfileRepository.save(any())).thenThrow(new IllegalArgumentException());
 
@@ -213,8 +225,9 @@ class CompanyProfileServiceTest {
     }
 
     private CompanyProfileDocument generateCompanyProfileDocument(CompanyProfile companyProfile) {
+        LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData());
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, new Updated(localDateTime, null, "company-profile"));
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
         return companyProfileDocument;
     }

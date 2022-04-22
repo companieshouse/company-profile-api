@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
+import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +38,9 @@ public class CompanyProfileControllerITest {
     void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         CompanyProfile mockCompanyProfile = new CompanyProfile().data(companyData);
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
