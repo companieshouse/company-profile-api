@@ -1,10 +1,5 @@
 package uk.gov.companieshouse.company.profile.steps;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -23,8 +18,13 @@ import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class CompanyProfileSteps {
 
@@ -83,8 +83,9 @@ public class CompanyProfileSteps {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
         LocalDateTime localDateTime = LocalDateTime.now();
-        Updated updated = mock(Updated.class);
-
+        //Updated updated = mock(Updated.class);
+        Updated updated = new Updated(LocalDateTime.now(),
+                "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument =
                 new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());

@@ -1,19 +1,14 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import com.mongodb.client.result.UpdateResult;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
@@ -23,6 +18,7 @@ import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
+
 
 @Service
 public class CompanyProfileService {
@@ -92,16 +88,14 @@ public class CompanyProfileService {
                 companyProfileRepository.findById(companyNumber);
 
         CompanyProfileDocument cpDocument = companyProfileDocumentOptional.orElseThrow(
-                () -> new BadRequestException(String.format(
+                () -> new IllegalArgumentException(String.format(
                         "Resource not found for company number: %s", companyNumber)));
 
         companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
 
         cpDocument.setCompanyProfile(companyProfileRequest.getData());
 
-        Updated updated = new Updated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
-                null, "company-profile");
-        cpDocument.setUpdated(updated);
+        cpDocument.getUpdated().setAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         try {
             companyProfileRepository.save(cpDocument);

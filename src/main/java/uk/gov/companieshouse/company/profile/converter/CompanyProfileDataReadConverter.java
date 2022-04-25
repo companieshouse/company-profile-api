@@ -1,29 +1,29 @@
 package uk.gov.companieshouse.company.profile.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.BasicDBObject;
+import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.convert.ReadingConverter;
 import uk.gov.companieshouse.api.company.Data;
 
-@WritingConverter
-public class DataWriteConverter implements Converter<Data, BasicDBObject> {
+@ReadingConverter
+public class CompanyProfileDataReadConverter implements Converter<Document, Data> {
 
     private final ObjectMapper objectMapper;
 
-    public DataWriteConverter(ObjectMapper objectMapper) {
+    public CompanyProfileDataReadConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     /**
-     * Write convertor.
+     * Read convertor.
      * @param source source Document.
-     * @return charge BSON object.
+     * @return charge object.
      */
     @Override
-    public BasicDBObject convert(Data source) {
+    public Data convert(Document source) {
         try {
-            return BasicDBObject.parse(objectMapper.writeValueAsString(source));
+            return objectMapper.readValue(source.toJson(), Data.class);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

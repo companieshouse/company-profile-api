@@ -12,11 +12,11 @@
         "type": "total-exemption-full"
       },
       "next_accounts": {
-        "due_on": "2022-09-30",
+        "due_on": "2022-09-30T17:14:48.263+00:00",
         "period_end_on": "2021-12-31T17:14:48.263+00:00",
         "period_start_on": "2021-01-01T17:14:48.263+00:00"
       },
-      "next_due": "2022-09-30",
+      "next_due": "2022-09-30T17:14:48.263+00:00",
       "next_made_up_to": "2021-12-31T17:14:48.263+00:00"
     },
     "can_file": true,

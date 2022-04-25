@@ -1,10 +1,13 @@
 package uk.gov.companieshouse.company.profile.model;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.format.annotation.DateTimeFormat;
+
 import uk.gov.companieshouse.api.company.Data;
 
 @Document(collection = "#{@environment.getProperty('spring.data.mongodb.collection')}")
@@ -46,31 +49,54 @@ public class CompanyProfileDocument {
         return id;
     }
 
-    public void setId(String id) {
+    public CompanyProfileDocument setId(String id) {
         this.id = id;
+        return this;
     }
 
     public Data getCompanyProfile() {
         return companyProfile;
     }
 
-    public void setCompanyProfile(Data companyProfile) {
+    public CompanyProfileDocument setCompanyProfile(Data companyProfile) {
         this.companyProfile = companyProfile;
+        return this;
     }
 
     public LocalDateTime getDeltaAt() {
         return deltaAt;
     }
 
-    public void setDeltaAt(LocalDateTime deltaAt) {
+    public CompanyProfileDocument setDeltaAt(LocalDateTime deltaAt) {
         this.deltaAt = deltaAt;
+        return this;
     }
 
     public Updated getUpdated() {
         return updated;
     }
 
-    public void setUpdated(Updated updated) {
+    public CompanyProfileDocument setUpdated(Updated updated) {
         this.updated = updated;
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        CompanyProfileDocument that = (CompanyProfileDocument) obj;
+        return id.equals(that.id) && companyProfile.equals(
+                that.companyProfile)
+                && updated.equals(that.updated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, companyProfile, updated);
     }
 }
