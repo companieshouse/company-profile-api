@@ -13,8 +13,11 @@ chs:
       endpoint: ${CHS_KAFKA_API_URL:localhost}
       key: ${CHS_API_KEY:chsApiKey}
 
-springfox:
-  documentation:
-    auto-startup: false
 server:
   port: 8081
+
+mongodb:
+  company-profile:
+    transactions: ${TRANSACTIONS_ENABLED:false}
+    collection:
+      name: ${COMPANY_PROFILE_COLLECTION_NAME:company_profile}
