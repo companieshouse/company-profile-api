@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -61,7 +62,7 @@ class CompanyProfileServiceTest {
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
         Updated updated = mock(Updated.class);
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
@@ -118,7 +119,7 @@ class CompanyProfileServiceTest {
             "NoSuchElementException exception thrown")
     void when_insolvency_data_is_given_then_data_should_be_saved_not_found() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         Updated updated = new Updated(localDateTime,
                 null, "company-profile");
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
@@ -144,7 +145,7 @@ class CompanyProfileServiceTest {
     @Test
     void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
         Updated updated = new Updated(localDateTime,
                 null, "company-profile");
 
@@ -167,7 +168,7 @@ class CompanyProfileServiceTest {
             + "service unavailable exception")
     void patchConnectionIssueServiceUnavailable() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
         Updated updated = mock(Updated.class);
 
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
@@ -193,7 +194,7 @@ class CompanyProfileServiceTest {
             + "bad request exception")
     void patchInvalidBadRequest() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
         Updated updated = mock(Updated.class);
 
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
@@ -225,7 +226,7 @@ class CompanyProfileServiceTest {
     }
 
     private CompanyProfileDocument generateCompanyProfileDocument(CompanyProfile companyProfile) {
-        LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS);
         CompanyProfileDocument companyProfileDocument =
                 new CompanyProfileDocument(companyProfile.getData(), localDateTime, new Updated(localDateTime, null, "company-profile"));
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());

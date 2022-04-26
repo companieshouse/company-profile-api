@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -96,9 +97,11 @@ public class CompanyProfileService {
         cpDocument.setCompanyProfile(companyProfileRequest.getData());
 
         if (cpDocument.getUpdated() != null) {
-            cpDocument.getUpdated().setAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+            cpDocument.getUpdated()
+                    .setAt(LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS));
         } else {
-            Updated updated = new Updated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+            Updated updated = new Updated(LocalDateTime
+                    .now(ZoneOffset.UTC).truncatedTo(ChronoUnit.SECONDS),
                     contextId, "company_delta");
             cpDocument.setUpdated(updated);
         }
