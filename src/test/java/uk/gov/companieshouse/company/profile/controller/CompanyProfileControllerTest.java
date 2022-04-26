@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -60,7 +61,7 @@ class CompanyProfileControllerTest {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
         Updated updated = mock(Updated.class);
 
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);

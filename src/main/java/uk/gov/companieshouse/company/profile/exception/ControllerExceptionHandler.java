@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.exception;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -82,7 +83,7 @@ public class ControllerExceptionHandler {
                 HttpStatus.NOT_FOUND), ex);
 
         Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", LocalDateTime.now());
+        responseBody.put("timestamp", LocalDateTime.now(ZoneOffset.UTC));
         responseBody.put("message", "Resource not found.");
         request.setAttribute("javax.servlet.error.exception", ex, 0);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
@@ -107,7 +108,7 @@ public class ControllerExceptionHandler {
     private HashMap<String, Object> buildExceptionResponse(String errMsg) {
         HashMap<String, Object> response = new HashMap<>();
         response.put("message", errMsg);
-        response.put("timestamp", LocalDateTime.now());
+        response.put("timestamp", LocalDateTime.now(ZoneOffset.UTC));
         return response;
     }
 }
