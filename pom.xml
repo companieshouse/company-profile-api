@@ -27,7 +27,7 @@
 
         <!-- Internal -->
         <structured-logging.version>1.9.14</structured-logging.version>
-        <private-api-sdk-java.version>2.0.154</private-api-sdk-java.version>
+        <private-api-sdk-java.version>2.0.155</private-api-sdk-java.version>
         <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>1.4.5</api-helper-java-library.version>
 
