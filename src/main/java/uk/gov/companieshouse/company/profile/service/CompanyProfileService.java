@@ -95,7 +95,13 @@ public class CompanyProfileService {
 
         cpDocument.setCompanyProfile(companyProfileRequest.getData());
 
-        cpDocument.getUpdated().setAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        if (cpDocument.getUpdated() != null) {
+            cpDocument.getUpdated().setAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        } else {
+            Updated updated = new Updated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+                    contextId, "company_delta");
+            cpDocument.setUpdated(updated);
+        }
 
         try {
             companyProfileRepository.save(cpDocument);
