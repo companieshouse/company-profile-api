@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -82,7 +84,7 @@ public class ApplicationConfig implements WebMvcConfigurer {
 
         objectMapper.registerModule(module);
 
-        //objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.registerModule(new JavaTimeModule());
 
         return objectMapper;
     }
