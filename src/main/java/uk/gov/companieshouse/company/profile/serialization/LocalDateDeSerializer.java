@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
@@ -25,9 +26,16 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
             deserializationContext) {
         try {
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             JsonNode jsonNode = jsonParser.readValueAsTree();
-            return LocalDate.parse(jsonNode.get("$date").textValue(), dateTimeFormatter);
+
+            if ("STRING".equalsIgnoreCase(jsonNode.getNodeType().name())) {
+                return LocalDate.parse(jsonNode.textValue(), dateTimeFormatter);
+            } else {
+                return LocalDate.parse(jsonNode.get("$date").textValue(), dateTimeFormatter);
+            }
+
+
         } catch (Exception exception) {
             LOGGER.error("LocalDate Deserialization failed.", exception);
             throw new BadRequestException(exception.getMessage());
