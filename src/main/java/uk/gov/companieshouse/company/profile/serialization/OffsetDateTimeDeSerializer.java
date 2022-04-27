@@ -28,8 +28,14 @@ public class OffsetDateTimeDeSerializer extends JsonDeserializer<OffsetDateTime>
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter
                     .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             JsonNode jsonNode = jsonParser.readValueAsTree();
-            return OffsetDateTime.parse(jsonNode.get("$date")
-                    .textValue(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+            if ("STRING".equalsIgnoreCase(jsonNode.getNodeType().name())) {
+                return OffsetDateTime.parse(jsonNode
+                        .textValue(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            } else {
+                return OffsetDateTime.parse(jsonNode.get("$date")
+                        .textValue(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            }
         } catch (Exception exception) {
             LOGGER.error("OffsetDateTime Deserialization failed.", exception);
             throw new BadRequestException(exception.getMessage());
