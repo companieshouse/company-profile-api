@@ -4,15 +4,17 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.util.DateFormatter;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-
 
 
 public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
@@ -22,20 +24,22 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     @Override
-    public LocalDate deserialize(JsonParser jsonParser, DeserializationContext
-            deserializationContext) {
+    public LocalDate deserialize(JsonParser jsonParser,
+            DeserializationContext deserializationContext) throws IOException {
+        JsonNode jsonNode = jsonParser.readValueAsTree();
         try {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            JsonNode jsonNode = jsonParser.readValueAsTree();
-
-            if ("STRING".equalsIgnoreCase(jsonNode.getNodeType().name())) {
-                return LocalDate.parse(jsonNode.textValue(), dateTimeFormatter);
+            if (JsonNodeType.STRING.equals(jsonNode.getNodeType())) {
+                var dateStr = jsonNode.textValue();
+                return DateFormatter.parse(dateStr);
+            } else if (JsonNodeType.NUMBER.equals(jsonNode.getNodeType())) {
+                var dateJsonNode = jsonNode.get("$date");
+                var longDate = dateJsonNode.get("$numberLong").asLong();
+                var dateStr = Instant.ofEpochMilli(new Date(longDate).getTime()).toString();
+                return DateFormatter.parse(dateStr);
             } else {
-                return LocalDate.parse(jsonNode.get("$date").textValue(), dateTimeFormatter);
+                var dateJsonNode = jsonNode.get("$date");
+                return DateFormatter.parse(dateJsonNode.textValue());
             }
-
-
         } catch (Exception exception) {
             LOGGER.error("LocalDate Deserialization failed.", exception);
             throw new BadRequestException(exception.getMessage());

@@ -6,19 +6,17 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import uk.gov.companieshouse.company.profile.util.DateFormatter;
 
 public class LocalDateSerializer extends JsonSerializer<LocalDate> {
 
     @Override
     public void serialize(LocalDate localDate, JsonGenerator jsonGenerator,
-                          SerializerProvider serializerProvider) throws IOException {
+            SerializerProvider serializerProvider) throws IOException {
         if (localDate == null) {
             jsonGenerator.writeNull();
         } else {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            String format = localDate.atStartOfDay().format(dateTimeFormatter);
+            String format = DateFormatter.format(localDate);
             jsonGenerator.writeRawValue("ISODate(\"" + format + "\")");
         }
     }
