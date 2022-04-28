@@ -5,7 +5,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URL:mongodb://127.0.0.1:27017/company_profile}
-      collection: company_profile
+      collection: ${MONGODB_COLLECTION:company_profile}
 
 chs:
   kafka:
