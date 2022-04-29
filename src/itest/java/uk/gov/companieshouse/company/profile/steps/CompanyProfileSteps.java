@@ -21,7 +21,6 @@ import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -83,9 +82,9 @@ public class CompanyProfileSteps {
     public void the_company_links_exists_for(String dataFile) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
-        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime localDateTime = LocalDateTime.now();
         //Updated updated = mock(Updated.class);
-        Updated updated = new Updated(LocalDateTime.now(ZoneOffset.UTC),
+        Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument =
                 new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated);

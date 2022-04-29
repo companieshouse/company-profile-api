@@ -13,7 +13,6 @@ import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
@@ -32,8 +31,8 @@ class RepositoryITest extends AbstractMongoConfig {
     @Test
     void should_return_company_record_when_one_exists() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
-        Updated updated = new Updated(LocalDateTime.now(ZoneOffset.UTC),
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
         companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
@@ -47,8 +46,8 @@ class RepositoryITest extends AbstractMongoConfig {
     @Test
     void should_return_empty_optional_when_company_record_does_not_exist() {
         Data companyData = new Data().companyNumber("242424");
-        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
-        Updated updated = new Updated(LocalDateTime.now(ZoneOffset.UTC),
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
         companyProfileDocument.setId("242424");
