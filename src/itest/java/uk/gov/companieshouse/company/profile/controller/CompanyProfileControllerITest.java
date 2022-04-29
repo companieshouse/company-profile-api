@@ -1,7 +1,6 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -39,9 +38,9 @@ public class CompanyProfileControllerITest {
     void getCompanyProfileWithMatchingCompanyNumber() throws Exception {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         CompanyProfile mockCompanyProfile = new CompanyProfile().data(companyData);
-        LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime localDateTime = LocalDateTime.now();
         //Updated updated = mock(Updated.class);
-        Updated updated = new Updated(LocalDateTime.now(ZoneOffset.UTC),
+        Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
