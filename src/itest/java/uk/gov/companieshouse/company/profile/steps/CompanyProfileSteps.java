@@ -11,22 +11,35 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.*;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
+import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
 public class CompanyProfileSteps {
+
+    private String companyNumber;
+    private String contextId;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -40,8 +53,14 @@ public class CompanyProfileSteps {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    public InsolvencyApiService insolvencyApiService;
+
     @Before
     public void dbCleanUp(){
+        if (!mongoDBContainer.isRunning()) {
+            mongoDBContainer.start();
+        }
         companyProfileRepository.deleteAll();
     }
 
@@ -50,6 +69,8 @@ public class CompanyProfileSteps {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
 
+        this.contextId = "5234234234";
+        this.companyNumber = companyNumber;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -61,10 +82,41 @@ public class CompanyProfileSteps {
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
+
+    @When("I send PATCH request with raw payload {string} and company number {string}")
+    public void i_send_put_request_with_raw_payload(String dataFile, String companyNumber) throws IOException {
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        String raw_payload = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity request = new HttpEntity(raw_payload, headers);
+        String uri = "/company/{company_number}/links";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
     @Then("I should receive {int} status code")
     public void i_should_receive_status_code(Integer statusCode) {
         Integer expectedStatusCode = (Integer) CucumberContext.CONTEXT.get("statusCode");
         Assertions.assertThat(expectedStatusCode).isEqualTo(statusCode);
+    }
+
+    @Then("the CHS Kafka API is invoked successfully")
+    public void chs_kafka_api_invoked() throws IOException {
+        verify(insolvencyApiService).invokeChsKafkaApi(eq(this.contextId), eq(companyNumber));
+    }
+
+    @When("CHS kafka API service is unavailable")
+    public void chs_kafka_service_unavailable() throws IOException {
+        doThrow(ServiceUnavailableException.class)
+                .when(insolvencyApiService).invokeChsKafkaApi(anyString(), anyString());
     }
 
     @Then("the expected result should match {string} file with company number {string}")
@@ -112,6 +164,22 @@ public class CompanyProfileSteps {
         Data actual = (Data) CucumberContext.CONTEXT.get("getResponseBody");
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @Then("the CHS Kafka API is not invoked")
+    public void chs_kafka_api_not_invoked() throws IOException {
+        verify(insolvencyApiService, times(0)).invokeChsKafkaApi(any(), any());
+    }
+
+    @Then("nothing is persisted in the database")
+    public void nothing_persisted_database() {
+        List<CompanyProfileDocument> insolvencyDocuments = companyProfileRepository.findAll();
+        Assertions.assertThat(insolvencyDocuments).hasSize(0);
+    }
+
+    @Given("the company profile database is down")
+    public void the_insolvency_db_is_down() {
+        mongoDBContainer.stop();
     }
 
 }

@@ -33,6 +33,7 @@ import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableExcepti
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.logging.Logger;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
 @ExtendWith(SpringExtension.class)
@@ -42,6 +43,9 @@ class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String COMPANY_URL = String.format("/company/%s/links",
             MOCK_COMPANY_NUMBER);
+
+    @MockBean
+    private Logger logger;
 
     @Autowired
     private MockMvc mockMvc;
