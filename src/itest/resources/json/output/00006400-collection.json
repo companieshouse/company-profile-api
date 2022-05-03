@@ -1,5 +1,6 @@
 {
   "id": "00006400",
+  "has_mortgage": false,
   "companyProfile": {
     "accounts": {
       "accounting_reference_date": null,

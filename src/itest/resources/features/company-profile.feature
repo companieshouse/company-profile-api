@@ -23,5 +23,5 @@ Feature: Process company profile links
     And the Get call response body should match "<result>" file
 
     Examples:
-      | data     | result               |
-      | 00006400 | 00006400-getResponse |
+      | data                  | result                            |
+      | 00006400              | 00006400-getResponse              |

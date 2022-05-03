@@ -34,7 +34,7 @@ class RepositoryITest extends AbstractMongoConfig {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         this.companyProfileRepository.save(companyProfileDocument);
@@ -49,7 +49,7 @@ class RepositoryITest extends AbstractMongoConfig {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         companyProfileDocument.setId("242424");
 
         this.companyProfileRepository.save(companyProfileDocument);

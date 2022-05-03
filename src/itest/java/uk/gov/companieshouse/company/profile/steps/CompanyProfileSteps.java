@@ -87,7 +87,7 @@ public class CompanyProfileSteps {
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated);
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
 
         mongoTemplate.save(companyProfileDocument);
