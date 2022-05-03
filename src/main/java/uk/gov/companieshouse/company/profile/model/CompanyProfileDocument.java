@@ -15,6 +15,9 @@ public class CompanyProfileDocument {
     @Id
     private String id;
 
+    @Field("has_mortgages")
+    public boolean hasMortgages;
+
     @Field("data")
     public Data companyProfile;
 
@@ -39,10 +42,11 @@ public class CompanyProfileDocument {
      * @param updated updated
      */
     public CompanyProfileDocument(Data companyProfile, LocalDateTime deltaAt,
-                                  Updated updated) {
+                                  Updated updated, boolean hasMortgages) {
         this.companyProfile = companyProfile;
         this.deltaAt = deltaAt;
         this.updated = updated;
+        this.hasMortgages = hasMortgages;
     }
 
     public String getId() {
@@ -81,6 +85,14 @@ public class CompanyProfileDocument {
         return this;
     }
 
+    public boolean isHasMortgages() {
+        return hasMortgages;
+    }
+
+    public void setHasMortgages(boolean hasMortgages) {
+        this.hasMortgages = hasMortgages;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -92,11 +104,12 @@ public class CompanyProfileDocument {
         CompanyProfileDocument that = (CompanyProfileDocument) obj;
         return id.equals(that.id) && companyProfile.equals(
                 that.companyProfile)
-                && updated.equals(that.updated);
+                && updated.equals(that.updated)
+                && hasMortgages == that.hasMortgages;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, companyProfile, updated);
+        return Objects.hash(id, companyProfile, updated, hasMortgages);
     }
 }

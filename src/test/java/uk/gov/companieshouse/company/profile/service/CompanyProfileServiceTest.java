@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 import com.google.gson.Gson;
@@ -62,7 +63,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
@@ -120,7 +121,7 @@ class CompanyProfileServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         Updated updated = new Updated(localDateTime,
                 null, "company-profile");
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
@@ -147,7 +148,7 @@ class CompanyProfileServiceTest {
         Updated updated = new Updated(localDateTime,
                 null, "company-profile");
 
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
@@ -169,7 +170,7 @@ class CompanyProfileServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
@@ -195,7 +196,7 @@ class CompanyProfileServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
@@ -226,7 +227,7 @@ class CompanyProfileServiceTest {
     private CompanyProfileDocument generateCompanyProfileDocument(CompanyProfile companyProfile) {
         LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, new Updated(localDateTime, null, "company-profile"));
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, new Updated(localDateTime, null, "company-profile"), false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
         return companyProfileDocument;
     }

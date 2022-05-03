@@ -42,7 +42,7 @@ public class CompanyProfileControllerITest {
         //Updated updated = mock(Updated.class);
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
