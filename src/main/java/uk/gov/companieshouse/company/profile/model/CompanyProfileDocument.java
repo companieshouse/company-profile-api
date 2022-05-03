@@ -15,6 +15,9 @@ public class CompanyProfileDocument {
     @Id
     private String id;
 
+    @Field("has_mortgages")
+    public boolean hasMortgages;
+
     @Field("data")
     public Data companyProfile;
 
@@ -79,6 +82,14 @@ public class CompanyProfileDocument {
     public CompanyProfileDocument setUpdated(Updated updated) {
         this.updated = updated;
         return this;
+    }
+
+    public boolean isHasMortgages() {
+        return hasMortgages;
+    }
+
+    public void setHasMortgages(boolean hasMortgages) {
+        this.hasMortgages = hasMortgages;
     }
 
     @Override
