@@ -1,8 +1,6 @@
 package uk.gov.companieshouse.company.profile.repository;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -22,6 +20,12 @@ class RepositoryITest extends AbstractMongoConfig {
 
     @Autowired
     private CompanyProfileRepository companyProfileRepository;
+
+
+    @BeforeAll
+    static void init(){
+        mongoDBContainer.start();
+    }
 
     @BeforeEach
     void setup() {
@@ -58,4 +62,9 @@ class RepositoryITest extends AbstractMongoConfig {
                 this.companyProfileRepository.findById("othernumber").isEmpty());
     }
 
+
+    @AfterAll
+    static void tear(){
+        mongoDBContainer.stop();
+    }
 }

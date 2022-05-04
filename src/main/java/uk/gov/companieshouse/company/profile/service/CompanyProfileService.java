@@ -3,6 +3,7 @@ package uk.gov.companieshouse.company.profile.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.dao.DataAccessException;
@@ -84,33 +85,29 @@ public class CompanyProfileService {
     public void updateInsolvencyLink(String contextId, String companyNumber,
                                      final CompanyProfile companyProfileRequest) {
 
-        Optional<CompanyProfileDocument> companyProfileDocumentOptional =
-                companyProfileRepository.findById(companyNumber);
-
-        CompanyProfileDocument cpDocument = companyProfileDocumentOptional.orElseThrow(
-                () -> new IllegalArgumentException(String.format(
-                        "Resource not found for company number: %s", companyNumber)));
-
-        companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
-
-        cpDocument.setCompanyProfile(companyProfileRequest.getData());
-
-        if (cpDocument.getUpdated() != null) {
-            cpDocument.getUpdated()
-                    .setAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-        } else {
-            Updated updated = new Updated(LocalDateTime
-                    .now().truncatedTo(ChronoUnit.SECONDS),
-                    contextId, "company_delta");
-            cpDocument.setUpdated(updated);
-        }
-
         try {
+
+            CompanyProfileDocument cpDocument =
+                    companyProfileRepository.findById(companyNumber).get();
+
+            companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
+
+            cpDocument.setCompanyProfile(companyProfileRequest.getData());
+
+            if (cpDocument.getUpdated() != null) {
+                cpDocument.getUpdated()
+                        .setAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+            } else {
+                Updated updated = new Updated(LocalDateTime
+                        .now().truncatedTo(ChronoUnit.SECONDS),
+                        contextId, "company_delta");
+                cpDocument.setUpdated(updated);
+            }
             companyProfileRepository.save(cpDocument);
-        } catch (DataAccessException dbException) {
-            throw new ServiceUnavailableException(dbException.getMessage());
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException(illegalArgumentEx.getMessage());
+        } catch (DataAccessException dbException) {
+            throw new ServiceUnavailableException(dbException.getMessage());
         }
 
         insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);

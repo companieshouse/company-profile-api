@@ -1,7 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.NoSuchElementException;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.logging.Logger;
 
 @RestController
 public class CompanyProfileController {
 
     private final CompanyProfileService companyProfileService;
 
-    public CompanyProfileController(CompanyProfileService companyProfileService) {
+    public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService) {
         this.companyProfileService = companyProfileService;
     }
 
@@ -45,19 +46,19 @@ public class CompanyProfileController {
      *
      * @param companyNumber The company number of the company
      * @param requestBody The company profile
+     * @return  no response
      */
     @PatchMapping("/company/{company_number}/links")
     public ResponseEntity<Void> updateCompanyProfile(@RequestHeader("x-request-id")
                                                                  String contextId,
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile requestBody
-    ) {
+    )  throws JsonProcessingException {
         try {
             companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.notFound().build();
         }
-
     }
 }

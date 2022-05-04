@@ -1,18 +1,16 @@
 Feature: Process company profile links
 
-#  Scenario Outline: Processing company profile links successfully
-#
-#    Given Company profile api service is running
-#    When I send PATCH request with payload "<data>" and company number "<data>"
-#    Then I should receive 200 status code
-#    And the expected result should match "<result>" file with company number "<data>"
-#    When I send PATCH request with payload "<data>" and company number "<data>"
-#    Then I should receive 200 status code
-#    And the expected result should match "<result>" file with company number "<data>"
+  Scenario Outline: Processing company profile links successfully
 
-#    Examples:
-#      | data     | result              |
-#      | 00006400 | 00006400-collection |
+    Given Company profile api service is running
+    And the company links exists for "<data>"
+    When I send PATCH request with payload "<data>" and company number "<data>"
+    Then I should receive 200 status code
+    And the CHS Kafka API is invoked successfully
+
+    Examples:
+      | data     |
+      | 11748564 |
 
   Scenario Outline: Retrieve company links successfully
 

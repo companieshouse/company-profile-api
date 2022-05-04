@@ -1,0 +1,78 @@
+{
+  "data": {
+    "accounts": {
+      "accounting_reference_date": {
+        "day": "31",
+        "month": "12"
+      },
+      "last_accounts": {
+        "made_up_to": null,
+        "period_end_on": "NOT_A_VALID_DATE",
+        "period_start_on": "NOT_A_VALID_DATE",
+        "type": "total-exemption-full"
+      },
+      "next_accounts": {
+        "due_on": "NOT_A_VALID_DATE",
+        "overdue": null,
+        "period_end_on": "NOT_A_VALID_DATE",
+        "period_start_on": "NOT_A_VALID_DATE"
+      },
+      "next_due": "NOT_A_VALID_DATE",
+      "next_made_up_to": "2021-12-31",
+      "overdue": null
+    },
+    "annual_return": null,
+    "branch_company_details": null,
+    "can_file": true,
+    "company_name": "RENABLE PHARMA LTD",
+    "company_number": "11748564",
+    "company_status": "liquidation",
+    "company_status_detail": null,
+    "confirmation_statement": {
+      "last_made_up_to": "2021-03-04",
+      "next_due": "2022-03-18",
+      "next_made_up_to": "2022-03-04",
+      "overdue": null
+    },
+    "date_of_cessation": null,
+    "date_of_creation": "2015-03-04",
+    "etag": "50661bcb3fea3d5162504996e178ab874fc5de69",
+    "external_registration_number": null,
+    "foreign_company_details": null,
+    "has_been_liquidated": null,
+    "has_charges": null,
+    "has_insolvency_history": true,
+    "is_community_interest_company": null,
+    "jurisdiction": "england-wales",
+    "last_full_members_list_date": "2016-03-04",
+    "links": {
+      "persons_with_significant_control": "/company/11748564/persons-with-significant-control",
+      "persons_with_significant_control_statements": null,
+      "registers": null,
+      "self": "/company/11748564",
+      "charges": "/company/11748564/charges",
+      "filing_history": "/company/11748564/filing-history",
+      "insolvency": "insolvency",
+      "officers": "/company/11748564/officers"
+    },
+    "previous_company_names": null,
+    "registered_office_address": {
+      "address_line_1": "Ground Floor Marlow International 4",
+      "address_line_2": "Parkway",
+      "care_of": null,
+      "country": "England",
+      "locality": "Marlow",
+      "po_box": null,
+      "postal_code": "SL7 1YL",
+      "premises": null,
+      "region": null
+    },
+    "registered_office_is_in_dispute": null,
+    "sic_codes": [
+      "72110"
+    ],
+    "subtype": null,
+    "type": "ltd",
+    "undeliverable_registered_office_address": null
+  }
+}
