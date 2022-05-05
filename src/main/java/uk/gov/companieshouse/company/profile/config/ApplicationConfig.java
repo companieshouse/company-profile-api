@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -65,6 +66,7 @@ public class ApplicationConfig implements WebMvcConfigurer {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         SimpleModule module = new SimpleModule();
         module.addSerializer(LocalDate.class, new LocalDateSerializer());
         module.addDeserializer(LocalDate.class, new LocalDateDeSerializer());
