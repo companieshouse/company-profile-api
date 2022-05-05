@@ -31,14 +31,16 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
             if (JsonNodeType.STRING.equals(jsonNode.getNodeType())) {
                 var dateStr = jsonNode.textValue();
                 return DateFormatter.parse(dateStr);
-            } else if (JsonNodeType.NUMBER.equals(jsonNode.getNodeType())) {
-                var dateJsonNode = jsonNode.get("$date");
-                var longDate = dateJsonNode.get("$numberLong").asLong();
-                var dateStr = Instant.ofEpochMilli(new Date(longDate).getTime()).toString();
-                return DateFormatter.parse(dateStr);
             } else {
                 var dateJsonNode = jsonNode.get("$date");
-                return DateFormatter.parse(dateJsonNode.textValue());
+
+                if (dateJsonNode.get("$numberLong") == null) {
+                    return DateFormatter.parse(dateJsonNode.textValue());
+                } else {
+                    var longDate = dateJsonNode.get("$numberLong").asLong();
+                    var dateStr = Instant.ofEpochMilli(new Date(longDate).getTime()).toString();
+                    return DateFormatter.parse(dateStr);
+                }
             }
         } catch (Exception exception) {
             LOGGER.error("LocalDate Deserialization failed.", exception);
