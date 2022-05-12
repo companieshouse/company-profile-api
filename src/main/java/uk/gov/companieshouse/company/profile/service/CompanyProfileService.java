@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.dao.DataAccessException;
@@ -49,11 +48,11 @@ public class CompanyProfileService {
      * Retrieve a company profile using its company number.
      *
      * @param companyNumber the company number
-     * @return a company profile if one with such a company number exists, otherwise an empty
-     *     optional
+     * @return a company profile if one with given company number exists, otherwise - empty optional
      */
     public Optional<CompanyProfileDocument> get(String companyNumber) {
-        logger.trace(String.format("DSND-374: GET company profile with number %s", companyNumber));
+        logger.trace(String.format("Call to retrieve company profile with company number %s",
+                companyNumber));
         Optional<CompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
@@ -65,10 +64,10 @@ public class CompanyProfileService {
 
         companyProfileDocument.ifPresentOrElse(
                 companyProfile -> logger.trace(
-                        String.format("DSND-374: Company profile with number %s retrieved: %s",
-                                companyNumber, companyProfile.getCompanyProfile().toString())),
+                        String.format("Successfully retrieved company profile "
+                                + "with company number %s", companyNumber)),
                 () -> logger.trace(
-                        String.format("DSND-374: Company profile with number %s not found",
+                        String.format("No company profile with company number %s found",
                                 companyNumber))
         );
 
@@ -76,7 +75,7 @@ public class CompanyProfileService {
     }
 
     /**
-     * Updated insolvency links in company profile.
+     * Update insolvency links in company profile.
      *
      * @param contextId             fetched from the headers using the key x-request-id
      * @param companyNumber         company number
@@ -109,9 +108,11 @@ public class CompanyProfileService {
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
+        logger.trace(String.format("Successfully persisted update request with contextId %s "
+                + "for company number %s into MongoDB", contextId, companyNumber));
 
         insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
-        logger.info(String.format("DSND-377: ChsKafka api invoked successfully for company "
-                + "number %s", companyNumber));
+        logger.info(String.format("Successfully invoked chs-kafka-api POST endpoint for request "
+                + "with contextId %s for company number %s", contextId, companyNumber));
     }
 }

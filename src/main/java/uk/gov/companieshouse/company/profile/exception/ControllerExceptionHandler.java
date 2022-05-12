@@ -2,55 +2,45 @@ package uk.gov.companieshouse.company.profile.exception;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.companieshouse.logging.Logger;
-import uk.gov.companieshouse.logging.LoggerFactory;
 
 @ControllerAdvice
-public class ControllerExceptionHandler {
-    public static final String APPLICATION_NAME_SPACE = "company-profile-api";
+public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
+    // The correlation identifier from the header
+    private static final String X_REQUEST_ID_HEADER = "x-request-id";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private final Logger logger;
 
-    /**
-     * Runtime exception 500 handler. Acts as the catch-all scenario.
-     *
-     * @param ex exception to handle.
-     * @return error response to return.
-     */
-    @ExceptionHandler(value = {Exception.class})
-    public ResponseEntity<Object> handleException(Exception ex) {
-        String errMsg = "Unexpected exception";
-        LOGGER.error(errMsg, ex);
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildExceptionResponse(errMsg));
+    @Autowired
+    public ControllerExceptionHandler(Logger logger) {
+        super();
+        this.logger = logger;
     }
 
-
-    /**
-     * BadRequestException 400 handler.
-     * Thrown when data is given in the wrong format.
-     *
-     * @param ex exception to handle.
-     * @return error response to return.
-     */
-    @ExceptionHandler(value = {BadRequestException.class, HttpMessageNotReadableException.class})
-    public ResponseEntity<Object> handleBadRequestException(Exception ex) {
+    @Override
+    @NonNull
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex, HttpHeaders headers,
+            HttpStatus status, WebRequest request) {
         String errMsg = "Bad request";
-        LOGGER.error(errMsg, ex);
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(buildExceptionResponse(errMsg));
+                .body(data);
     }
 
     /**
@@ -60,13 +50,54 @@ public class ControllerExceptionHandler {
      * @param ex exception to handle.
      * @return error response to return.
      */
-    @ExceptionHandler(value = {HttpRequestMethodNotSupportedException.class})
-    public ResponseEntity<Object> handleMethodNotSupportedException(Exception ex) {
+    @Override
+    @NonNull
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex, HttpHeaders headers,
+            HttpStatus status, WebRequest request) {
         String errMsg = "Method not allowed";
-        LOGGER.error(errMsg, ex);
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(buildExceptionResponse(errMsg));
+                .body(data);
+    }
+
+
+    /**
+     * Runtime exception 500 handler. Acts as the catch-all scenario.
+     *
+     * @param ex exception to handle.
+     * @return error response to return.
+     */
+    @ExceptionHandler(value = {Exception.class})
+    public ResponseEntity<Object> handleDefaultException(Exception ex, WebRequest request) {
+        String errMsg = "Unexpected exception";
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(data);
+    }
+
+    /**
+     * BadRequestException 400 handler.
+     * Thrown when data is given in the wrong format.
+     *
+     * @param ex exception to handle.
+     * @return error response to return.
+     */
+    @ExceptionHandler(value = {BadRequestException.class})
+    public ResponseEntity<Object> handleBadRequestException(Exception ex, WebRequest request) {
+        String errMsg = "Bad request";
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(data);
     }
 
     /**
@@ -78,14 +109,13 @@ public class ControllerExceptionHandler {
      */
     @ExceptionHandler(value = {IllegalArgumentException.class})
     public ResponseEntity<Object> handleNotFoundException(Exception ex, WebRequest request) {
-        LOGGER.error(String.format("Resource not found, response code: %s",
-                HttpStatus.NOT_FOUND), ex);
+        String errMsg = "Resource not found";
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
 
-        Map<String, Object> responseBody = new LinkedHashMap<>();
-        responseBody.put("timestamp", LocalDateTime.now());
-        responseBody.put("message", "Resource not found.");
-        request.setAttribute("javax.servlet.error.exception", ex, 0);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(data);
     }
 
     /**
@@ -96,12 +126,15 @@ public class ControllerExceptionHandler {
      * @return error response to return.
      */
     @ExceptionHandler(value = {ServiceUnavailableException.class})
-    public ResponseEntity<Object> handleServiceUnavailableException(Exception ex) {
+    public ResponseEntity<Object> handleServiceUnavailableException(Exception ex,
+                                                                    WebRequest request) {
         String errMsg = "Service unavailable";
-        LOGGER.error(errMsg, ex);
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(buildExceptionResponse(errMsg));
+                .body(data);
     }
 
     private HashMap<String, Object> buildExceptionResponse(String errMsg) {
