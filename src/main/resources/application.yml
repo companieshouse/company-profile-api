@@ -2,6 +2,8 @@ logger:
   namespace: company-profile-api
 
 spring:
+  jackson:
+    default-property-inclusion: NON_NULL
   data:
     mongodb:
       uri: ${MONGODB_URL:mongodb://127.0.0.1:27017/company_profile}
