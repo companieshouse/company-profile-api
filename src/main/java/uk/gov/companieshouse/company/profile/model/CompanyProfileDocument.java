@@ -16,7 +16,7 @@ public class CompanyProfileDocument {
     private String id;
 
     @Field("has_mortgages")
-    public boolean hasMortgages;
+    public Boolean hasMortgages;
 
     @Field("data")
     public Data companyProfile;
