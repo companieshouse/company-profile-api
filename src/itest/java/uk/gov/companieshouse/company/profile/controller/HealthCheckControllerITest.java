@@ -20,6 +20,6 @@ class HealthCheckControllerITest {
     @Test
     @DisplayName("Successfully returns health status")
     void returnHealthStatusSuccessfully() throws Exception {
-        mockMvc.perform(get("/healthcheck")).andExpect(status().isOk());
+        mockMvc.perform(get("/company-profile-api/healthcheck")).andExpect(status().isOk());
     }
 }

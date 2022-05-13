@@ -23,3 +23,15 @@ mongodb:
     transactions: ${TRANSACTIONS_ENABLED:false}
     collection:
       name: ${COMPANY_PROFILE_COLLECTION_NAME:company_profile}
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      base-path: /company-profile-api
+      path-mapping:
+        health: healthcheck
+  endpoint:
+    health:
+      show-details: never
+      enabled: true
