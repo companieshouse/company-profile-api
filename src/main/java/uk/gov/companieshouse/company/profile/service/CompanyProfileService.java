@@ -108,11 +108,11 @@ public class CompanyProfileService {
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
-        logger.trace(String.format("Successfully persisted update request with contextId %s "
-                + "for company number %s into MongoDB", contextId, companyNumber));
+        logger.trace(String.format("Company profile is updated in MongoDB with contextId %s "
+                + "and company number %s", contextId, companyNumber));
 
         insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
-        logger.info(String.format("Successfully invoked chs-kafka-api POST endpoint for request "
-                + "with contextId %s for company number %s", contextId, companyNumber));
+        logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
+                + "contextId %s and company number %s", contextId, companyNumber));
     }
 }

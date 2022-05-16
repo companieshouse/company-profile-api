@@ -56,8 +56,8 @@ public class CompanyProfileController {
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile requestBody) {
-        logger.info(String.format("Request received on PATCH endpoint "
-                + "with contextId %s for company number %s", contextId, companyNumber));
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
         try {
             companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
             return ResponseEntity.status(HttpStatus.OK).build();

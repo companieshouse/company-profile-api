@@ -52,12 +52,12 @@ public class InsolvencyApiService {
             HttpStatus statusCode = HttpStatus.valueOf(exp.getStatusCode());
             if (statusCode == HttpStatus.SERVICE_UNAVAILABLE) {
                 logger.error(String.format("Service unavailable while calling /resource-changed "
-                        + "with contextId %s for company number %s", contextId, companyNumber),
+                        + "with contextId %s and company number %s", contextId, companyNumber),
                         exp);
                 throw new ServiceUnavailableException(exp.getMessage());
             } else {
                 logger.error(String.format("Error occurred while calling /resource-changed with "
-                        + "contextId %s for company number %s", contextId, companyNumber), exp);
+                        + "contextId %s and company number %s", contextId, companyNumber), exp);
                 throw new RuntimeException(exp);
             }
         }
