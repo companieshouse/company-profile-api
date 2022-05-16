@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +18,10 @@ import uk.gov.companieshouse.logging.Logger;
 public class CompanyProfileController {
 
     private final CompanyProfileService companyProfileService;
+    private final Logger logger;
 
     public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService) {
+        this.logger = logger;
         this.companyProfileService = companyProfileService;
     }
 
@@ -33,6 +34,8 @@ public class CompanyProfileController {
     @GetMapping("/company/{company_number}/links")
     public ResponseEntity<CompanyProfile> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
+        logger.info(String.format("Request received on GET endpoint for company number %s",
+                companyNumber));
         return companyProfileService.get(companyNumber)
                 .map(document ->
                         new ResponseEntity<>(
@@ -49,11 +52,12 @@ public class CompanyProfileController {
      * @return  no response
      */
     @PatchMapping("/company/{company_number}/links")
-    public ResponseEntity<Void> updateCompanyProfile(@RequestHeader("x-request-id")
-                                                                 String contextId,
+    public ResponseEntity<Void> updateCompanyProfile(
+            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
-            @RequestBody CompanyProfile requestBody
-    )  throws JsonProcessingException {
+            @RequestBody CompanyProfile requestBody) {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
         try {
             companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
             return ResponseEntity.status(HttpStatus.OK).build();
