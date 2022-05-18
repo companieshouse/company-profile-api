@@ -1,7 +1,6 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.springframework.dao.DataAccessException;
@@ -28,9 +27,6 @@ public class CompanyProfileService {
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
     private final InsolvencyApiService insolvencyApiService;
-
-    static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     /**
      * Constructor.
@@ -99,23 +95,23 @@ public class CompanyProfileService {
                         contextId, "company_delta");
             }
 
-            Links existingLinks = cpDocument.getCompanyProfile().getLinks();
-            if (existingLinks == null) {
-                existingLinks = new Links();
-            }
             Links newLinks = companyProfileRequest.getData().getLinks();
             if (newLinks == null) {
                 newLinks = new Links();
             }
 
             Update update1 = new Update();
-            update1 = updateLinks(update1, existingLinks.getInsolvency(), newLinks.getInsolvency(),
+            update1 = updateOrDelete(update1, newLinks.getInsolvency(),
                     "data.links.insolvency");
-            update1 = updateLinks(update1, existingLinks.getCharges(), newLinks.getCharges(),
+            update1 = updateOrDelete(update1, newLinks.getCharges(),
                     "data.links.charges");
 
             update1.set("data.etag", GenerateEtagUtil.generateEtag())
                     .set("updated", updated);
+
+            update1 = updateOrDelete(update1,
+                    companyProfileRequest.getData().getHasInsolvencyHistory(),
+                    "data.has_insolvency_history");
 
             Query query1 = new Query(Criteria.where("_id").is(companyNumber));
             mongoTemplate.upsert(query1, update1, CompanyProfileDocument.class);
@@ -133,7 +129,7 @@ public class CompanyProfileService {
                 + "contextId %s and company number %s", contextId, companyNumber));
     }
 
-    private Update updateLinks(Update update, String oldLink, String newLink, String fieldName) {
+    private Update updateOrDelete(Update update, Object newLink, String fieldName) {
 
         if (newLink == null) {
             update.unset(fieldName);
