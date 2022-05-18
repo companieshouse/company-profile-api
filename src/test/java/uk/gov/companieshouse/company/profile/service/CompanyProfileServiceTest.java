@@ -22,6 +22,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
@@ -129,17 +131,13 @@ class CompanyProfileServiceTest {
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
-        when(companyProfileRepository.save(any())).thenReturn(null);
 
         companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfileWithInsolvency);
 
-        verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
-            assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
-            return true;
-        }));
-    }
+        verify(mongoTemplate).upsert(any(Query.class), any(Update.class), any(Class.class));
 
+    }
 
     @Test
     void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
@@ -166,49 +164,26 @@ class CompanyProfileServiceTest {
     @DisplayName("When there's a connection issue while performing the PATCH request then throw a "
             + "service unavailable exception")
     void patchConnectionIssueServiceUnavailable() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Updated updated = mock(Updated.class);
-
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
-
-        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
-        CompanyProfile companyProfileWithInsolvency = companyProfile;
-        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-
-        when(companyProfileRepository.save(any())).thenThrow(
-                new DataAccessResourceFailureException("Connection broken"));
+                .thenThrow(
+                        new DataAccessResourceFailureException("Connection broken"));
 
         Assert.assertThrows(ServiceUnavailableException.class,
                 () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                        companyProfileWithInsolvency));
+                        mockCompanyProfileWithoutInsolvency()));
     }
 
     @Test
     @DisplayName("When an illegal argument exception is thrown while performing the PATCH request then throw a "
             + "bad request exception")
     void patchInvalidBadRequest() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Updated updated = mock(Updated.class);
-
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
-        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
-        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-
-        when(companyProfileRepository.save(any())).thenThrow(new IllegalArgumentException());
+                .thenThrow(new IllegalArgumentException());
 
         Assert.assertThrows(BadRequestException.class,
                 () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                        companyProfileWithInsolvency));
+                        mockCompanyProfileWithoutInsolvency()));
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
