@@ -5,6 +5,8 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -22,7 +24,7 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
 
         String ericIdentity = request.getHeader("ERIC-Identity");
 
-        if (ericIdentity == null || ericIdentity.isBlank()) {
+        if (StringUtils.isBlank(ericIdentity)) {
             logger.error("Unauthorised request received without eric identity");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
@@ -30,7 +32,7 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
 
         String ericIdentityType = request.getHeader("ERIC-Identity-Type");
 
-        if (ericIdentityType == null || ericIdentityType.isBlank()
+        if (StringUtils.isBlank(ericIdentityType)
                 || !(ericIdentityType.equalsIgnoreCase("key")
                 || (ericIdentityType.equalsIgnoreCase("oauth2")))) {
             logger.error("Unauthorised request received without eric identity type");
