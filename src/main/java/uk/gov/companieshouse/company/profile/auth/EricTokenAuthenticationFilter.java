@@ -43,11 +43,4 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request)
-            throws ServletException {
-        String path = request.getRequestURI();
-        return "/company-profile-api/healthcheck".equals(path);
-    }
-
 }

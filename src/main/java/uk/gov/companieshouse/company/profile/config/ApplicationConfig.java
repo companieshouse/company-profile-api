@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -73,6 +74,15 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
+     * Configure Web Security.
+     */
+    @Override
+    public void configure(WebSecurity web) throws  Exception {
+        // Excluding healthcheck endpoint from security filter
+        web.ignoring().antMatchers("/company-profile-api/healthcheck");
+    }
+
+    /**
      * mongoCustomConversions.
      *
      * @return MongoCustomConversions.
@@ -103,4 +113,5 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
 
         return objectMapper;
     }
+
 }
