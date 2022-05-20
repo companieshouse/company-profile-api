@@ -47,20 +47,52 @@ public class CompanyProfileControllerITest {
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        ResponseEntity<CompanyProfile> companyProfileResponse =
-                restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+
+        ResponseEntity<CompanyProfile> companyProfileResponse = restTemplate.exchange(
+                COMPANY_URL, HttpMethod.GET, new HttpEntity<Object>(headers),
+                CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+    @Test
+    @DisplayName("Return 401 Unauthorised response when retrieving a company profile without passing Eric headers")
+    void getCompanyProfileWithMatchingCompanyNumberWithoutSettingEricHeaders() throws Exception {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        CompanyProfile mockCompanyProfile = new CompanyProfile().data(companyData);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = new Updated(LocalDateTime.now(),
+                "abc", "company_delta");
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated, false);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
+
+        HttpHeaders headers = new HttpHeaders();
+        //Not setting Eric headers
+
+        ResponseEntity<CompanyProfile> companyProfileResponse = restTemplate.exchange(
+                COMPANY_URL, HttpMethod.GET, new HttpEntity<Object>(headers),
+                CompanyProfile.class);
+
+        assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 
     @Test
     @DisplayName("Return a not found response when company profile does not exist")
     void getCompanyProfileWhenDoesNotExist() {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        ResponseEntity<CompanyProfile> companyProfileResponse =
-                restTemplate.getForEntity(COMPANY_URL, CompanyProfile.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+
+        ResponseEntity<CompanyProfile> companyProfileResponse = restTemplate.exchange(
+                COMPANY_URL, HttpMethod.GET, new HttpEntity<Object>(headers),
+                CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(companyProfileResponse.getBody()).isNull();
@@ -78,6 +110,8 @@ public class CompanyProfileControllerITest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "123456");
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
 
         HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
         ResponseEntity<Void> responseEntity = restTemplate.exchange(
@@ -85,6 +119,28 @@ public class CompanyProfileControllerITest {
                 HttpMethod.PATCH, httpEntity, Void.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    @DisplayName("Return 401 Unauthorised response when trying to PATCH insolvency links without setting Eric headers")
+    void patchInsolvencyLinksWithoutSettingEricHeaders() throws Exception {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+        doNothing().when(companyProfileService).updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, mockCompanyProfile);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "123456");
+        //Not setting Eric headers
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(
+                COMPANY_URL,
+                HttpMethod.PATCH, httpEntity, Void.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -99,6 +155,8 @@ public class CompanyProfileControllerITest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "123456");
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
 
         HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
         ResponseEntity<Void> responseEntity = restTemplate.exchange(

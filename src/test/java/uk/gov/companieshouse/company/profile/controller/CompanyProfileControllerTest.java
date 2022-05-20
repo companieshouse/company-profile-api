@@ -23,11 +23,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
@@ -39,6 +41,7 @@ import uk.gov.companieshouse.logging.Logger;
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = CompanyProfileController.class)
 @ContextConfiguration(classes = CompanyProfileController.class)
+@Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String COMPANY_URL = String.format("/company/%s/links",
@@ -71,7 +74,7 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        mockMvc.perform(get(COMPANY_URL))
+        mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
     }
@@ -82,7 +85,7 @@ class CompanyProfileControllerTest {
     void getCompanyProfileNotFound() throws Exception {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(COMPANY_URL))
+        mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
     }
@@ -93,7 +96,7 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(any())).thenThrow(RuntimeException.class);
 
         assertThatThrownBy(() ->
-                mockMvc.perform(get(COMPANY_URL))
+                mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
                         .andExpect(status().isInternalServerError())
                         .andExpect(content().string(""))
         ).hasCause(new RuntimeException());
@@ -107,7 +110,7 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(any())).thenThrow(ex);
 
         assertThatThrownBy(() ->
-                mockMvc.perform(get(COMPANY_URL))
+                mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
                         .andExpect(status().isBadRequest())
                         .andExpect(content().string(""))
         ).hasCause(ex);
@@ -121,7 +124,7 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(any())).thenThrow(ex);
 
         assertThatThrownBy(() ->
-                mockMvc.perform(get(COMPANY_URL))
+                mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
                         .andExpect(status().isServiceUnavailable())
                         .andExpect(content().string(""))
         ).hasCause(ex);
@@ -136,7 +139,7 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).updateInsolvencyLink(anyString(), anyString(),
                 isA(CompanyProfile.class));
 
-        mockMvc.perform(patch(COMPANY_URL).contentType(APPLICATION_JSON).header("x-request-id", "123456")
+        mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key").contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isOk());
     }
 
@@ -147,7 +150,7 @@ class CompanyProfileControllerTest {
 
         doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL).contentType(APPLICATION_JSON).header("x-request-id", "123456")
+        mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key").contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isNotFound());
     }
 
@@ -163,6 +166,7 @@ class CompanyProfileControllerTest {
                 mockMvc.perform(patch(COMPANY_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
+                                .header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key")
                         .content(gson.toJson(request)))
                         .andExpect(status().isBadRequest())
         ).hasCause(ex);
@@ -177,7 +181,7 @@ class CompanyProfileControllerTest {
         doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL)
+                mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key")
                                 .contentType(APPLICATION_JSON)
                                 .header("x-request-id", "123456")
                                 .content(gson.toJson(request)))
@@ -192,7 +196,7 @@ class CompanyProfileControllerTest {
         doThrow(RuntimeException.class).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL)
+                mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key")
                                 .contentType(APPLICATION_JSON)
                                 .header("x-request-id", "123456")
                                 .content(gson.toJson(request)))
