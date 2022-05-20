@@ -75,6 +75,28 @@ public class CompanyProfileSteps {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "5234234234");
+        headers.set("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+
+        HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
+        String uri = "/company/{company_number}/links";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @When("I send PATCH request with payload {string} and company number {string} without setting Eric headers")
+    public void i_send_put_request_with_payload_without_setting_Eric_Headers(String dataFile, String companyNumber) throws IOException {
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        this.contextId = "5234234234";
+        this.companyNumber = companyNumber;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "5234234234");
+        //Not setting Eric headers
 
         HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
         String uri = "/company/{company_number}/links";
@@ -91,6 +113,8 @@ public class CompanyProfileSteps {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
 
         this.contextId = "5234234234";
         headers.set("x-request-id", this.contextId);
@@ -148,7 +172,28 @@ public class CompanyProfileSteps {
     @When("I send GET request with company number {string}")
     public void i_send_get_request_with_company_number(String companyNumber) {
         String uri = "/company/{company_number}/links";
-        ResponseEntity<Data> response = restTemplate.exchange(uri, HttpMethod.GET, null,
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<Object>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+    }
+
+    @When("I send GET request with company number {string} without setting Eric headers")
+    public void i_send_get_request_with_company_number_without_setting_Eric_Headers(String companyNumber) {
+        String uri = "/company/{company_number}/links";
+
+        HttpHeaders headers = new HttpHeaders();
+        //Not setting Eric headers
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<Object>(headers),
                 Data.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());

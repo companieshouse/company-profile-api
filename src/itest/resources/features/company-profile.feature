@@ -12,6 +12,17 @@ Feature: Process company profile links
       | data     |
       | 11748564 |
 
+  Scenario Outline: Processing company profile links without setting Eric headers
+
+    Given Company profile api service is running
+    And the company links exists for "<data>"
+    When I send PATCH request with payload "<data>" and company number "<data>" without setting Eric headers
+    Then I should receive 401 status code
+
+    Examples:
+      | data     |
+      | 11748564 |
+
   Scenario Outline: Retrieve company links successfully
 
     Given Company profile api service is running
@@ -23,3 +34,14 @@ Feature: Process company profile links
     Examples:
       | data                  | result                            |
       | 00006400              | 00006400-getResponse              |
+
+  Scenario Outline: Retrieve company links without setting Eric headers
+
+    Given Company profile api service is running
+    And the company links exists for "<data>"
+    When I send GET request with company number "<data>" without setting Eric headers
+    Then I should receive 401 status code
+
+    Examples:
+      | data                  |
+      | 00006400              |
