@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
@@ -86,9 +86,14 @@ public class CompanyProfileService {
 
         try {
 
-            CompanyProfileDocument cpDocument =
-                    companyProfileRepository.findById(companyNumber).get();
+            Optional<CompanyProfileDocument> cpDocumentOptional =
+                    companyProfileRepository.findById(companyNumber);
 
+            cpDocumentOptional.orElseThrow(() -> new IllegalArgumentException(
+                    String.format("No company profile with company number %s found",
+                    companyNumber)));
+
+            CompanyProfileDocument cpDocument = cpDocumentOptional.get();
             companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
 
             cpDocument.setCompanyProfile(companyProfileRequest.getData());
@@ -102,17 +107,22 @@ public class CompanyProfileService {
                         contextId, "company_delta");
                 cpDocument.setUpdated(updated);
             }
-            companyProfileRepository.save(cpDocument);
-        } catch (IllegalArgumentException illegalArgumentEx) {
-            throw new BadRequestException(illegalArgumentEx.getMessage());
+            ApiResponse<Void> response = insolvencyApiService.invokeChsKafkaApi(
+                    contextId, companyNumber);
+
+            if (response.getStatusCode() == HttpStatus.OK.value()) {
+                companyProfileRepository.save(cpDocument);
+            } else {
+                String errorMessage = String.format(
+                        "Error occurred while calling /resource-changed with "
+                        + "contextId %s and company number %s", contextId, companyNumber);
+                logger.error(errorMessage);
+                throw new RuntimeException(errorMessage);
+            }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
         logger.trace(String.format("Company profile is updated in MongoDB with contextId %s "
                 + "and company number %s", contextId, companyNumber));
-
-        insolvencyApiService.invokeChsKafkaApi(contextId, companyNumber);
-        logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
-                + "contextId %s and company number %s", contextId, companyNumber));
     }
 }

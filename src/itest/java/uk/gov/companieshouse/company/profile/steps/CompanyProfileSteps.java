@@ -14,6 +14,7 @@ import org.springframework.http.*;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
@@ -24,6 +25,7 @@ import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -64,8 +66,42 @@ public class CompanyProfileSteps {
         companyProfileRepository.deleteAll();
     }
 
+    @Given("the CHS Kafka API is reachable")
+    public void the_chs_kafka_api_is_reachable() {
+        ApiResponse<Void> response = new ApiResponse<>(200, null, null);
+        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(response);
+    }
+
     @When("I send PATCH request with payload {string} and company number {string}")
     public void i_send_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
+        ApiResponse<Void> apiResponse = new ApiResponse<>(200, null, null);
+        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        this.contextId = "5234234234";
+        this.companyNumber = companyNumber;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "5234234234");
+        headers.set("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+
+        HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
+        String uri = "/company/{company_number}/links";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @When("I send PATCH request with payload {string} and company number {string} and CHS Kafka API unavailable")
+    public void i_send_patch_request_with_payload_and_company_number_and_chs_kafka_api_unavailable(String dataFile, String companyNumber)
+            throws IOException {
+        doThrow(ServiceUnavailableException.class)
+                .when(insolvencyApiService).invokeChsKafkaApi(anyString(), anyString());
+
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
 
@@ -160,7 +196,7 @@ public class CompanyProfileSteps {
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
         LocalDateTime localDateTime = LocalDateTime.now();
         //Updated updated = mock(Updated.class);
-        Updated updated = new Updated(LocalDateTime.now(),
+        Updated updated = new Updated(LocalDateTime.now().minusYears(1),
                 "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument =
                 new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
@@ -220,6 +256,18 @@ public class CompanyProfileSteps {
     public void nothing_persisted_database() {
         List<CompanyProfileDocument> insolvencyDocuments = companyProfileRepository.findAll();
         Assertions.assertThat(insolvencyDocuments).hasSize(0);
+    }
+
+    @Then("save operation is not invoked")
+    public void save_operation_is_not_invoked() {
+        Optional<CompanyProfileDocument> actual = companyProfileRepository.findById(this.companyNumber);
+        LocalDateTime at = actual.get().getUpdated().getAt();
+
+        /**
+         * Initially the updated year is set to 2021, if the call to db is triggered then the year is set to 2022.
+         * Since the save operation is not invoked the updated date remains as initial year.
+         */
+        assertThat(at.getYear()).isEqualTo(LocalDateTime.now().minusYears(1).getYear());
     }
 
     @Given("the company profile database is down")
