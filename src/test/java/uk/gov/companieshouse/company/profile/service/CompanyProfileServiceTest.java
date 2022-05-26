@@ -1,17 +1,8 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
-
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +24,11 @@ import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
@@ -171,32 +167,6 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    void when_chs_kafka_api_returns_other_than_200_then_data_should_not_be_saved() throws Exception {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Updated updated = new Updated(localDateTime,
-                null, "company-profile");
-
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-
-        when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
-        when(apiResponse.getStatusCode()).thenReturn(503);
-        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
-
-        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
-        CompanyProfile companyProfileWithInsolvency = companyProfile;
-        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-
-        Assert.assertThrows(RuntimeException.class,
-                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                        companyProfileWithInsolvency));
-
-        verify(companyProfileRepository, never()).save(any());
-    }
-
-    @Test
     @DisplayName("When there's a connection issue while performing the PATCH request then throw a "
             + "service unavailable exception")
     void patchConnectionIssueServiceUnavailable() {
@@ -242,7 +212,7 @@ class CompanyProfileServiceTest {
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
-        Assert.assertThrows(IllegalArgumentException.class,
+        Assert.assertThrows(BadRequestException.class,
                 () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                         companyProfileWithInsolvency));
 

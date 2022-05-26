@@ -89,7 +89,7 @@ public class CompanyProfileService {
             Optional<CompanyProfileDocument> cpDocumentOptional =
                     companyProfileRepository.findById(companyNumber);
 
-            cpDocumentOptional.orElseThrow(() -> new IllegalArgumentException(
+            cpDocumentOptional.orElseThrow(() -> new BadRequestException(
                     String.format("No company profile with company number %s found",
                     companyNumber)));
 
@@ -111,13 +111,9 @@ public class CompanyProfileService {
                     contextId, companyNumber);
 
             if (response.getStatusCode() == HttpStatus.OK.value()) {
+                logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
+                        + "contextId %s and company number %s", contextId, companyNumber));
                 companyProfileRepository.save(cpDocument);
-            } else {
-                String errorMessage = String.format(
-                        "Error occurred while calling /resource-changed with "
-                        + "contextId %s and company number %s", contextId, companyNumber);
-                logger.error(errorMessage);
-                throw new RuntimeException(errorMessage);
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
