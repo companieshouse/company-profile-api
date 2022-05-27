@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -99,6 +100,28 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(data);
     }
+
+    /**
+     * BadRequestException 400 handler.
+     * Thrown when data in RequestBody is not valid.
+     *
+     * @param ex exception to handle.
+     * @return error response to return.
+     */
+    @Override
+    @NonNull
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers,
+            HttpStatus status, WebRequest request) {
+        String errMsg = "Bad request";
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(data);
+    }
+
 
     /**
      * IllegalArgumentException exception handler.
