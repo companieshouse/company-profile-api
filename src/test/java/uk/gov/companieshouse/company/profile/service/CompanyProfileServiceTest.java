@@ -1,17 +1,8 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
-
 import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +16,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
@@ -32,6 +24,11 @@ import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
@@ -48,6 +45,9 @@ class CompanyProfileServiceTest {
 
     @Mock
     Logger logger;
+
+    @Mock
+    ApiResponse<Void> apiResponse;
 
     @Mock
     InsolvencyApiService insolvencyApiService;
@@ -129,6 +129,8 @@ class CompanyProfileServiceTest {
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
+        when(apiResponse.getStatusCode()).thenReturn(200);
+        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
         when(companyProfileRepository.save(any())).thenReturn(null);
 
         companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
@@ -153,6 +155,8 @@ class CompanyProfileServiceTest {
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
+        when(apiResponse.getStatusCode()).thenReturn(200);
+        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
@@ -175,6 +179,9 @@ class CompanyProfileServiceTest {
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
+
+        when(apiResponse.getStatusCode()).thenReturn(200);
+        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
@@ -200,15 +207,19 @@ class CompanyProfileServiceTest {
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
+                .thenReturn(Optional.empty());
+
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-
-        when(companyProfileRepository.save(any())).thenThrow(new IllegalArgumentException());
 
         Assert.assertThrows(BadRequestException.class,
                 () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                         companyProfileWithInsolvency));
+
+        verify(apiResponse, never()).getStatusCode();
+        verify(insolvencyApiService, never()).invokeChsKafkaApi(anyString(), anyString());
+        verify(companyProfileRepository, never()).save(any());
+        verify(companyProfileRepository, times(1)).findById(anyString());
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {

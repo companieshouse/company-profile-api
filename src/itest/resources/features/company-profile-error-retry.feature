@@ -39,8 +39,8 @@ Feature: Error and retry scenarios for company profile
     Given Company profile api service is running
     And the company profile database is down
     When I send PATCH request with payload "<data>" and company number "<data>"
-    Then I should receive 503 status code
-    And the CHS Kafka API is not invoked
+    Then the CHS Kafka API is not invoked
+    And I should receive 503 status code
 
     Examples:
       | data     |
@@ -62,9 +62,9 @@ Feature: Error and retry scenarios for company profile
     Given Company profile api service is running
     When CHS kafka API service is unavailable
     And the company links exists for "<data>"
-    And I send PATCH request with payload "<data>" and company number "<data>"
+    And I send PATCH request with payload "<data>" and company number "<data>" and CHS Kafka API unavailable
     Then I should receive 503 status code
-    And the CHS Kafka API is invoked successfully
+    And save operation is not invoked
 
     Examples:
       | data     |

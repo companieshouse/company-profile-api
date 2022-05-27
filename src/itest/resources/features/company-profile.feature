@@ -5,8 +5,8 @@ Feature: Process company profile links
     Given Company profile api service is running
     And the company links exists for "<data>"
     When I send PATCH request with payload "<data>" and company number "<data>"
-    Then I should receive 200 status code
-    And the CHS Kafka API is invoked successfully
+    Then the CHS Kafka API is invoked successfully
+    And I should receive 200 status code
 
     Examples:
       | data     |
