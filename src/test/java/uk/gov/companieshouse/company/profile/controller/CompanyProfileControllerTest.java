@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -81,12 +81,14 @@ class CompanyProfileControllerTest {
 
     @Test
     @DisplayName(
-            "Given a company number with no matching company profile return a not found response")
-    void getCompanyProfileNotFound() throws Exception {
+            "Company Profile GET request returns a 410 Resource Gone response when no company profile found")
+    void getCompanyProfileGone() throws Exception {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
-                .andExpect(status().isNotFound())
+        mockMvc.perform(get(COMPANY_URL)
+                        .header("ERIC-Identity" , "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isGone())
                 .andExpect(content().string(""));
     }
 
@@ -144,14 +146,22 @@ class CompanyProfileControllerTest {
     }
 
     @Test
-    @DisplayName("Company Profile PATCH request, not found")
-    void callCompanyProfilePatchNotFound() throws Exception {
+    @DisplayName("Company Profile PATCH request returns a 410 Resource gone when company profile not found")
+    void callCompanyProfilePatchGone() throws Exception {
         CompanyProfile request = new CompanyProfile();
 
-        doThrow(new NoSuchElementException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+        DocumentGoneException ex = new DocumentGoneException("Resource gone");
+        doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key").contentType(APPLICATION_JSON).header("x-request-id", "123456")
-                .content(gson.toJson(request))).andExpect(status().isNotFound());
+        assertThatThrownBy(() ->
+                mockMvc.perform(patch(COMPANY_URL)
+                                .contentType(APPLICATION_JSON)
+                                .header("x-request-id", "123456")
+                                .header("ERIC-Identity" , "SOME_IDENTITY")
+                                .header("ERIC-Identity-Type", "key")
+                                .content(gson.toJson(request)))
+                        .andExpect(status().isGone())
+        ).hasCause(ex);
     }
 
     @Test()

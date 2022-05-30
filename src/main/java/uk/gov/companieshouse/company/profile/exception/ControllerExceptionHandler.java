@@ -102,6 +102,26 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
+     * DocumentGoneException exception handler.
+     * Thrown when the requested document could not be found in the DB in place of status code 404.
+     *
+     * @param ex      exception to handle.
+     * @param request request.
+     * @return error response to return.
+     */
+    @ExceptionHandler(value = {DocumentGoneException.class})
+    public ResponseEntity<Object> handleDocumentGoneException(Exception ex,
+                                                              WebRequest request) {
+        String errMsg = "Resource gone";
+        HashMap<String, Object> data = buildExceptionResponse(errMsg);
+        logger.errorContext(request.getHeader(X_REQUEST_ID_HEADER), errMsg, ex, data);
+
+        return ResponseEntity
+                .status(HttpStatus.GONE)
+                .body(data);
+    }
+
+    /**
      * BadRequestException 400 handler.
      * Thrown when data in RequestBody is not valid.
      *
