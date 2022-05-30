@@ -34,6 +34,7 @@ Feature: Process company profile links
     Examples:
       | data                  | result                            |
       | 00006400              | 00006400-getResponse              |
+      | 00006401              | 00006401-getResponse              |
 
   Scenario Outline: Retrieve company links without setting Eric headers
 
