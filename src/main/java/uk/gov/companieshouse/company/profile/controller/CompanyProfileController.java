@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import java.util.NoSuchElementException;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,7 +56,7 @@ public class CompanyProfileController {
     public ResponseEntity<Void> updateCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
-            @RequestBody CompanyProfile requestBody) {
+            @Valid @RequestBody CompanyProfile requestBody) {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         try {
