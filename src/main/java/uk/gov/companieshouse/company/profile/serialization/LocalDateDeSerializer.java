@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.util.DateFormatter;
 import uk.gov.companieshouse.logging.Logger;
@@ -30,7 +31,13 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
         try {
             if (JsonNodeType.STRING.equals(jsonNode.getNodeType())) {
                 var dateStr = jsonNode.textValue();
-                return DateFormatter.parse(dateStr);
+                if (!StringUtils.isBlank(dateStr)) {
+                    return DateFormatter.parse(dateStr);
+                } else {
+                    LOGGER.debug("Ignoring empty date string.");
+                    return null;
+                }
+
             } else {
                 var dateJsonNode = jsonNode.get("$date");
 
