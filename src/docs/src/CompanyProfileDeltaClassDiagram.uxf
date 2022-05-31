@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>552</x>
+      <y>176</y>
+      <w>504</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>uk.gov.companieshouse.company.profile.controller::
+CompanyProfileController
+--
++getCompanyProfile(companyNumber): ResponseEntity&lt;CompanyProfile&gt;
++updateInsolvencyLink(contextId, companyNumber, requestBody): ResponseEntity&lt;Void&gt;
++updateCompanyProfile(contextId, companyNumber, requestBody): ResponseEntity&lt;Void&gt;
++deleteCompanyProfile(companyNumber): ResponseEntity&lt;Void&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>624</x>
+      <y>312</y>
+      <w>368</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>uk.gov.companieshouse.company.profile.service::
+CompanyProfileService
+--
++get(companyNumber): Optional&lt;CompanyProfileDocument&gt;
++updateInsolvencyLink(contextId, companyNumber, request): void
++upsert(UpsertRequest): void
++delete(companyNumber): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>800</x>
+      <y>256</y>
+      <w>24</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>704</x>
+      <y>560</y>
+      <w>392</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>template=&lt;CompanyProfileDocument,ID&gt;
+&lt;&lt;interface&gt;&gt;
+uk.gov.companieshouse.company.profile.repository::
+/Repository/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>848</x>
+      <y>440</y>
+      <w>304</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>template=&lt;T,ID&gt;
+org.springframework.data.mongodb.repository::
+/MongoRepository/
+bg=gray</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>888</x>
+      <y>480</y>
+      <w>24</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>800</x>
+      <y>392</y>
+      <w>24</w>
+      <h>192</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;220.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>408</x>
+      <y>336</y>
+      <w>176</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>UpsertRequest
+--
++companyNumber:int
++request:Request</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>576</x>
+      <y>352</y>
+      <w>64</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;60.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>352</x>
+      <y>464</y>
+      <w>280</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>uk.gov.companieshouse.company.profile.mapper::
+UpsertRequestMapper
+--
+map(UpsertRequest):CompanyProfileDocument
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>624</x>
+      <y>392</y>
+      <w>80</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;120.0;80.0;120.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>480</x>
+      <y>376</y>
+      <w>24</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>360</x>
+      <y>576</y>
+      <w>280</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>uk.gov.companieshouse.company.profile.model::
+CompanyProfileDocument</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>480</x>
+      <y>512</y>
+      <w>24</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>552</x>
+      <y>152</y>
+      <w>504</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>new PUT /company-profile/{company_id}/internal</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
