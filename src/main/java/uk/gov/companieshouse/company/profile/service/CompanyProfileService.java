@@ -13,6 +13,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -89,11 +90,11 @@ public class CompanyProfileService {
             Optional<CompanyProfileDocument> cpDocumentOptional =
                     companyProfileRepository.findById(companyNumber);
 
-            cpDocumentOptional.orElseThrow(() -> new BadRequestException(
-                    String.format("No company profile with company number %s found",
-                    companyNumber)));
+            var cpDocument = cpDocumentOptional.orElseThrow(() ->
+                    new DocumentGoneException(
+                        String.format("No company profile with company number %s found",
+                                companyNumber)));
 
-            CompanyProfileDocument cpDocument = cpDocumentOptional.get();
             companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
 
             cpDocument.setCompanyProfile(companyProfileRequest.getData());
