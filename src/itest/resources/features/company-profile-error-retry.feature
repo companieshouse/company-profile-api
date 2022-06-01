@@ -69,15 +69,3 @@ Feature: Error and retry scenarios for company profile
     Examples:
       | data     |
       | 11748564 |
-
-  Scenario Outline: Processing patch request when company profile does not exist
-
-    Given Company profile api service is running
-    When I send PATCH request with payload "<data>" and company number "<data>"
-    Then the CHS Kafka API is not invoked
-    And nothing is persisted in the database
-    And I should receive 400 status code
-
-    Examples:
-      | data     |
-      | 11748564 |
