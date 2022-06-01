@@ -117,13 +117,12 @@ public class CompanyProfileService {
                 logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
                         + "contextId %s and company number %s", contextId, companyNumber));
                 companyProfileRepository.save(cpDocument);
-                logger.trace(String.format("Company profile is updated in MongoDB with "
+                logger.info(String.format("Company profile is updated in MongoDB with "
                         + "contextId %s and company number %s", contextId, companyNumber));
             } else {
-                logger.info(String.format("Chs-kafka-api CHANGED NOT invoked successfully for "
-                        + "contextId %s and company number %s", contextId, companyNumber));
-                logger.trace(String.format("Company profile is NOT updated in MongoDB with"
-                        + " contextId %s and company number %s", contextId, companyNumber));
+                logger.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for "
+                        + "contextId %s and company number %s. Response code %s.",
+                        contextId, companyNumber, statusCode.value()));
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
