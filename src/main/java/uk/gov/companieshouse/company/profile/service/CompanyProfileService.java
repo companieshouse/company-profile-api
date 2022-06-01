@@ -111,15 +111,22 @@ public class CompanyProfileService {
             ApiResponse<Void> response = insolvencyApiService.invokeChsKafkaApi(
                     contextId, companyNumber);
 
-            if (response.getStatusCode() == HttpStatus.OK.value()) {
+            HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
+
+            if (statusCode.is2xxSuccessful()) {
                 logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
                         + "contextId %s and company number %s", contextId, companyNumber));
                 companyProfileRepository.save(cpDocument);
+                logger.info(String.format("Company profile is updated in MongoDB with "
+                        + "contextId %s and company number %s", contextId, companyNumber));
+            } else {
+                logger.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for "
+                        + "contextId %s and company number %s. Response code %s.",
+                        contextId, companyNumber, statusCode.value()));
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
-        logger.trace(String.format("Company profile is updated in MongoDB with contextId %s "
-                + "and company number %s", contextId, companyNumber));
+
     }
 }
