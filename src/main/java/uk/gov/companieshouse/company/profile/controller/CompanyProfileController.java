@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +41,7 @@ public class CompanyProfileController {
                         new ResponseEntity<>(
                                 new CompanyProfile().data(document.companyProfile),
                                 HttpStatus.OK))
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.GONE).build());
     }
 
     /**
@@ -59,11 +58,7 @@ public class CompanyProfileController {
             @Valid @RequestBody CompanyProfile requestBody) {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
-        try {
-            companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.notFound().build();
-        }
+        companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

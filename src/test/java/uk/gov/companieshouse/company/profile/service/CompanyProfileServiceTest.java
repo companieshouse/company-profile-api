@@ -19,6 +19,7 @@ import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -114,36 +115,6 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("When insolvency is given but company doesnt exist with that company number, " +
-            "NoSuchElementException exception thrown")
-    void when_insolvency_data_is_given_then_data_should_be_saved_not_found() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        Updated updated = new Updated(localDateTime,
-                null, "company-profile");
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-
-        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
-        CompanyProfile companyProfileWithInsolvency = companyProfile;
-        companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
-        when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
-        when(apiResponse.getStatusCode()).thenReturn(200);
-        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
-        when(companyProfileRepository.save(any())).thenReturn(null);
-
-        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                companyProfileWithInsolvency);
-
-        verify(companyProfileRepository).save(argThat(companyProfileDocument -> {
-            assertThat(gson.toJson(companyProfileDocument)).isEqualTo(gson.toJson(generateCompanyProfileDocument(companyProfileWithInsolvency)));
-            return true;
-        }));
-    }
-
-
-    @Test
     void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -158,12 +129,14 @@ class CompanyProfileServiceTest {
         when(apiResponse.getStatusCode()).thenReturn(200);
         when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
-        CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
-        CompanyProfile companyProfileWithInsolvency = companyProfile;
+        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
         companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfileWithInsolvency);
+
+        verify(companyProfileRepository).save(mockCompanyProfileDocument);
+        verify(insolvencyApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -196,23 +169,16 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("When an illegal argument exception is thrown while performing the PATCH request then throw a "
-            + "bad request exception")
-    void patchInvalidBadRequest() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Updated updated = mock(Updated.class);
-
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-
+    @DisplayName("When company profile does not exist while performing the PATCH request then throw a "
+            + "DocumentGoneException")
+    void patchDocumentGone() {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
-        Assert.assertThrows(BadRequestException.class,
+        Assert.assertThrows(DocumentGoneException.class,
                 () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                         companyProfileWithInsolvency));
 
