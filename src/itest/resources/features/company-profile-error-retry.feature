@@ -57,7 +57,7 @@ Feature: Error and retry scenarios for company profile
       | data     |
       | 00006400 |
 
-  Scenario Outline: Processing company profile information unsuccessfully but saves to database
+  Scenario Outline: Processing company profile information unsuccessfully and data is not persisted
 
     Given Company profile api service is running
     When CHS kafka API service is unavailable
