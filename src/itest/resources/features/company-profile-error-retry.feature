@@ -57,7 +57,7 @@ Feature: Error and retry scenarios for company profile
       | data     |
       | 00006400 |
 
-  Scenario Outline: Processing company profile information unsuccessfully but saves to database
+  Scenario Outline: Processing company profile information unsuccessfully and data is not persisted
 
     Given Company profile api service is running
     When CHS kafka API service is unavailable
@@ -65,6 +65,18 @@ Feature: Error and retry scenarios for company profile
     And I send PATCH request with payload "<data>" and company number "<data>" and CHS Kafka API unavailable
     Then I should receive 503 status code
     And save operation is not invoked
+
+    Examples:
+      | data     |
+      | 11748564 |
+
+  Scenario Outline: Processing patch request when company profile does not exist
+
+    Given Company profile api service is running
+    When I send PATCH request with payload "<data>" and company number "<data>"
+    Then the CHS Kafka API is not invoked
+    And nothing is persisted in the database
+    And I should receive 400 status code
 
     Examples:
       | data     |
