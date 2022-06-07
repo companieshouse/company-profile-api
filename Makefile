@@ -69,15 +69,18 @@ endif
 	cd $(tmpdir); zip -r ../$(artifact_name)-$(version).zip *
 	rm -rf $(tmpdir)
 
-.PHONY: sonar
-sonar:
-	@# Help: Run sonar scan
-	mvn sonar:sonar
+.PHONY: dist
+dist: clean build package
 
 .PHONY: sonar-pr-analysis
 sonar-pr-analysis:
 	@# Help: Run sonar scan on a PR
-	mvn sonar:sonar	-P sonar-pr-analysis
+	mvn verify sonar:sonar -P sonar-pr-analysis
+
+.PHONY: sonar
+sonar:
+	@# Help: Run sonar scan
+	mvn verify sonar:sonar
 
 .PHONY: deps
 deps:
@@ -92,3 +95,6 @@ lint: lint/docker-compose sonar
 lint/docker-compose:
 	@# Help: Lint docker file
 	docker-compose -f docker-compose.yml config
+
+
+
