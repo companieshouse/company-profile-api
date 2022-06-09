@@ -131,7 +131,6 @@ public class CompanyProfileService {
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
-
     }
 
     private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
@@ -140,13 +139,18 @@ public class CompanyProfileService {
                 companyProfileDocument.getCompanyProfile().getEtag());
         setUpdateIfNotNull(update, "updated",
                 companyProfileDocument.getUpdated());
-        setUpdateIfNotNull(update, "data.links.insolvency",
-                companyProfileDocument.getCompanyProfile().getLinks().getInsolvency());
-        setUpdateIfNotNull(update, "data.links.charges",
-                companyProfileDocument.getCompanyProfile().getLinks().getCharges());
-        setUpdateIfNotNull(update, "data.has_insolvency_history",
+        setUpdateIfNotNullOtherwiseRemove(update, "data.links.insolvency",
+                companyProfileDocument.getCompanyProfile().getLinks() != null
+                        ?
+                        companyProfileDocument.getCompanyProfile().getLinks().getInsolvency()
+                        : null);
+        setUpdateIfNotNullOtherwiseRemove(update, "data.links.charges",
+                companyProfileDocument.getCompanyProfile().getLinks() != null
+                        ? companyProfileDocument.getCompanyProfile().getLinks().getCharges()
+                        : null);
+        setUpdateIfNotNullOtherwiseRemove(update, "data.has_insolvency_history",
                 companyProfileDocument.getCompanyProfile().getHasInsolvencyHistory());
-        setUpdateIfNotNull(update, "data.has_charges",
+        setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
                 companyProfileDocument.getCompanyProfile().getHasCharges());
         Query query = new Query(Criteria.where("_id").is(companyProfileDocument.getId()));
         mongoTemplate.upsert(query, update, CompanyProfileDocument.class);
@@ -155,6 +159,15 @@ public class CompanyProfileService {
     private Update setUpdateIfNotNull(Update update, String key, Object object) {
         if (object != null) {
             update.set(key, object);
+        }
+        return update;
+    }
+
+    private Update setUpdateIfNotNullOtherwiseRemove(Update update, String key, Object object) {
+        if (object != null) {
+            update.set(key, object);
+        } else {
+            update.unset(key);
         }
         return update;
     }
