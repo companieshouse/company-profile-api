@@ -156,19 +156,17 @@ public class CompanyProfileService {
         mongoTemplate.upsert(query, update, CompanyProfileDocument.class);
     }
 
-    private Update setUpdateIfNotNull(Update update, String key, Object object) {
+    private void setUpdateIfNotNull(Update update, String key, Object object) {
         if (object != null) {
             update.set(key, object);
         }
-        return update;
     }
 
-    private Update setUpdateIfNotNullOtherwiseRemove(Update update, String key, Object object) {
+    private void setUpdateIfNotNullOtherwiseRemove(Update update, String key, Object object) {
         if (object != null) {
             update.set(key, object);
         } else {
             update.unset(key);
         }
-        return update;
     }
 }
