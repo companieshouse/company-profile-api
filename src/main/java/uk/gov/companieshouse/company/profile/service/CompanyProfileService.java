@@ -6,6 +6,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
@@ -108,6 +111,7 @@ public class CompanyProfileService {
                         contextId, "company_delta");
                 cpDocument.setUpdated(updated);
             }
+
             ApiResponse<Void> response = insolvencyApiService.invokeChsKafkaApi(
                     contextId, companyNumber);
 
@@ -116,7 +120,7 @@ public class CompanyProfileService {
             if (statusCode.is2xxSuccessful()) {
                 logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
                         + "contextId %s and company number %s", contextId, companyNumber));
-                companyProfileRepository.save(cpDocument);
+                updateSpecificFields(cpDocument);
                 logger.info(String.format("Company profile is updated in MongoDB with "
                         + "contextId %s and company number %s", contextId, companyNumber));
             } else {
@@ -127,6 +131,42 @@ public class CompanyProfileService {
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
+    }
 
+    private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
+        Update update = new Update();
+        setUpdateIfNotNull(update, "data.etag",
+                companyProfileDocument.getCompanyProfile().getEtag());
+        setUpdateIfNotNull(update, "updated",
+                companyProfileDocument.getUpdated());
+        setUpdateIfNotNullOtherwiseRemove(update, "data.links.insolvency",
+                companyProfileDocument.getCompanyProfile().getLinks() != null
+                        ?
+                        companyProfileDocument.getCompanyProfile().getLinks().getInsolvency()
+                        : null);
+        setUpdateIfNotNullOtherwiseRemove(update, "data.links.charges",
+                companyProfileDocument.getCompanyProfile().getLinks() != null
+                        ? companyProfileDocument.getCompanyProfile().getLinks().getCharges()
+                        : null);
+        setUpdateIfNotNullOtherwiseRemove(update, "data.has_insolvency_history",
+                companyProfileDocument.getCompanyProfile().getHasInsolvencyHistory());
+        setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
+                companyProfileDocument.getCompanyProfile().getHasCharges());
+        Query query = new Query(Criteria.where("_id").is(companyProfileDocument.getId()));
+        mongoTemplate.upsert(query, update, CompanyProfileDocument.class);
+    }
+
+    private void setUpdateIfNotNull(Update update, String key, Object object) {
+        if (object != null) {
+            update.set(key, object);
+        }
+    }
+
+    private void setUpdateIfNotNullOtherwiseRemove(Update update, String key, Object object) {
+        if (object != null) {
+            update.set(key, object);
+        } else {
+            update.unset(key);
+        }
     }
 }
