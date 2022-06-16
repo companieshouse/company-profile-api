@@ -75,8 +75,7 @@ dist: clean build package
 .PHONY: sonar-pr-analysis
 sonar-pr-analysis:
 	@# Help: Run sonar scan on a PR
-	#mvn verify sonar:sonar -P sonar-pr-analysis (will add this back once issue is resolved for tests)
-	mvn sonar:sonar -P sonar-pr-analysis
+	mvn verify sonar:sonar -P sonar-pr-analysis
 
 .PHONY: sonar
 sonar:
