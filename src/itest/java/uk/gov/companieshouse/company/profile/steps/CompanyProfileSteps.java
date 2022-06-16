@@ -60,7 +60,7 @@ public class CompanyProfileSteps {
 
     @Before
     public void dbCleanUp(){
-        if (!mongoDBContainer.isRunning()) {
+        if (mongoDBContainer.getContainerId() == null) {
             mongoDBContainer.start();
         }
         companyProfileRepository.deleteAll();

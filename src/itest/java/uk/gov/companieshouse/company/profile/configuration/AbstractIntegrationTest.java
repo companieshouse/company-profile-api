@@ -15,6 +15,7 @@ import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
 @ActiveProfiles({"test"})
 public abstract class AbstractIntegrationTest extends AbstractMongoConfig {
 
+    // TODO: We cant use mocks in integration tests
     @MockBean
     public InsolvencyApiService insolvencyApiService;
 }

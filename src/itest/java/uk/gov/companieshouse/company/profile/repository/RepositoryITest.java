@@ -62,7 +62,6 @@ class RepositoryITest extends AbstractMongoConfig {
                 this.companyProfileRepository.findById("othernumber").isEmpty());
     }
 
-
     @AfterAll
     static void tear(){
         mongoDBContainer.stop();
