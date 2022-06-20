@@ -23,7 +23,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.company.profile.auth.EricTokenAuthenticationFilter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataReadConverter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataWriteConverter;
@@ -33,7 +32,6 @@ import uk.gov.companieshouse.company.profile.serialization.LocalDateSerializer;
 import uk.gov.companieshouse.environment.EnvironmentReader;
 import uk.gov.companieshouse.environment.impl.EnvironmentReaderImpl;
 import uk.gov.companieshouse.logging.Logger;
-import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 
 
@@ -49,19 +47,14 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
         return new EnvironmentReaderImpl();
     }
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public InternalApiClient internalApiClient() {
-        return ApiSdkManager.getPrivateSDK();
-    }
-
     /**
      * Configure Http Security.
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic().disable()
-                .csrf().disable()
+                //REST APIs not enabled for cross site script headers
+                .csrf().disable() //NOSONAR
                 .formLogin().disable()
                 .logout().disable()
                 .sessionManagement()
@@ -89,7 +82,7 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
      */
     @Bean
     public MongoCustomConversions mongoCustomConversions() {
-        ObjectMapper objectMapper = mongoDbObjectMapper();
+        var objectMapper = mongoDbObjectMapper();
         return new MongoCustomConversions(List
                 .of(new CompanyProfileDataWriteConverter(objectMapper),
                 new CompanyProfileDataReadConverter(objectMapper),new EnumConverters.StringToEnum(),
@@ -102,11 +95,11 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
      * @return ObjectMapper.
      */
     private ObjectMapper mongoDbObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        SimpleModule module = new SimpleModule();
+        var module = new SimpleModule();
         module.addSerializer(LocalDate.class, new LocalDateSerializer());
         module.addDeserializer(LocalDate.class, new LocalDateDeSerializer());
         objectMapper.registerModule(module);

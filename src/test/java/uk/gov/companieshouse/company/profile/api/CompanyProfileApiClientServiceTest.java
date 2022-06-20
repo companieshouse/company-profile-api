@@ -27,7 +27,7 @@ import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableExcepti
 import uk.gov.companieshouse.logging.Logger;
 
 @ExtendWith(MockitoExtension.class)
-public class InsolvencyApiClientServiceTest {
+public class CompanyProfileApiClientServiceTest {
 
     @Mock
     private ApiClientService apiClientService;
@@ -48,7 +48,7 @@ public class InsolvencyApiClientServiceTest {
     private Logger logger;
 
     @InjectMocks
-    private InsolvencyApiService insolvencyApiService;
+    private CompanyProfileApiService companyProfileApiService;
 
     @Test
     void should_invoke_chs_kafka_endpoint_successfully() throws ApiErrorResponseException {
@@ -58,7 +58,7 @@ public class InsolvencyApiClientServiceTest {
         when(privateChangedResourceHandler.postChangedResource(Mockito.any(), Mockito.any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
 
-        ApiResponse<Void> apiResponse = insolvencyApiService.invokeChsKafkaApi("123456", "CH4000056");
+        ApiResponse<Void> apiResponse = companyProfileApiService.invokeChsKafkaApi("123456", "CH4000056");
 
         Assertions.assertThat(apiResponse).isNotNull();
 
@@ -82,7 +82,7 @@ public class InsolvencyApiClientServiceTest {
         when(changedResourcePost.execute()).thenThrow(apiErrorResponseException);
 
         Assert.assertThrows(exception,
-                () -> insolvencyApiService.invokeChsKafkaApi
+                () -> companyProfileApiService.invokeChsKafkaApi
                         ("3245435", "CH4000056"));
 
         verify(apiClientService, times(1)).getInternalApiClient();

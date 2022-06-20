@@ -15,7 +15,7 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
+import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
@@ -25,7 +25,6 @@ import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +55,7 @@ public class CompanyProfileSteps {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    public InsolvencyApiService insolvencyApiService;
+    public CompanyProfileApiService companyProfileApiService;
 
     @Before
     public void dbCleanUp(){
@@ -69,13 +68,13 @@ public class CompanyProfileSteps {
     @Given("the CHS Kafka API is reachable")
     public void the_chs_kafka_api_is_reachable() {
         ApiResponse<Void> response = new ApiResponse<>(200, null, null);
-        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(response);
+        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(response);
     }
 
     @When("I send PATCH request with payload {string} and company number {string}")
     public void i_send_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
         ApiResponse<Void> apiResponse = new ApiResponse<>(200, null, null);
-        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
@@ -100,7 +99,7 @@ public class CompanyProfileSteps {
     public void i_send_patch_request_with_payload_and_company_number_and_chs_kafka_api_unavailable(String dataFile, String companyNumber)
             throws IOException {
         doThrow(ServiceUnavailableException.class)
-                .when(insolvencyApiService).invokeChsKafkaApi(anyString(), anyString());
+                .when(companyProfileApiService).invokeChsKafkaApi(anyString(), anyString());
 
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
@@ -170,13 +169,13 @@ public class CompanyProfileSteps {
 
     @Then("the CHS Kafka API is invoked successfully")
     public void chs_kafka_api_invoked() throws IOException {
-        verify(insolvencyApiService).invokeChsKafkaApi(eq(this.contextId), eq(companyNumber));
+        verify(companyProfileApiService).invokeChsKafkaApi(eq(this.contextId), eq(companyNumber));
     }
 
     @When("CHS kafka API service is unavailable")
     public void chs_kafka_service_unavailable() throws IOException {
         doThrow(ServiceUnavailableException.class)
-                .when(insolvencyApiService).invokeChsKafkaApi(anyString(), anyString());
+                .when(companyProfileApiService).invokeChsKafkaApi(anyString(), anyString());
     }
 
     @Then("the expected result should match {string} file with company number {string}")
@@ -249,7 +248,7 @@ public class CompanyProfileSteps {
 
     @Then("the CHS Kafka API is not invoked")
     public void chs_kafka_api_not_invoked() throws IOException {
-        verify(insolvencyApiService, times(0)).invokeChsKafkaApi(any(), any());
+        verify(companyProfileApiService, times(0)).invokeChsKafkaApi(any(), any());
     }
 
     @Then("nothing is persisted in the database")

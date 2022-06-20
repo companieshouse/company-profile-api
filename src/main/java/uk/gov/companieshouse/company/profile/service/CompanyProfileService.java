@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
+import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
@@ -30,7 +30,7 @@ public class CompanyProfileService {
     private final Logger logger;
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
-    private final InsolvencyApiService insolvencyApiService;
+    private final CompanyProfileApiService companyProfileApiService;
 
     static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -41,11 +41,11 @@ public class CompanyProfileService {
     public CompanyProfileService(Logger logger,
                                  CompanyProfileRepository companyProfileRepository,
                                  MongoTemplate mongoTemplate,
-                                 InsolvencyApiService insolvencyApiService) {
+                                 CompanyProfileApiService companyProfileApiService) {
         this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
-        this.insolvencyApiService = insolvencyApiService;
+        this.companyProfileApiService = companyProfileApiService;
     }
 
     /**
@@ -112,7 +112,7 @@ public class CompanyProfileService {
                 cpDocument.setUpdated(updated);
             }
 
-            ApiResponse<Void> response = insolvencyApiService.invokeChsKafkaApi(
+            ApiResponse<Void> response = companyProfileApiService.invokeChsKafkaApi(
                     contextId, companyNumber);
 
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
