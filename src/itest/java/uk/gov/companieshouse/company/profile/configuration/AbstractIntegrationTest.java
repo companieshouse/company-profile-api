@@ -4,7 +4,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
+import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 
 /**
  * Loads the application context.
@@ -17,5 +17,5 @@ public abstract class AbstractIntegrationTest extends AbstractMongoConfig {
 
     // TODO: We cant use mocks in integration tests
     @MockBean
-    public InsolvencyApiService insolvencyApiService;
+    public CompanyProfileApiService companyProfileApiService;
 }

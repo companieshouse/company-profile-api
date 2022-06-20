@@ -19,7 +19,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.company.profile.api.InsolvencyApiService;
+import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
@@ -53,7 +53,7 @@ class CompanyProfileServiceTest {
     ApiResponse<Void> apiResponse;
 
     @Mock
-    InsolvencyApiService insolvencyApiService;
+    CompanyProfileApiService companyProfileApiService;
 
     @InjectMocks
     CompanyProfileService companyProfileService;
@@ -129,7 +129,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
         when(apiResponse.getStatusCode()).thenReturn(200);
-        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
@@ -138,7 +138,7 @@ class CompanyProfileServiceTest {
                 companyProfileWithInsolvency);
 
         verify(mongoTemplate).upsert(any(Query.class), any(Update.class), any(Class.class));
-        verify(insolvencyApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -156,7 +156,7 @@ class CompanyProfileServiceTest {
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
         when(apiResponse.getStatusCode()).thenReturn(200);
-        when(insolvencyApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
         CompanyProfile companyProfile = mockCompanyProfileWithoutInsolvency();
         CompanyProfile companyProfileWithInsolvency = companyProfile;
@@ -183,7 +183,7 @@ class CompanyProfileServiceTest {
                         companyProfileWithInsolvency));
 
         verify(apiResponse, never()).getStatusCode();
-        verify(insolvencyApiService, never()).invokeChsKafkaApi(anyString(), anyString());
+        verify(companyProfileApiService, never()).invokeChsKafkaApi(anyString(), anyString());
         verify(companyProfileRepository, never()).save(any());
         verify(companyProfileRepository, times(1)).findById(anyString());
     }

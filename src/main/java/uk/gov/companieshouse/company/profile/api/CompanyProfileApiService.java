@@ -15,7 +15,7 @@ import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableExcepti
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
-public class InsolvencyApiService {
+public class CompanyProfileApiService {
 
     private static final String CHANGED_RESOURCE_URI = "/resource-changed";
     private final Logger logger;
@@ -25,8 +25,8 @@ public class InsolvencyApiService {
     /**
      * Invoke Insolvency API.
      */
-    public InsolvencyApiService(@Value("${chs.kafka.api.endpoint}") String chsKafkaUrl,
-                                ApiClientService apiClientService, Logger logger) {
+    public CompanyProfileApiService(@Value("${chs.kafka.api.endpoint}") String chsKafkaUrl,
+                                    ApiClientService apiClientService, Logger logger) {
         this.chsKafkaUrl = chsKafkaUrl;
         this.apiClientService = apiClientService;
         this.logger = logger;
