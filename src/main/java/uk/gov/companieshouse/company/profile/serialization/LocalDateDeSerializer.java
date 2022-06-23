@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
-import uk.gov.companieshouse.company.profile.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.util.DateFormatter;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;

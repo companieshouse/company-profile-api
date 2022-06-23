@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.company.profile.exception;
+package uk.gov.companieshouse.company.profile.exceptions;
 
 public class ServiceUnavailableException extends RuntimeException {
     public ServiceUnavailableException(String message) {

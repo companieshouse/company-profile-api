@@ -13,11 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
-import uk.gov.companieshouse.company.profile.exception.BadRequestException;
-import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
-import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
+import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -86,7 +87,8 @@ public class CompanyProfileService {
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
-                                     final CompanyProfile companyProfileRequest) {
+                                     final CompanyProfile companyProfileRequest)
+            throws ApiErrorResponseException {
 
         try {
 

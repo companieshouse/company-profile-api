@@ -11,7 +11,7 @@ import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
@@ -38,7 +38,8 @@ public class CompanyProfileApiService {
      * @param companyNumber company insolvency number
      * @return response returned from chs-kafka api
      */
-    public ApiResponse<Void> invokeChsKafkaApi(String contextId, String companyNumber) {
+    public ApiResponse<Void> invokeChsKafkaApi(String contextId, String companyNumber)
+            throws ApiErrorResponseException {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
         internalApiClient.setBasePath(chsKafkaUrl);
 
@@ -58,7 +59,7 @@ public class CompanyProfileApiService {
             } else {
                 logger.error(String.format("Error occurred while calling /resource-changed with "
                         + "contextId %s and company number %s", contextId, companyNumber), exp);
-                throw new RuntimeException(exp);
+                throw exp;
             }
         }
     }

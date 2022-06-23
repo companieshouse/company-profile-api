@@ -12,7 +12,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CompanyProfileControllerITest {
+class CompanyProfileControllerITest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String COMPANY_URL = String.format("/company/%s/links",

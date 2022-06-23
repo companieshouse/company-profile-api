@@ -2,12 +2,17 @@ package uk.gov.companieshouse.company.profile.converter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
 public class EnumConverters {
+
+    private EnumConverters() {
+
+    }
 
     @ReadingConverter
     public static class StringToEnum implements GenericConverter {
@@ -22,8 +27,7 @@ public class EnumConverters {
             try {
                 return targetType.getType().getDeclaredMethod("fromValue", String.class)
                         .invoke(null, source);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException
-                    exception) {
+            } catch (Exception ex) {
                 throw new IllegalArgumentException("Unexpected Enum " + targetType);
             }
         }
@@ -42,8 +46,7 @@ public class EnumConverters {
             try {
                 return sourceType.getType().getDeclaredMethod("getValue", null)
                         .invoke(source, null);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException
-                    exception) {
+            } catch (Exception ex) {
                 return ((Enum<?>) source).name();
             }
         }

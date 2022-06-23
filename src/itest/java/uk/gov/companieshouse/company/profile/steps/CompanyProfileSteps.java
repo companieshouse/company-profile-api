@@ -14,10 +14,11 @@ import org.springframework.http.*;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
-import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -66,7 +67,7 @@ public class CompanyProfileSteps {
     }
 
     @Given("the CHS Kafka API is reachable")
-    public void the_chs_kafka_api_is_reachable() {
+    public void the_chs_kafka_api_is_reachable() throws ApiErrorResponseException {
         ApiResponse<Void> response = new ApiResponse<>(200, null, null);
         when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(response);
     }
@@ -169,7 +170,7 @@ public class CompanyProfileSteps {
 
     @Then("the CHS Kafka API is invoked successfully")
     public void chs_kafka_api_invoked() throws IOException {
-        verify(companyProfileApiService).invokeChsKafkaApi(eq(this.contextId), eq(companyNumber));
+        verify(companyProfileApiService).invokeChsKafkaApi(this.contextId, companyNumber);
     }
 
     @When("CHS kafka API service is unavailable")
@@ -254,7 +255,7 @@ public class CompanyProfileSteps {
     @Then("nothing is persisted in the database")
     public void nothing_persisted_database() {
         List<CompanyProfileDocument> insolvencyDocuments = companyProfileRepository.findAll();
-        Assertions.assertThat(insolvencyDocuments).hasSize(0);
+        Assertions.assertThat(insolvencyDocuments).isEmpty();
     }
 
     @Then("save operation is not invoked")

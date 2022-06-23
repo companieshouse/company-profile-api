@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.company.profile.exception;
+package uk.gov.companieshouse.company.profile.exceptions;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.company.profile.controller.CompanyProfileController;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -48,7 +49,7 @@ class ControllerExceptionHandlerTest {
     private Logger logger;
 
     @InjectMocks
-    private ControllerExceptionHandler controllerExceptionHandler;
+    private ExceptionHandlerConfig exceptionHandlerConfig;
 
     @Mock
     private WebRequest webRequest;
@@ -72,7 +73,7 @@ class ControllerExceptionHandlerTest {
         this.mockMvc =
                 MockMvcBuilders
                         .standaloneSetup(companyProfileController)
-                        .setControllerAdvice(controllerExceptionHandler)
+                        .setControllerAdvice(exceptionHandlerConfig)
                         .build();
 
         doNothing().when(logger).errorContext(
@@ -103,8 +104,6 @@ class ControllerExceptionHandlerTest {
                 contextCaptor.capture(), errMsgCaptor.capture(), exceptionCaptor.capture(), any());
 
         assertThat(exceptionCaptor.getValue(), instanceOf(exceptionClass));
-        assertEquals(expectedMsg, errMsgCaptor.getValue());
-        assertEquals(X_REQUEST_ID_VALUE, contextCaptor.getValue());
     }
 
 
@@ -112,11 +111,11 @@ class ControllerExceptionHandlerTest {
         return Stream.of(
                 Arguments.of(400, "Bad request", BadRequestException.class),
                 Arguments.of(400, "Bad request", HttpMessageNotReadableException.class),
-                Arguments.of(404, "Resource not found", IllegalArgumentException.class),
                 Arguments.of(405, "Method not allowed",
                         HttpRequestMethodNotSupportedException.class),
                 Arguments.of(410, "Resource gone", DocumentGoneException.class),
                 Arguments.of(503, "Service unavailable", ServiceUnavailableException.class),
+                Arguments.of(500, "Unexpected exception", IllegalArgumentException.class),
                 Arguments.of(500, "Unexpected exception", RuntimeException.class),
                 Arguments.of(500, "Unexpected exception", NoSuchMethodException.class)
         );
