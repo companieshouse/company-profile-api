@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -55,7 +56,7 @@ public class CompanyProfileController {
     public ResponseEntity<Void> updateCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
-            @Valid @RequestBody CompanyProfile requestBody) {
+            @Valid @RequestBody CompanyProfile requestBody) throws ApiErrorResponseException {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
