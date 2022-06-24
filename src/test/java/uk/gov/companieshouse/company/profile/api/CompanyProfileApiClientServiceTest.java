@@ -23,11 +23,11 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.PrivateChangedResourceHandler;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
 
 @ExtendWith(MockitoExtension.class)
-public class CompanyProfileApiClientServiceTest {
+class CompanyProfileApiClientServiceTest {
 
     @Mock
     private ApiClientService apiClientService;
@@ -95,7 +95,7 @@ public class CompanyProfileApiClientServiceTest {
     private static Stream<Arguments> provideExceptionParameters() {
         return Stream.of(
                 Arguments.of(503, "Service Unavailable", ServiceUnavailableException.class),
-                Arguments.of(500, "Internal Service Error", RuntimeException.class)
+                Arguments.of(500, "Internal Service Error", ApiErrorResponseException.class)
         );
     }
 }

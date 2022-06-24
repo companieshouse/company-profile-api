@@ -18,11 +18,12 @@ import org.springframework.data.mongodb.core.query.Update;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
-import uk.gov.companieshouse.company.profile.exception.BadRequestException;
-import uk.gov.companieshouse.company.profile.exception.DocumentGoneException;
-import uk.gov.companieshouse.company.profile.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
+import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -75,7 +76,7 @@ class CompanyProfileServiceTest {
         Optional<CompanyProfileDocument> companyProfileActual =
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertThat(companyProfileActual.get()).isSameAs(mockCompanyProfileDocument);
+        assertThat(companyProfileActual).containsSame(mockCompanyProfileDocument);
         verify(logger, times(2)).trace(anyString());
     }
 
@@ -144,7 +145,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When there's a connection issue while performing the PATCH request then throw a "
             + "service unavailable exception")
-    void patchConnectionIssueServiceUnavailable() {
+    void patchConnectionIssueServiceUnavailable() throws ApiErrorResponseException {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
@@ -171,7 +172,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company profile does not exist while performing the PATCH request then throw a "
             + "DocumentGoneException")
-    void patchDocumentGone() {
+    void patchDocumentGone() throws ApiErrorResponseException {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 

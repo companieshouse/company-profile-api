@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.company.profile.exception;
+package uk.gov.companieshouse.company.profile.exceptions;
 
 public class BadRequestException extends RuntimeException {
     public BadRequestException(String message) {
