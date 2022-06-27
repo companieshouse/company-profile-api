@@ -20,7 +20,7 @@ Feature: Error and retry scenarios for company profile
     Then I should receive 500 status code
 
     Examples:
-      | data                       | company_number     |
+      | data                  | company_number     |
       | internal_server_error | 00006400           |
 
 

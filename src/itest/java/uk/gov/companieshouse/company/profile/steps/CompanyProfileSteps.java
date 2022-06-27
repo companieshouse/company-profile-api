@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -14,11 +15,9 @@ import org.springframework.http.*;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
-import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
-import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -31,11 +30,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
 public class CompanyProfileSteps {
@@ -60,6 +60,8 @@ public class CompanyProfileSteps {
 
     @Before
     public void dbCleanUp(){
+        WiremockTestConfig.setupWiremock();
+
         if (mongoDBContainer.getContainerId() == null) {
             mongoDBContainer.start();
         }
@@ -67,15 +69,13 @@ public class CompanyProfileSteps {
     }
 
     @Given("the CHS Kafka API is reachable")
-    public void the_chs_kafka_api_is_reachable() throws ApiErrorResponseException {
-        ApiResponse<Void> response = new ApiResponse<>(200, null, null);
-        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(response);
+    public void the_chs_kafka_api_is_reachable() {
+        WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
     }
 
     @When("I send PATCH request with payload {string} and company number {string}")
     public void i_send_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
-        ApiResponse<Void> apiResponse = new ApiResponse<>(200, null, null);
-        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+        WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
 
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
@@ -99,8 +99,7 @@ public class CompanyProfileSteps {
     @When("I send PATCH request with payload {string} and company number {string} and CHS Kafka API unavailable")
     public void i_send_patch_request_with_payload_and_company_number_and_chs_kafka_api_unavailable(String dataFile, String companyNumber)
             throws IOException {
-        doThrow(ServiceUnavailableException.class)
-                .when(companyProfileApiService).invokeChsKafkaApi(anyString(), anyString());
+        WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
 
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
@@ -155,7 +154,7 @@ public class CompanyProfileSteps {
         this.contextId = "5234234234";
         headers.set("x-request-id", this.contextId);
 
-        HttpEntity request = new HttpEntity(raw_payload, headers);
+        HttpEntity<?> request = new HttpEntity<>(raw_payload, headers);
         String uri = "/company/{company_number}/links";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
 
@@ -169,14 +168,13 @@ public class CompanyProfileSteps {
     }
 
     @Then("the CHS Kafka API is invoked successfully")
-    public void chs_kafka_api_invoked() throws IOException {
-        verify(companyProfileApiService).invokeChsKafkaApi(this.contextId, companyNumber);
+    public void chs_kafka_api_invoked() {
+        verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/resource-changed")));
     }
 
     @When("CHS kafka API service is unavailable")
-    public void chs_kafka_service_unavailable() throws IOException {
-        doThrow(ServiceUnavailableException.class)
-                .when(companyProfileApiService).invokeChsKafkaApi(anyString(), anyString());
+    public void chs_kafka_service_unavailable() {
+        WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
     }
 
     @Then("the expected result should match {string} file with company number {string}")
@@ -214,7 +212,7 @@ public class CompanyProfileSteps {
         headers.add("ERIC-Identity-Type", "key");
 
         ResponseEntity<Data> response = restTemplate.exchange(
-                uri, HttpMethod.GET, new HttpEntity<Object>(headers),
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -229,7 +227,7 @@ public class CompanyProfileSteps {
         //Not setting Eric headers
 
         ResponseEntity<Data> response = restTemplate.exchange(
-                uri, HttpMethod.GET, new HttpEntity<Object>(headers),
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -248,14 +246,16 @@ public class CompanyProfileSteps {
     }
 
     @Then("the CHS Kafka API is not invoked")
-    public void chs_kafka_api_not_invoked() throws IOException {
-        verify(companyProfileApiService, times(0)).invokeChsKafkaApi(any(), any());
+    public void chs_kafka_api_not_invoked() {
+        verify(0, postRequestedFor(urlEqualTo("/resource-changed")));
+        List<ServeEvent> serverEvents = WiremockTestConfig.getServeEvents();
+        assertTrue(serverEvents.isEmpty());
     }
 
     @Then("nothing is persisted in the database")
     public void nothing_persisted_database() {
         List<CompanyProfileDocument> insolvencyDocuments = companyProfileRepository.findAll();
-        Assertions.assertThat(insolvencyDocuments).isEmpty();
+        assertTrue(insolvencyDocuments.isEmpty());
     }
 
     @Then("save operation is not invoked")

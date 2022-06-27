@@ -1,10 +1,9 @@
 package uk.gov.companieshouse.company.profile.api;
 
 import java.time.OffsetDateTime;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
@@ -17,17 +16,16 @@ import uk.gov.companieshouse.logging.Logger;
 @Service
 public class CompanyProfileApiService {
 
+    private static final String CHANGED_EVENT_TYPE = "changed";
     private static final String CHANGED_RESOURCE_URI = "/resource-changed";
     private final Logger logger;
-    private final String chsKafkaUrl;
     private final ApiClientService apiClientService;
 
     /**
      * Invoke Insolvency API.
      */
-    public CompanyProfileApiService(@Value("${chs.kafka.api.endpoint}") String chsKafkaUrl,
-                                    ApiClientService apiClientService, Logger logger) {
-        this.chsKafkaUrl = chsKafkaUrl;
+    public CompanyProfileApiService(ApiClientService apiClientService,
+                                    Logger logger) {
         this.apiClientService = apiClientService;
         this.logger = logger;
     }
@@ -41,7 +39,6 @@ public class CompanyProfileApiService {
     public ApiResponse<Void> invokeChsKafkaApi(String contextId, String companyNumber)
             throws ApiErrorResponseException {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
-        internalApiClient.setBasePath(chsKafkaUrl);
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
@@ -68,7 +65,7 @@ public class CompanyProfileApiService {
         String resourceUri = "/company/" + companyNumber;
 
         ChangedResourceEvent event = new ChangedResourceEvent();
-        event.setType("changed");
+        event.setType(CHANGED_EVENT_TYPE);
         event.publishedAt(String.valueOf(OffsetDateTime.now()));
 
         ChangedResource changedResource = new ChangedResource();
