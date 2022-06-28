@@ -1,2 +1,11 @@
 server:
   port : 8087
+
+logger:
+  namespace: company-profile-api
+
+chs:
+  kafka:
+    api:
+      endpoint: ${CHS_KAFKA_API_URL:http://localhost:8888}
+      key: ${CHS_API_KEY:chsApiKey}

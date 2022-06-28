@@ -14,8 +14,4 @@ import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 @DirtiesContext
 @ActiveProfiles({"test"})
 public abstract class AbstractIntegrationTest extends AbstractMongoConfig {
-
-    // TODO: We cant use mocks in integration tests
-    @MockBean
-    public CompanyProfileApiService companyProfileApiService;
 }
