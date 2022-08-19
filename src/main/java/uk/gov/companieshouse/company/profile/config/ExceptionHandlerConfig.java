@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundExtension;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.MethodNotAllowedException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
@@ -81,7 +81,7 @@ public class ExceptionHandlerConfig {
      * @param request request.
      * @return error response to return.
      */
-    @ExceptionHandler(value = {DocumentNotFoundExtension.class})
+    @ExceptionHandler(value = {DocumentNotFoundException.class})
     public ResponseEntity<Object> handleDocumentNotFoundException(Exception ex,
                                                               WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),

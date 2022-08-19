@@ -30,7 +30,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundExtension;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -150,7 +150,7 @@ class CompanyProfileControllerTest {
     void callCompanyProfilePatchNotFound() throws Exception {
         CompanyProfile request = new CompanyProfile();
 
-        DocumentNotFoundExtension ex = new DocumentNotFoundExtension("Not Found");
+        DocumentNotFoundException ex = new DocumentNotFoundException("Not Found");
         doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
