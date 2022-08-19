@@ -82,7 +82,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName(
             "Company Profile GET request returns a 404 Not Found response when no company profile found")
-    void getCompanyProfileGone() throws Exception {
+    void getCompanyProfileNotFound() throws Exception {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(COMPANY_URL)
@@ -147,7 +147,7 @@ class CompanyProfileControllerTest {
 
     @Test
     @DisplayName("Company Profile PATCH request returns a 404 Not Found when company profile not found")
-    void callCompanyProfilePatchGone() throws Exception {
+    void callCompanyProfilePatchNotFound() throws Exception {
         CompanyProfile request = new CompanyProfile();
 
         DocumentNotFoundExtension ex = new DocumentNotFoundExtension("Not Found");
