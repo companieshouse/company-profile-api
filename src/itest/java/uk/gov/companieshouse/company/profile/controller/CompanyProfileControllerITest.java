@@ -145,7 +145,7 @@ class CompanyProfileControllerITest {
 
     @Test
     @DisplayName("PATCH insolvency links NOT FOUND")
-    void patchInsolvencyLinksNotFound() throws Exception {
+    void patchInsolvencyLinksGone() throws Exception {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
