@@ -13,6 +13,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -149,7 +150,7 @@ class CompanyProfileControllerITest {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        doThrow(new NoSuchElementException())
+        doThrow(new DocumentGoneException("not found"))
                 .when(companyProfileService)
                 .updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, mockCompanyProfile);
 
