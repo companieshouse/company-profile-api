@@ -42,7 +42,7 @@ public class CompanyProfileController {
                         new ResponseEntity<>(
                                 new CompanyProfile().data(document.companyProfile),
                                 HttpStatus.OK))
-                .orElse(ResponseEntity.status(HttpStatus.GONE).build());
+                                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
