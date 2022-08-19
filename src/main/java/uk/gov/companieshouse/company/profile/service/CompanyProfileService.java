@@ -17,7 +17,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundExtension;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -96,7 +96,7 @@ public class CompanyProfileService {
                     companyProfileRepository.findById(companyNumber);
 
             var cpDocument = cpDocumentOptional.orElseThrow(() ->
-                    new DocumentGoneException(
+                    new DocumentNotFoundExtension(
                         String.format("No company profile with company number %s found",
                                 companyNumber)));
 
