@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.MethodNotAllowedException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
@@ -71,6 +72,21 @@ public class ExceptionHandlerConfig {
                                                   WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * DocumentGoneException exception handler.
+     * Thrown when the requested document could not be found in the DB in place of status code 410.
+     *
+     * @param ex      exception to handle.
+     * @param request request.
+     * @return error response to return.
+     */
+    @ExceptionHandler(value = {DocumentGoneException.class})
+    public ResponseEntity<Object> handleDocumentGoneException(Exception ex,
+                                                              WebRequest request) {
+        return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
+                HttpStatus.GONE);
     }
 
     /**

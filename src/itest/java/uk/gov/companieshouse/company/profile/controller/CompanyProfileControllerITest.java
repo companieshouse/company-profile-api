@@ -12,6 +12,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -144,12 +145,12 @@ class CompanyProfileControllerITest {
     }
 
     @Test
-    @DisplayName("PATCH insolvency links NOT FOUND")
+    @DisplayName("PATCH insolvency links GONE")
     void patchInsolvencyLinksGone() throws Exception {
         CompanyProfile mockCompanyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
-        doThrow(new DocumentNotFoundException("Not Found"))
+        doThrow(new DocumentGoneException("Gone"))
                 .when(companyProfileService)
                 .updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, mockCompanyProfile);
 
@@ -165,7 +166,7 @@ class CompanyProfileControllerITest {
                 COMPANY_URL,
                 HttpMethod.PATCH, httpEntity, Void.class);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.GONE);
         assertThat(responseEntity.getBody()).isNull();
     }
 }
