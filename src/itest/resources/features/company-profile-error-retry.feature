@@ -28,7 +28,7 @@ Feature: Error and retry scenarios for company profile
 
     Given Company profile api service is running
     When I send GET request with company number "<data>"
-    Then I should receive 404 status code
+    Then I should receive 410 status code
 
     Examples:
       | data     |
