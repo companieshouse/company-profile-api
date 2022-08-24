@@ -13,7 +13,6 @@ import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -83,7 +82,7 @@ class CompanyProfileControllerITest {
     }
 
     @Test
-    @DisplayName("Return a Not Found response when company profile does not exist")
+    @DisplayName("Return a Resource Gone response when company profile does not exist")
     void getCompanyProfileWhenDoesNotExist() {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
@@ -95,7 +94,7 @@ class CompanyProfileControllerITest {
                 COMPANY_URL, HttpMethod.GET, new HttpEntity<Object>(headers),
                 CompanyProfile.class);
 
-        assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.GONE);
         assertThat(companyProfileResponse.getBody()).isNull();
     }
 

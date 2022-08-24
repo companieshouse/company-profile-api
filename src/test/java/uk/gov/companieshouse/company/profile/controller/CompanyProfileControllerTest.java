@@ -31,7 +31,6 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -82,14 +81,14 @@ class CompanyProfileControllerTest {
 
     @Test
     @DisplayName(
-            "Company Profile GET request returns a 404 Not Found response when no company profile found")
-    void getCompanyProfileNotFound() throws Exception {
+            "Company Profile GET request returns a 410 Resource Gone response when no company profile found")
+    void getCompanyProfileGone() throws Exception {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(COMPANY_URL)
                         .header("ERIC-Identity" , "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isGone())
                 .andExpect(content().string(""));
     }
 
