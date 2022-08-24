@@ -114,6 +114,7 @@ class ControllerExceptionHandlerTest {
                 Arguments.of(405, "Method not allowed",
                         HttpRequestMethodNotSupportedException.class),
                 Arguments.of(404, "Not Found", DocumentNotFoundException.class),
+                Arguments.of(410, "Gone", DocumentGoneException.class),
                 Arguments.of(503, "Service unavailable", ServiceUnavailableException.class),
                 Arguments.of(500, "Unexpected exception", IllegalArgumentException.class),
                 Arguments.of(500, "Unexpected exception", RuntimeException.class),
