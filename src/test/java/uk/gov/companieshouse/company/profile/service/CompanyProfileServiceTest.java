@@ -22,13 +22,12 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
@@ -171,15 +170,15 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When company profile does not exist while performing the PATCH request then throw a "
-            + "DocumentGoneException")
-    void patchDocumentGone() throws ApiErrorResponseException {
+            + "DocumentNotFoundException")
+    void patchDocumentNotfound() throws ApiErrorResponseException {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
-        Assert.assertThrows(DocumentGoneException.class,
+        Assert.assertThrows(DocumentNotFoundException.class,
                 () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                         companyProfileWithInsolvency));
 
