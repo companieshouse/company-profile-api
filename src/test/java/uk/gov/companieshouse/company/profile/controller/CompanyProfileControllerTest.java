@@ -30,7 +30,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentGoneException;
+import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -81,14 +81,14 @@ class CompanyProfileControllerTest {
 
     @Test
     @DisplayName(
-            "Company Profile GET request returns a 410 Resource Gone response when no company profile found")
-    void getCompanyProfileGone() throws Exception {
+            "Company Profile GET request returns a 404 Resource Not found response when no company profile found")
+    void getCompanyProfileNotFound() throws Exception {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(COMPANY_URL)
                         .header("ERIC-Identity" , "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
-                .andExpect(status().isGone())
+                .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
     }
 
@@ -146,11 +146,11 @@ class CompanyProfileControllerTest {
     }
 
     @Test
-    @DisplayName("Company Profile PATCH request returns a 410 Not Found when company profile not found")
+    @DisplayName("Company Profile PATCH request returns a 404 Not Found when company profile not found")
     void callCompanyProfilePatchNotFound() throws Exception {
         CompanyProfile request = new CompanyProfile();
 
-        DocumentGoneException ex = new DocumentGoneException("Gone");
+        DocumentNotFoundException ex = new DocumentNotFoundException("Not Found");
         doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
         assertThatThrownBy(() ->
@@ -160,7 +160,7 @@ class CompanyProfileControllerTest {
                                 .header("ERIC-Identity" , "SOME_IDENTITY")
                                 .header("ERIC-Identity-Type", "key")
                                 .content(gson.toJson(request)))
-                        .andExpect(status().isGone())
+                        .andExpect(status().isNotFound())
         ).hasCause(ex);
     }
 
