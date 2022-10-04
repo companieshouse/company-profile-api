@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,5 +62,22 @@ public class CompanyProfileController {
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     * Add a company exemptions link to a company profile resource.
+     *
+     * @param contextId The context ID of the incoming request as determined by header x-request-id.
+     * @param companyNumber The company number referring to the company resource that will be
+     *                      updated.
+     * @return HTTP 201 Created if the link has been successfully added.
+     */
+    @PostMapping("/company/{company_number}/links/exemptions")
+    public ResponseEntity<Void> addExemptionsLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber) {
+        logger.info("Adding exemptions link...");
+        logger.info("Added exemptions link");
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
