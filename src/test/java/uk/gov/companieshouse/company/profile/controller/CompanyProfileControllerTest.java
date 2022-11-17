@@ -44,8 +44,8 @@ import uk.gov.companieshouse.logging.Logger;
 @Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
-    private static final String COMPANY_URL = String.format("/company/%s/links",
-            MOCK_COMPANY_NUMBER);
+    private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
+    private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -212,5 +212,70 @@ class CompanyProfileControllerTest {
                                 .content(gson.toJson(request)))
                         .andExpect(status().isServiceUnavailable())
         ).hasCause(new RuntimeException());
+    }
+
+    @Test
+    @DisplayName("Add company exemptions link")
+    void addExemptionsLink() throws Exception {
+        doNothing().when(companyProfileService).addExemptionsLink(anyString(), anyString());
+
+        mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                .header("ERIC-Identity" , "SOME_IDENTITY")
+                .header("ERIC-Identity-Type", "key")
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "123456"))
+                .andExpect(status().isOk());
+        verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link request returns 404 not found when document not found exception is thrown")
+    void addExemptionsLinkNotFound() {
+
+        DocumentNotFoundException ex = new DocumentNotFoundException("Not Found");
+        doThrow(ex).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+
+        assertThatThrownBy(() ->
+                mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity" , "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                        .andExpect(status().isNotFound())
+        ).hasCause(ex);
+        verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+    }
+
+    @Test()
+    @DisplayName("Add exemptions link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void addExemptionsLinkServiceUnavailable() {
+        ServiceUnavailableException ex = new ServiceUnavailableException("Service unavailable - connection issue");
+        doThrow(ex).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+
+        assertThatThrownBy(() ->
+                mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                        .header("ERIC-Identity" , "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456"))
+                        .andExpect(status().isServiceUnavailable())
+        ).hasCause(ex);
+        verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+    }
+
+    @Test()
+    @DisplayName("Add exemptions link request returns 500 internal server error when a runtime exception is thrown")
+    void addExemptionsLinkInternalServerError() {
+        doThrow(RuntimeException.class).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+
+        assertThatThrownBy(() ->
+                mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                        .header("ERIC-Identity" , "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456"))
+                        .andExpect(status().isServiceUnavailable())
+        ).hasCause(new RuntimeException());
+        verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
 }

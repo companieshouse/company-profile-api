@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import com.mongodb.client.result.UpdateResult;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -133,6 +134,13 @@ public class CompanyProfileService {
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
+    }
+
+    public void addExemptionsLink(String contextId, String companyNumber) {
+        Query query = new Query(Criteria.where("_id").is(companyNumber).and("data.links.exemptions").exists(false));
+        Update update = Update.update("data.links.exemptions", String.format("/company/%s/exemptions", companyNumber));
+        UpdateResult result = mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+        result.getMatchedCount(); // do something if no matches
     }
 
     private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
