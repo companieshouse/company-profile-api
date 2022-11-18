@@ -64,7 +64,7 @@ public class CompanyProfileController {
     }
 
     @PatchMapping("/company/{company_number}/links/exemptions")
-    public ResponseEntity<Void> addExemptionLink(
+    public ResponseEntity<Void> addExemptionsLink(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
         logger.info(String.format("Payload successfully received on PATCH endpoint "

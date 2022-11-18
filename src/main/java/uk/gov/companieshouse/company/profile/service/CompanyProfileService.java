@@ -19,6 +19,7 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
+import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -137,10 +138,40 @@ public class CompanyProfileService {
     }
 
     public void addExemptionsLink(String contextId, String companyNumber) {
-        Query query = new Query(Criteria.where("_id").is(companyNumber).and("data.links.exemptions").exists(false));
-        Update update = Update.update("data.links.exemptions", String.format("/company/%s/exemptions", companyNumber));
-        UpdateResult result = mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
-        result.getMatchedCount(); // do something if no matches
+        try {
+            companyProfileRepository.findById(companyNumber)
+                    .orElseThrow(() -> new DocumentNotFoundException(
+                            String.format("No company profile with company number %s found", companyNumber)));
+
+            Query query = new Query(Criteria.where("_id")
+                    .is(companyNumber)
+                    .and("data.links.exemptions")
+                    .exists(false));
+            Update update = Update.update("data.links.exemptions", String.format("/company/%s/exemptions", companyNumber));
+            update.set("data.etag", GenerateEtagUtil.generateEtag());
+            update.set("updated", new Updated()
+                    .setAt(LocalDateTime.now())
+                    .setType("exemption_delta")
+                    .setBy(contextId));
+
+            UpdateResult result = mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+            if (result.getMatchedCount() == 0) {
+                logger.error("Exemptions link for company profile already exists");
+                throw new ResourceStateConflictException("Resource state conflict; exemptions link already exists");
+            } else {
+                logger.info(String.format("Company exemptions link inserted in Company Profile with context id: %s and company number: %s",
+                        contextId, companyNumber));
+                companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+                logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context id: %s and company number: %s",
+                        contextId, companyNumber));
+            }
+        } catch (IllegalArgumentException | ApiErrorResponseException e) {
+            logger.error("Error calling chs-kafka-api");
+            throw new ServiceUnavailableException(e.getMessage());
+        } catch (DataAccessException e) {
+            logger.error("Error accessing MongoDB");
+            throw new ServiceUnavailableException(e.getMessage());
+        }
     }
 
     private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
