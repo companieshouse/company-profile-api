@@ -29,8 +29,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
+import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
+import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -40,7 +42,7 @@ import uk.gov.companieshouse.logging.Logger;
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = CompanyProfileController.class)
-@ContextConfiguration(classes = CompanyProfileController.class)
+@ContextConfiguration(classes = {CompanyProfileController.class, ExceptionHandlerConfig.class})
 @Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
@@ -230,52 +232,57 @@ class CompanyProfileControllerTest {
 
     @Test
     @DisplayName("Add exemptions link request returns 404 not found when document not found exception is thrown")
-    void addExemptionsLinkNotFound() {
+    void addExemptionsLinkNotFound() throws Exception {
+        doThrow(new DocumentNotFoundException("Not Found")).when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
-        DocumentNotFoundException ex = new DocumentNotFoundException("Not Found");
-        doThrow(ex).when(companyProfileService).addExemptionsLink(anyString(), anyString());
-
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity" , "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
-                        .andExpect(status().isNotFound())
-        ).hasCause(ex);
+                .andExpect(status().isNotFound());
+        verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link request returns 409 not found when resource state conflict exception is thrown")
+    void addExemptionsLinkConflict() throws Exception {
+        doThrow(new ResourceStateConflictException("Conflict in resource state")).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+
+        mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "123456")
+                .header("ERIC-Identity" , "SOME_IDENTITY")
+                .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isConflict());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
 
     @Test()
     @DisplayName("Add exemptions link request returns 503 service unavailable when a service unavailable exception is thrown")
-    void addExemptionsLinkServiceUnavailable() {
-        ServiceUnavailableException ex = new ServiceUnavailableException("Service unavailable - connection issue");
-        doThrow(ex).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+    void addExemptionsLinkServiceUnavailable() throws Exception {
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue")).when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                        .header("ERIC-Identity" , "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
-                        .andExpect(status().isServiceUnavailable())
-        ).hasCause(ex);
+        mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "123456")
+                .header("ERIC-Identity" , "SOME_IDENTITY")
+                .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
 
     @Test()
     @DisplayName("Add exemptions link request returns 500 internal server error when a runtime exception is thrown")
-    void addExemptionsLinkInternalServerError() {
-        doThrow(RuntimeException.class).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+    void addExemptionsLinkInternalServerError() throws Exception {
+        doThrow(new RuntimeException()).when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                        .header("ERIC-Identity" , "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
-                        .andExpect(status().isServiceUnavailable())
-        ).hasCause(new RuntimeException());
+        mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "123456")
+                .header("ERIC-Identity" , "SOME_IDENTITY")
+                .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isInternalServerError());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
 }

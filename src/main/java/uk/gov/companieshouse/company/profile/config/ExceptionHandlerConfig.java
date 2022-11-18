@@ -19,6 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
 import uk.gov.companieshouse.company.profile.exceptions.MethodNotAllowedException;
+import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -133,6 +134,21 @@ public class ExceptionHandlerConfig {
                                                                     WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    /**
+     * ResourceStateConflictException handler.
+     * Thrown when the requested document already has an exemptions link.
+     *
+     * @param ex      exception to handle.
+     * @param request request.
+     * @return error response to return.
+     */
+    @ExceptionHandler(value = {ResourceStateConflictException.class})
+    public ResponseEntity<Object> handleResourceStateConflictException(Exception ex,
+            WebRequest request) {
+        return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
+                HttpStatus.CONFLICT);
     }
 
     private String generateShortCorrelationId() {
