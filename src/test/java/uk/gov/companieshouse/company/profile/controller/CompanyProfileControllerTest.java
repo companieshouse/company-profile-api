@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
@@ -16,6 +15,7 @@ import com.google.gson.Gson;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,7 +76,7 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity", "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
     }
@@ -88,7 +88,7 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(COMPANY_URL)
-                        .header("ERIC-Identity" , "SOME_IDENTITY")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
@@ -99,39 +99,34 @@ class CompanyProfileControllerTest {
     void getCompanyProfileInternalServerError() throws Exception {
         when(companyProfileService.get(any())).thenThrow(RuntimeException.class);
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
-                        .andExpect(status().isInternalServerError())
-                        .andExpect(content().string(""))
-        ).hasCause(new RuntimeException());
+        mockMvc.perform(get(COMPANY_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test()
     @DisplayName("Company Profile GET request returns a 400 Bad Request Exception")
     void getCompanyProfileBadRequest() throws Exception {
-        BadRequestException ex = new BadRequestException("Bad request - " +
-                "data in wrong format");
-        when(companyProfileService.get(any())).thenThrow(ex);
+        when(companyProfileService.get(any()))
+                .thenThrow(new BadRequestException("Bad request - data in wrong format"));
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(content().string(""))
-        ).hasCause(ex);
+        mockMvc.perform(get(COMPANY_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test()
     @DisplayName("Company Profile GET request returns a 503 Service Unavailable")
     void getCompanyProfileServiceUnavailable() throws Exception {
-        ServiceUnavailableException ex = new ServiceUnavailableException("Service unavailable - " +
-                "connection issue");
-        when(companyProfileService.get(any())).thenThrow(ex);
+        when(companyProfileService.get(any()))
+                .thenThrow(new ServiceUnavailableException("Service unavailable - connection issue"));
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
-                        .andExpect(status().isServiceUnavailable())
-                        .andExpect(content().string(""))
-        ).hasCause(ex);
+        mockMvc.perform(get(COMPANY_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isServiceUnavailable());
     }
 
 
@@ -143,77 +138,67 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).updateInsolvencyLink(anyString(), anyString(),
                 isA(CompanyProfile.class));
 
-        mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key").contentType(APPLICATION_JSON).header("x-request-id", "123456")
+        mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity", "SOME_IDENTITY").header("ERIC-Identity-Type", "key").contentType(APPLICATION_JSON).header("x-request-id", "123456")
                 .content(gson.toJson(request))).andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("Company Profile PATCH request returns a 404 Not Found when company profile not found")
     void callCompanyProfilePatchNotFound() throws Exception {
-        CompanyProfile request = new CompanyProfile();
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        DocumentNotFoundException ex = new DocumentNotFoundException("Not Found");
-        doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
-
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL)
-                                .contentType(APPLICATION_JSON)
-                                .header("x-request-id", "123456")
-                                .header("ERIC-Identity" , "SOME_IDENTITY")
-                                .header("ERIC-Identity-Type", "key")
-                                .content(gson.toJson(request)))
-                        .andExpect(status().isNotFound())
-        ).hasCause(ex);
+        mockMvc.perform(patch(COMPANY_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .content(gson.toJson(new CompanyProfile())))
+                .andExpect(status().isNotFound());
     }
 
     @Test()
     @DisplayName("Company Profile PATCH request returns a 400 Bad Request Exception")
     void patchCompanyProfileBadRequest() throws Exception {
-        CompanyProfile request = new CompanyProfile();
-        BadRequestException ex = new BadRequestException("Bad request - " +
-                "data in wrong format");
-        doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+        doThrow(new BadRequestException("Bad request - data in wrong format"))
+                .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL)
+        mockMvc.perform(patch(COMPANY_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
-                                .header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key")
-                        .content(gson.toJson(request)))
-                        .andExpect(status().isBadRequest())
-        ).hasCause(ex);
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .content(gson.toJson(new CompanyProfile())))
+                .andExpect(status().isBadRequest());
     }
 
     @Test()
     @DisplayName("Company Profile PATCH request returns a 503 Service Unavailable")
     void patchCompanyProfileServiceUnavailable() throws Exception {
-        CompanyProfile request = new CompanyProfile();
-        ServiceUnavailableException ex = new ServiceUnavailableException("Service unavailable - " +
-                "connection issue");
-        doThrow(ex).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key")
-                                .contentType(APPLICATION_JSON)
-                                .header("x-request-id", "123456")
-                                .content(gson.toJson(request)))
-                        .andExpect(status().isServiceUnavailable())
-        ).hasCause(ex);
+        mockMvc.perform(patch(COMPANY_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .content(gson.toJson(new CompanyProfile())))
+                .andExpect(status().isServiceUnavailable());
     }
 
     @Test()
     @DisplayName("Company Profile PATCH request returns a 500 Internal Server Error")
     void patchCompanyProfileInternalServerError() throws Exception {
-        CompanyProfile request = new CompanyProfile();
-        doThrow(RuntimeException.class).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+        doThrow(new RuntimeException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        assertThatThrownBy(() ->
-                mockMvc.perform(patch(COMPANY_URL).header("ERIC-Identity" , "SOME_IDENTITY").header("ERIC-Identity-Type", "key")
-                                .contentType(APPLICATION_JSON)
-                                .header("x-request-id", "123456")
-                                .content(gson.toJson(request)))
-                        .andExpect(status().isServiceUnavailable())
-        ).hasCause(new RuntimeException());
+        mockMvc.perform(patch(COMPANY_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .content(gson.toJson(new CompanyProfile())))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -222,10 +207,10 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                .header("ERIC-Identity" , "SOME_IDENTITY")
-                .header("ERIC-Identity-Type", "key")
-                .contentType(APPLICATION_JSON)
-                .header("x-request-id", "123456"))
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456"))
                 .andExpect(status().isOk());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
@@ -233,12 +218,13 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Add exemptions link request returns 404 not found when document not found exception is thrown")
     void addExemptionsLinkNotFound() throws Exception {
-        doThrow(new DocumentNotFoundException("Not Found")).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
-                        .header("ERIC-Identity" , "SOME_IDENTITY")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
@@ -247,13 +233,14 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Add exemptions link request returns 409 not found when resource state conflict exception is thrown")
     void addExemptionsLinkConflict() throws Exception {
-        doThrow(new ResourceStateConflictException("Conflict in resource state")).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+        doThrow(new ResourceStateConflictException("Conflict in resource state"))
+                .when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                .contentType(APPLICATION_JSON)
-                .header("x-request-id", "123456")
-                .header("ERIC-Identity" , "SOME_IDENTITY")
-                .header("ERIC-Identity-Type", "key"))
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
@@ -261,13 +248,14 @@ class CompanyProfileControllerTest {
     @Test()
     @DisplayName("Add exemptions link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addExemptionsLinkServiceUnavailable() throws Exception {
-        doThrow(new ServiceUnavailableException("Service unavailable - connection issue")).when(companyProfileService).addExemptionsLink(anyString(), anyString());
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                .contentType(APPLICATION_JSON)
-                .header("x-request-id", "123456")
-                .header("ERIC-Identity" , "SOME_IDENTITY")
-                .header("ERIC-Identity-Type", "key"))
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
@@ -278,10 +266,10 @@ class CompanyProfileControllerTest {
         doThrow(new RuntimeException()).when(companyProfileService).addExemptionsLink(anyString(), anyString());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                .contentType(APPLICATION_JSON)
-                .header("x-request-id", "123456")
-                .header("ERIC-Identity" , "SOME_IDENTITY")
-                .header("ERIC-Identity-Type", "key"))
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).addExemptionsLink("123456", MOCK_COMPANY_NUMBER);
     }
