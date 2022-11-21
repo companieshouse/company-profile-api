@@ -62,4 +62,20 @@ public class CompanyProfileController {
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    /**
+     * Add a company exemptions link to a company profile for the given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
+    @PatchMapping("/company/{company_number}/links/exemptions")
+    public ResponseEntity<Void> addExemptionsLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber) {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
+        companyProfileService.addExemptionsLink(contextId, companyNumber);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

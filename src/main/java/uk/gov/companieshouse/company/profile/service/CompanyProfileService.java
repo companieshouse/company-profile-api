@@ -1,9 +1,11 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import com.mongodb.client.result.UpdateResult;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -18,6 +20,7 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
+import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
@@ -132,6 +135,52 @@ public class CompanyProfileService {
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
+        }
+    }
+
+    /**
+     * Add an exemptions link to a company profile and call chs-kafka-api
+     * to notify a resource has been changed.
+     *
+     * @param contextId Request ID from request header "x-request-id
+     * @param companyNumber The number of the company to update
+     */
+    public void addExemptionsLink(String contextId, String companyNumber) {
+        try {
+            CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
+                    .orElseThrow(() -> new DocumentNotFoundException(
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
+
+            if (!StringUtils.isBlank(document.getCompanyProfile().getLinks().getExemptions())) {
+                logger.error("Exemptions link for company profile already exists");
+                throw new ResourceStateConflictException("Resource state conflict; "
+                        + "exemptions link already exists");
+            }
+
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
+                    + "id: %s and company number: %s", contextId, companyNumber));
+
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
+            Update update = Update.update("data.links.exemptions",
+                    String.format("/company/%s/exemptions", companyNumber));
+            update.set("data.etag", GenerateEtagUtil.generateEtag());
+            update.set("updated", new Updated()
+                    .setAt(LocalDateTime.now())
+                    .setType("exemption_delta")
+                    .setBy(contextId));
+
+            mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+            logger.info(String.format("Company exemptions link inserted in Company Profile "
+                            + "with context id: %s and company number: %s",
+                    contextId, companyNumber));
+        } catch (IllegalArgumentException | ApiErrorResponseException exception) {
+            logger.error("Error calling chs-kafka-api");
+            throw new ServiceUnavailableException(exception.getMessage());
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB");
+            throw new ServiceUnavailableException(exception.getMessage());
         }
     }
 

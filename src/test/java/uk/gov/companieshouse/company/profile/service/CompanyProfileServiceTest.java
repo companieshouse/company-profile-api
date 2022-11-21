@@ -4,10 +4,12 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import com.google.gson.Gson;
+import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,22 +25,31 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
+import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
 import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
-
-    private static String COMPANY_PROFILE_COLLECTION = "company_profile";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -54,6 +65,18 @@ class CompanyProfileServiceTest {
 
     @Mock
     CompanyProfileApiService companyProfileApiService;
+
+    @Mock
+    private CompanyProfileDocument document;
+
+    @Mock
+    private Data data;
+
+    @Mock
+    private Links links;
+
+    @Mock
+    private UpdateResult updateResult;
 
     @InjectMocks
     CompanyProfileService companyProfileService;
@@ -186,6 +209,112 @@ class CompanyProfileServiceTest {
         verify(companyProfileApiService, never()).invokeChsKafkaApi(anyString(), anyString());
         verify(companyProfileRepository, never()).save(any());
         verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("Add exemptions link successfully updates MongoDB and calls chs-kafka-api")
+    void addExemptionsLink() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+
+        // when
+        companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link throws document not found exception")
+    void addExemptionsLinkNotFound() {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        Exception exception = assertThrows(DocumentNotFoundException.class, executable);
+        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link throws resource state conflict exception")
+    void addExemptionsLinkConflict() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+
+        // when
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        Exception exception = assertThrows(ResourceStateConflictException.class, executable);
+        assertEquals("Resource state conflict; exemptions link already exists", exception.getMessage());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link throws service unavailable exception when illegal argument exception caught")
+    void addExemptionsLinkIllegalArgument() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during findById")
+    void addExemptionsLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during update")
+    void addExemptionsLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
