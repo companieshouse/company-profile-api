@@ -64,7 +64,7 @@ public class CompanyProfileController {
     }
 
     /**
-     * Update a company exemptions link.
+     * Add a company exemptions link to a company profile for the given company number.
      *
      * @param companyNumber The number of the company
      * @return no response
