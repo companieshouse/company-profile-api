@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -146,19 +147,22 @@ public class CompanyProfileService {
      */
     public void addExemptionsLink(String contextId, String companyNumber) {
         try {
-            companyProfileRepository.findById(companyNumber)
+            CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
                     .orElseThrow(() -> new DocumentNotFoundException(
                             String.format("No company profile with company number %s found",
                                     companyNumber)));
+
+            if (!StringUtils.isBlank(document.getCompanyProfile().getLinks().getExemptions())) {
+                logger.error("Exemptions link for company profile already exists");
+                throw new ResourceStateConflictException("Resource state conflict; "
+                        + "exemptions link already exists");
+            }
 
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
             logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
                     + "id: %s and company number: %s", contextId, companyNumber));
 
-            Query query = new Query(Criteria.where("_id")
-                    .is(companyNumber)
-                    .and("data.links.exemptions")
-                    .exists(false));
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update("data.links.exemptions",
                     String.format("/company/%s/exemptions", companyNumber));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
@@ -167,13 +171,7 @@ public class CompanyProfileService {
                     .setType("exemption_delta")
                     .setBy(contextId));
 
-            UpdateResult result = mongoTemplate.updateFirst(query,
-                    update, CompanyProfileDocument.class);
-            if (result.getMatchedCount() == 0) {
-                logger.error("Exemptions link for company profile already exists");
-                throw new ResourceStateConflictException("Resource state conflict; "
-                        + "exemptions link already exists");
-            }
+            mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.info(String.format("Company exemptions link inserted in Company Profile "
                             + "with context id: %s and company number: %s",
                     contextId, companyNumber));
