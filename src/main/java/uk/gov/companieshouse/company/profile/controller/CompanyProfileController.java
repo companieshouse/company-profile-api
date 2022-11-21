@@ -63,6 +63,12 @@ public class CompanyProfileController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    /**
+     * Update a company exemptions link.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
     @PatchMapping("/company/{company_number}/links/exemptions")
     public ResponseEntity<Void> addExemptionsLink(
             @RequestHeader("x-request-id") String contextId,

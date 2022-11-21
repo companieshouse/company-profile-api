@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -232,11 +233,12 @@ class CompanyProfileServiceTest {
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
         assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
     }
 
     @Test
     @DisplayName("Add exemptions link throws resource state conflict exception")
-    void addExemptionsLinkConflict() {
+    void addExemptionsLinkConflict() throws ApiErrorResponseException {
         // given
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenReturn(updateResult);
@@ -249,6 +251,7 @@ class CompanyProfileServiceTest {
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; exemptions link already exists", exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -256,8 +259,6 @@ class CompanyProfileServiceTest {
     void addExemptionsLinkIllegalArgument() throws ApiErrorResponseException {
         // given
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenReturn(updateResult);
-        when(updateResult.getMatchedCount()).thenReturn(1L);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
@@ -271,7 +272,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during findById")
-    void addExemptionsLinkDataAccessExceptionFindById() {
+    void addExemptionsLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
         // given
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
@@ -281,11 +282,12 @@ class CompanyProfileServiceTest {
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
     }
 
     @Test
     @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during update")
-    void addExemptionsLinkDataAccessExceptionUpdate() {
+    void addExemptionsLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
         // given
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
@@ -296,6 +298,7 @@ class CompanyProfileServiceTest {
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
