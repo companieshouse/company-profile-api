@@ -50,6 +50,7 @@ import static org.mockito.Mockito.when;
 class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
+    private static final String MOCK_EXEMPTIONS = "/company/6146287/exemptions";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -310,6 +311,114 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Delete exemptions link successfully updates MongoDB and calls chs-kafka-api")
+    void deleteExemptionsLink() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+
+        // when
+        companyProfileService.deleteExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Delete exemptions link throws document not found exception")
+    void deleteExemptionsLinkNotFound() {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        Executable executable = () -> companyProfileService.deleteExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        Exception exception = assertThrows(DocumentNotFoundException.class, executable);
+        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete exemptions link throws resource state conflict exception")
+    void deleteExemptionsLinkConflict() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+
+        // when
+        Executable executable = () -> companyProfileService.deleteExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        Exception exception = assertThrows(ResourceStateConflictException.class, executable);
+        assertEquals("Resource state conflict; exemptions link already does not exist", exception.getMessage());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete exemptions link throws service unavailable exception when illegal argument exception caught")
+    void deleteExemptionsLinkIllegalArgument() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.deleteExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete exemptions link throws service unavailable exception when data access exception thrown during findById")
+    void deleteExemptionsLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.deleteExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete exemptions link throws service unavailable exception when data access exception thrown during update")
+    void deleteExemptionsLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
+        // given
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.deleteExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);

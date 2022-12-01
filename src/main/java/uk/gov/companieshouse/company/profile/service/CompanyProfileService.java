@@ -184,6 +184,52 @@ public class CompanyProfileService {
         }
     }
 
+    /**
+     * Delete an exemptions link for a company profile and call chs-kafka-api
+     * to notify a resource has been changed.
+     *
+     * @param contextId Request ID from request header "x-request-id
+     * @param companyNumber The number of the company to update
+     */
+    public void deleteExemptionsLink(String contextId, String companyNumber) {
+        try {
+            CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
+                    .orElseThrow(() -> new DocumentNotFoundException(
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
+
+            if (StringUtils.isBlank(document.getCompanyProfile().getLinks().getExemptions())) {
+                logger.error("Exemptions link for company profile already does not exist");
+                throw new ResourceStateConflictException("Resource state conflict; "
+                        + "exemptions link already does not exist");
+            }
+
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.info(String.format("chs-kafka-api DELETED invoked successfully for context "
+                    + "id: %s and company number: %s", contextId, companyNumber));
+
+            Update update = new Update();
+            update.unset("data.links.exemptions");
+            update.set("data.etag", GenerateEtagUtil.generateEtag());
+            update.set("updated", new Updated()
+                    .setAt(LocalDateTime.now())
+                    .setType("exemption_delta")
+                    .setBy(contextId));
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
+
+            mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+            logger.info(String.format("Company exemptions link deleted in Company Profile "
+                            + "with context id: %s and company number: %s",
+                    contextId, companyNumber));
+        } catch (IllegalArgumentException | ApiErrorResponseException exception) {
+            logger.error("Error calling chs-kafka-api");
+            throw new ServiceUnavailableException(exception.getMessage());
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB");
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
     private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
         Update update = new Update();
         setUpdateIfNotNull(update, "data.etag",
