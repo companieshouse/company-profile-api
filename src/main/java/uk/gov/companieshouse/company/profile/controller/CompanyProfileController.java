@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.controller;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -86,11 +85,11 @@ public class CompanyProfileController {
      * @param companyNumber The number of the company
      * @return no response
      */
-    @DeleteMapping("/company/{company_number}/links/exemptions")
+    @PatchMapping("/company/{company_number}/links/exemptions/delete")
     public ResponseEntity<Void> deleteExemptionsLink(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
-        logger.info(String.format("Request received on DELETE endpoint "
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.deleteExemptionsLink(contextId, companyNumber);
         return ResponseEntity.status(HttpStatus.OK).build();

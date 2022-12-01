@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -53,6 +52,8 @@ class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
+
+    private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -284,7 +285,7 @@ class CompanyProfileControllerTest {
     void deleteExemptionsLink() throws Exception {
         doNothing().when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
 
-        mockMvc.perform(delete(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
@@ -299,7 +300,7 @@ class CompanyProfileControllerTest {
         doThrow(new DocumentNotFoundException("Not Found"))
                 .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
 
-        mockMvc.perform(delete(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
@@ -314,7 +315,7 @@ class CompanyProfileControllerTest {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
                 .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
 
-        mockMvc.perform(delete(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -329,7 +330,7 @@ class CompanyProfileControllerTest {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
                 .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
 
-        mockMvc.perform(delete(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -344,7 +345,7 @@ class CompanyProfileControllerTest {
         doThrow(new RuntimeException())
                 .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
 
-        mockMvc.perform(delete(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
