@@ -78,4 +78,20 @@ public class CompanyProfileController {
         companyProfileService.addExemptionsLink(contextId, companyNumber);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    /**
+     * Delete a company exemptions link on a company profile for the given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
+    @PatchMapping("/company/{company_number}/links/exemptions/delete")
+    public ResponseEntity<Void> deleteExemptionsLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber) {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
+        companyProfileService.deleteExemptionsLink(contextId, companyNumber);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
