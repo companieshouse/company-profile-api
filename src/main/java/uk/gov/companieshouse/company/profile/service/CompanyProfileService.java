@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import com.mongodb.client.result.UpdateResult;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -158,10 +157,6 @@ public class CompanyProfileService {
                         + "exemptions link already exists");
             }
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
-                    + "id: %s and company number: %s", contextId, companyNumber));
-
             Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update("data.links.exemptions",
                     String.format("/company/%s/exemptions", companyNumber));
@@ -175,6 +170,10 @@ public class CompanyProfileService {
             logger.info(String.format("Company exemptions link inserted in Company Profile "
                             + "with context id: %s and company number: %s",
                     contextId, companyNumber));
+
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
+                    + "id: %s and company number: %s", contextId, companyNumber));
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());
@@ -204,10 +203,6 @@ public class CompanyProfileService {
                         + "exemptions link already does not exist");
             }
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.info(String.format("chs-kafka-api DELETED invoked successfully for context "
-                    + "id: %s and company number: %s", contextId, companyNumber));
-
             Update update = new Update();
             update.unset("data.links.exemptions");
             update.set("data.etag", GenerateEtagUtil.generateEtag());
@@ -221,6 +216,10 @@ public class CompanyProfileService {
             logger.info(String.format("Company exemptions link deleted in Company Profile "
                             + "with context id: %s and company number: %s",
                     contextId, companyNumber));
+
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.info(String.format("chs-kafka-api DELETED invoked successfully for context "
+                    + "id: %s and company number: %s", contextId, companyNumber));
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());

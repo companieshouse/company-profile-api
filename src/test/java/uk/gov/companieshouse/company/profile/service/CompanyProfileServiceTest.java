@@ -279,7 +279,6 @@ class CompanyProfileServiceTest {
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        verifyNoInteractions(mongoTemplate);
     }
 
     @Test
@@ -313,7 +312,7 @@ class CompanyProfileServiceTest {
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
     }
 
     @Test
@@ -386,7 +385,6 @@ class CompanyProfileServiceTest {
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        verifyNoInteractions(mongoTemplate);
     }
 
     @Test
@@ -421,7 +419,7 @@ class CompanyProfileServiceTest {
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
