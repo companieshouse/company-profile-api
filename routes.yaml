@@ -4,3 +4,5 @@ weight: 900
 routes:
    1: ^/company-profile-api/healthcheck
    2: ^/company/(.*)/links.*
+   3: ^/company/(.*)/links/exemptions
+   4: ^/company/(.*)/links/exemptions/delete
