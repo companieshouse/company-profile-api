@@ -138,38 +138,48 @@ public class CompanyProfileService {
     }
 
     /**
-     * Add an exemptions link to a company profile and call chs-kafka-api
+     * Add link to a company profile and call chs-kafka-api
      * to notify a resource has been changed.
      *
-     * @param contextId Request ID from request header "x-request-id
+     * @param contextId     Request ID from request header "x-request-id
      * @param companyNumber The number of the company to update
+     * @param linkType      The type link we're adding to the company profile
+     * @param deltaType     The delta type required for the update object
      */
-    public void addExemptionsLink(String contextId, String companyNumber) {
+    public void addLink(String contextId, String companyNumber, String linkType,
+                        String deltaType) {
         try {
             CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
                     .orElseThrow(() -> new DocumentNotFoundException(
                             String.format("No company profile with company number %s found",
                                     companyNumber)));
 
-            if (!StringUtils.isBlank(document.getCompanyProfile().getLinks().getExemptions())) {
+            if (linkType.equals("exemptions") && !StringUtils.isBlank(
+                    document.getCompanyProfile().getLinks().getExemptions())) {
                 logger.error("Exemptions link for company profile already exists");
                 throw new ResourceStateConflictException("Resource state conflict; "
                         + "exemptions link already exists");
+            } else if (linkType.equals("officers") && !StringUtils.isBlank(
+                    document.getCompanyProfile().getLinks().getOfficers())) {
+                logger.error("Officers link for company profile already exists");
+                throw new ResourceStateConflictException("Resource state conflict; "
+                        + "officers link already exists");
             }
 
             Query query = new Query(Criteria.where("_id").is(companyNumber));
-            Update update = Update.update("data.links.exemptions",
-                    String.format("/company/%s/exemptions", companyNumber));
+            Update update = Update.update(
+                        String.format("data.links.%s", linkType),
+                        String.format("/company/%s/%s", companyNumber, linkType));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
-                    .setType("exemption_delta")
+                    .setType(deltaType)
                     .setBy(contextId));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
-            logger.info(String.format("Company exemptions link inserted in Company Profile "
+            logger.info(String.format("Company %s link inserted in Company Profile "
                             + "with context id: %s and company number: %s",
-                    contextId, companyNumber));
+                    linkType, contextId, companyNumber));
 
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
             logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "

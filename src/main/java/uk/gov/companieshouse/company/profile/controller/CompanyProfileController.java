@@ -75,7 +75,9 @@ public class CompanyProfileController {
             @PathVariable("company_number") String companyNumber) {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
-        companyProfileService.addExemptionsLink(contextId, companyNumber);
+        String linkType = "exemptions";
+        String deltaType = "exemption_delta";
+        companyProfileService.addLink(contextId, companyNumber, linkType, deltaType);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -92,6 +94,18 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.deleteExemptionsLink(contextId, companyNumber);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PatchMapping("/company/{company_number}/links/officers")
+    public ResponseEntity<Void> addOfficersLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber) {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
+        String linkType = "officers";
+        String deltaType = "officer_delta";
+        companyProfileService.addLink(contextId, companyNumber, linkType, deltaType);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
