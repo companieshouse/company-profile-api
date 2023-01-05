@@ -97,6 +97,12 @@ public class CompanyProfileController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    /**
+     * Add an officers link to a company profile for the given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
     @PatchMapping("/company/{company_number}/links/officers")
     public ResponseEntity<Void> addOfficersLink(
             @RequestHeader("x-request-id") String contextId,
