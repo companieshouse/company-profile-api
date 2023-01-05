@@ -414,16 +414,16 @@ class CompanyProfileControllerTest {
     }
 
     @Test()
-    @DisplayName("Add exemptions link request returns 500 internal server error when a runtime exception is thrown")
+    @DisplayName("Add officers link request returns 500 internal server error when a runtime exception is thrown")
     void addOfficersLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException()).when(companyProfileService).addLink(anyString(), anyString(), anyString(), anyString());
 
-        mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
+        mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).addLink("123456", MOCK_COMPANY_NUMBER, "exemptions", "exemption_delta");
+        verify(companyProfileService).addLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta");
     }
 }
