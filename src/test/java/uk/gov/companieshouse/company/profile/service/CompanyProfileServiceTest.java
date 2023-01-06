@@ -219,7 +219,7 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -233,7 +233,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -253,7 +253,7 @@ class CompanyProfileServiceTest {
         when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -273,7 +273,7 @@ class CompanyProfileServiceTest {
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -288,7 +288,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -307,7 +307,7 @@ class CompanyProfileServiceTest {
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -431,7 +431,7 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -445,7 +445,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -465,7 +465,7 @@ class CompanyProfileServiceTest {
         when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -485,7 +485,7 @@ class CompanyProfileServiceTest {
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -500,7 +500,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -519,7 +519,7 @@ class CompanyProfileServiceTest {
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);

@@ -143,29 +143,12 @@ public class CompanyProfileService {
      *
      * @param contextId     Request ID from request header "x-request-id
      * @param companyNumber The number of the company to update
-     * @param linkType      The type link we're adding to the company profile
+     * @param linkType      The type of link we're adding to the company profile
      * @param deltaType     The delta type required for the update object
      */
-    public void addLink(String contextId, String companyNumber, String linkType,
+    private void addLink(String contextId, String companyNumber, String linkType,
                         String deltaType) {
         try {
-            CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
-                    .orElseThrow(() -> new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
-
-            if (linkType.equals("exemptions") && !StringUtils.isBlank(
-                    document.getCompanyProfile().getLinks().getExemptions())) {
-                logger.error("Exemptions link for company profile already exists");
-                throw new ResourceStateConflictException("Resource state conflict; "
-                        + "exemptions link already exists");
-            } else if (linkType.equals("officers") && !StringUtils.isBlank(
-                    document.getCompanyProfile().getLinks().getOfficers())) {
-                logger.error("Officers link for company profile already exists");
-                throw new ResourceStateConflictException("Resource state conflict; "
-                        + "officers link already exists");
-            }
-
             Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update(
                         String.format("data.links.%s", linkType),
@@ -237,6 +220,53 @@ public class CompanyProfileService {
             logger.error("Error accessing MongoDB");
             throw new ServiceUnavailableException(exception.getMessage());
         }
+    }
+
+    /**
+     * Check if exemptions link exists already on document and call addLink if this is false.
+     *
+     * @param contextId     Request ID from request header "x-request-id
+     * @param companyNumber The number of the company to update
+     * @param linkType      The type of link we're adding to the company profile
+     * @param deltaType     The delta type required for the update object
+     */
+    public void addExemptionsLink(String contextId, String companyNumber, String linkType,
+                                  String deltaType) {
+        if (!StringUtils.isBlank(
+                getDocument(companyNumber).getCompanyProfile().getLinks().getExemptions())) {
+            logger.error("Exemptions link for company profile already exists");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "exemptions link already exists");
+        } else {
+            addLink(contextId, companyNumber, linkType, deltaType);
+        }
+    }
+
+    /**
+     * Check if officers link exists already on document and call addLink if this is false.
+     *
+     * @param contextId     Request ID from request header "x-request-id
+     * @param companyNumber The number of the company to update
+     * @param linkType      The type of link we're adding to the company profile
+     * @param deltaType     The delta type required for the update object
+     */
+    public void addOfficersLink(String contextId, String companyNumber, String linkType,
+                                String deltaType) {
+        if (!StringUtils.isBlank(
+                getDocument(companyNumber).getCompanyProfile().getLinks().getOfficers())) {
+            logger.error("Officers link for company profile already exists");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "officers link already exists");
+        } else {
+            addLink(contextId, companyNumber, linkType, deltaType);
+        }
+    }
+
+    private CompanyProfileDocument getDocument(String companyNumber) {
+        return companyProfileRepository.findById(companyNumber)
+                .orElseThrow(() -> new DocumentNotFoundException(
+                        String.format("No company profile with company number %s found",
+                                companyNumber)));
     }
 
     private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
