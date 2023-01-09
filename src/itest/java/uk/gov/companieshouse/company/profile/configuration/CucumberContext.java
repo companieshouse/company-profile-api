@@ -15,8 +15,8 @@ public enum CucumberContext {
 
     private final ThreadLocal<Map<String, Object>> testContexts = ThreadLocal.withInitial(HashMap::new);
 
-    public Object get(String name) {
-        return testContexts.get()
+    public <T> T get(String name) {
+        return (T)testContexts.get()
                 .get(name);
     }
 
