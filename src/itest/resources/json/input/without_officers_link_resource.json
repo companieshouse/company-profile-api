@@ -1,0 +1,122 @@
+{
+  "_id" : "00006400",
+  "data" : {
+    "company_name" : "THE GIRLS' DAY SCHOOL TRUST",
+    "registered_office_address" : {
+      "postal_code" : "SW1P 1JP",
+      "address_line_2" : "London",
+      "address_line_1" : "100 Rochester Row"
+    },
+    "accounts" : {
+      "accounting_reference_date" : {
+        "day" : "31",
+        "month" : "08"
+      },
+      "next_due" : "2016-05-31T00:00:00.000Z",
+      "overdue" : true,
+      "last_accounts" : {
+        "type" : "group",
+        "period_start_on" : "2013-09-01T00:00:00.000Z",
+        "period_end_on" : "2014-08-31T00:00:00.000Z",
+        "made_up_to" : "2014-08-31T00:00:00.000Z"
+      },
+      "next_made_up_to" : "2015-08-31T00:00:00.000Z",
+      "next_accounts" : {
+        "period_end_on" : "2015-08-31T00:00:00.000Z",
+        "due_on" : "2016-05-31T00:00:00.000Z",
+        "period_start_on" : "2014-09-01T00:00:00.000Z",
+        "overdue" : true
+      }
+    },
+    "type" : "private-limited-shares-section-30-exemption",
+    "jurisdiction" : "england-wales",
+    "undeliverable_registered_office_address" : false,
+    "has_been_liquidated" : false,
+    "last_full_members_list_date" : "2015-02-01T00:00:00.000Z",
+    "company_number" : "00006400",
+    "date_of_creation" : "1872-06-26T00:00:00.000Z",
+    "sic_codes" : [
+      "85100",
+      "85200",
+      "85310"
+    ],
+    "etag" : "08b54032af094c92e64055007284cf340bd9748f",
+    "has_insolvency_history" : true,
+    "company_status" : "active",
+    "officer_summary" : {
+      "officers" : [
+        {
+          "officer_role" : "secretary",
+          "name" : "HOARE, Caroline Lucy",
+          "appointed_on" : "2010-01-22T00:00:00.000Z"
+        },
+        {
+          "officer_role" : "director",
+          "name" : "CHAKRAVERTY, Julie",
+          "appointed_on" : "2013-12-18T00:00:00.000Z"
+        },
+        {
+          "appointed_on" : "2015-12-16T00:00:00.000Z",
+          "officer_role" : "director",
+          "name" : "DAVIS, Kathryn Ruth"
+        },
+        {
+          "officer_role" : "director",
+          "name" : "DHUT, Rita",
+          "appointed_on" : "2016-01-27T00:00:00.000Z"
+        },
+        {
+          "officer_role" : "director",
+          "name" : "GIBBONS, Kevin Stuart",
+          "appointed_on" : "2014-01-22T00:00:00.000Z"
+        }
+      ],
+      "active_count" : 12.0,
+      "resigned_count" : 54.0
+    },
+    "has_charges" : true,
+    "previous_company_names" : [
+      {
+        "name" : "THE GIRLS' DAY SCHOOL TRUST (1872)",
+        "effective_from" : "1998-04-28T00:00:00.000Z",
+        "ceased_on" : "2003-09-01T00:00:00.000Z"
+      },
+      {
+        "ceased_on" : "1998-04-28T00:00:00.000Z",
+        "name" : "THE GIRLS' PUBLIC DAY SCHOOL TRUST (1872)",
+        "effective_from" : "1993-08-25T00:00:00.000Z"
+      },
+      {
+        "name" : "GIRL'S PUBLIC DAY SCHOOL TRUST(THE)",
+        "effective_from" : "1872-06-26T00:00:00.000Z",
+        "ceased_on" : "1993-08-25T00:00:00.000Z"
+      }
+    ],
+    "confirmation_statement" : {
+      "next_due" : "2016-02-15T00:00:00.000Z",
+      "overdue" : true,
+      "next_made_up_to" : "2016-02-01T00:00:00.000Z"
+    },
+    "links" : {
+      "self" : "/company/00006400",
+      "filing_history" : "/company/00006400/filing-history"
+    },
+    "registered_office_is_in_dispute" : false,
+    "annual_return" : {
+      "overdue" : true,
+      "last_made_up_to" : "2015-02-01T00:00:00.000Z"
+    }
+  },
+  "has_mortgages" : true,
+  "updated" : {
+    "at" : "2023-01-09T12:29:22.051Z",
+    "by" : "123",
+    "type" : "officer_delta"
+  },
+  "created" : {
+    "by" : "54e89dac85dccb11dd117950",
+    "type" : "refresh_from_mongo",
+    "at" : "2015-02-21T15:01:00.754Z"
+  },
+  "delta_at" : "2017-08-15T11:07:18.000Z"
+}
