@@ -263,10 +263,15 @@ public class CompanyProfileService {
     }
 
     private CompanyProfileDocument getDocument(String companyNumber) {
-        return companyProfileRepository.findById(companyNumber)
-                .orElseThrow(() -> new DocumentNotFoundException(
-                        String.format("No company profile with company number %s found",
-                                companyNumber)));
+        try {
+            return companyProfileRepository.findById(companyNumber)
+                    .orElseThrow(() -> new DocumentNotFoundException(
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB");
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
     }
 
     private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
