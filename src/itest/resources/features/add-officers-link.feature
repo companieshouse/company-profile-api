@@ -2,7 +2,7 @@ Feature: Add officers link to company profile
 
   Scenario Outline: Add officers link successfully
 
-    Given CHS Kafka API is available
+    Given the CHS Kafka API is reachable
     And   the company profile resource "<data_file>" exists for "<company_number>"
     And   the company profile resource for "<company_number>" does not already have an officers link
     When  a PATCH request is sent to the add officers link endpoint for "<company_number>"
@@ -10,11 +10,12 @@ Feature: Add officers link to company profile
     And   the officers link exists for "<company_number>"
 
     Examples:
-      | data_file                          | company_number |
-      | without_officers_link_resource     | 00006400       |
+      | data_file                  | company_number |
+      | without_links_resource     | 00006400       |
 
   Scenario Outline: Add officers link unsuccessfully - company profile resource does not exist
 
+    Given a company profile resource does not exist for "<company_number>"
     When  a PATCH request is sent to the add officers link endpoint for "<company_number>"
     Then  the response code should be 404
 
@@ -24,7 +25,7 @@ Feature: Add officers link to company profile
 
   Scenario Outline: Add officers link unsuccessfully - user not authenticated or authorised
 
-    When  a PATCH request is sent to "<company_number>" without ERIC headers
+    When  a PATCH request is sent to the add officers endpoint for "<company_number>" without ERIC headers
     Then  the response code should be 401
 
     Examples:
@@ -39,23 +40,23 @@ Feature: Add officers link to company profile
     Then  the response code should be 409
 
     Examples:
-      | data_file                        | company_number |
-      | with_officers_link_resource      | 00006400       |
+      | data_file                | company_number |
+      | with_links_resource      | 00006400       |
 
   Scenario Outline: Add officers link unsuccessfully - CHS Kafka API is unavailable
 
-    Given CHS Kafka API is unavailable
+    Given CHS kafka API service is unavailable
     And   the company profile resource "<data_file>" exists for "<company_number>"
     When  a PATCH request is sent to the add officers link endpoint for "<company_number>"
     Then  the response code should be 503
 
     Examples:
-      | data_file                          | company_number |
-      | without_officers_link_resource     | 00006400       |
+      | data_file                  | company_number |
+      | without_links_resource     | 00006400       |
 
-  Scenario Outline: Add officers link unsuccessfully - MongoDB is unavailable
+  Scenario Outline: Add officers link unsuccessfully - the database is unavailable
 
-    Given MongoDB is unavailable
+    Given the company profile database is down
     When  a PATCH request is sent to the add officers link endpoint for "<company_number>"
     Then  the response code should be 503
 

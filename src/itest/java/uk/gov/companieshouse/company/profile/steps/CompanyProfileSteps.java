@@ -3,6 +3,7 @@ package uk.gov.companieshouse.company.profile.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -11,11 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
@@ -54,9 +59,6 @@ public class CompanyProfileSteps {
 
     @Autowired
     private MongoTemplate mongoTemplate;
-
-    @Autowired
-    public CompanyProfileApiService companyProfileApiService;
 
     @Before
     public void dbCleanUp(){
@@ -271,8 +273,26 @@ public class CompanyProfileSteps {
     }
 
     @Given("the company profile database is down")
-    public void the_insolvency_db_is_down() {
+    public void theDatabaseIsDown() {
         mongoDBContainer.stop();
     }
 
+    @Given("a company profile resource does not exist for {string}")
+    public void checkResourceDoesNotExist(String companyNumber) {
+        assertThat(companyProfileRepository.findById(companyNumber)).isEmpty();
+    }
+
+    @And("the company profile resource {string} exists for {string}")
+    public void saveCompanyProfileResourceToDatabase(String dataFile, String companyNumber) throws IOException {
+        File source = new ClassPathResource(String.format("/json/input/%s.json", dataFile)).getFile();
+
+        Data companyProfileData = objectMapper.readValue(source, CompanyProfile.class).getData();
+
+        CompanyProfileDocument companyProfile = new CompanyProfileDocument();
+        companyProfile.setCompanyProfile(companyProfileData).setId(companyNumber);
+
+        companyProfileRepository.save(companyProfile);
+        assertThat(companyProfileRepository.findById(companyNumber)).isPresent();
+        CucumberContext.CONTEXT.set("companyProfileData", companyProfileData);
+    }
 }
