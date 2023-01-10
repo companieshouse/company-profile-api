@@ -54,6 +54,7 @@ class CompanyProfileControllerTest {
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
     private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
     private static final String OFFICERS_LINK_URL = String.format("/company/%s/links/officers", MOCK_COMPANY_NUMBER);
+    private static final String DELETE_OFFICERS_LINK_URL = String.format("/company/%s/links/officers/delete", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -283,7 +284,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Delete company exemptions link")
     void deleteExemptionsLink() throws Exception {
-        doNothing().when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
+        doNothing().when(companyProfileService).deleteLink(anyString(), anyString(), anyString(), anyString());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -291,14 +292,14 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER, "exemptions", "exemption_delta");
     }
 
     @Test
     @DisplayName("Delete exemptions link request returns 404 not found when document not found exception is thrown")
     void deleteExemptionsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
+                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString(), anyString(), anyString());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -306,14 +307,14 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER, "exemptions", "exemption_delta");
     }
 
     @Test
     @DisplayName("Delete exemptions link request returns 409 not found when resource state conflict exception is thrown")
     void deleteExemptionsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
+                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString(), anyString(), anyString());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -321,14 +322,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER, "exemptions", "exemption_delta");
     }
 
     @Test()
     @DisplayName("Delete exemptions link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deleteExemptionsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
+                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString(),anyString(), anyString());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -336,14 +337,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER, "exemptions", "exemption_delta");
     }
 
     @Test()
     @DisplayName("Delete exemptions link request returns 500 internal server error when a runtime exception is thrown")
     void deleteExemptionsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException())
-                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString());
+                .when(companyProfileService).deleteExemptionsLink(anyString(), anyString(), anyString(), anyString());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -351,7 +352,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteExemptionsLink("123456", MOCK_COMPANY_NUMBER, "exemptions", "exemption_delta");
     }
 
     @Test
@@ -426,4 +427,80 @@ class CompanyProfileControllerTest {
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).addOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta");
     }
+
+
+    @Test
+    @DisplayName("Delete company officers link")
+    void deleteOfficersLink() throws Exception {
+        doNothing().when(companyProfileService).deleteOfficersLink(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456"))
+                .andExpect(status().isOk());
+        verify(companyProfileService).deleteOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta");
+    }
+
+    @Test
+    @DisplayName("Delete officers link request returns 404 not found when document not found exception is thrown")
+    void deleteOfficersLinkNotFound() throws Exception {
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).deleteOfficersLink(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456"))
+                .andExpect(status().isNotFound());
+        verify(companyProfileService).deleteOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta");
+    }
+
+    @Test
+    @DisplayName("Delete officers link request returns 409 not found when resource state conflict exception is thrown")
+    void deleteOfficersLinkConflict() throws Exception {
+        doThrow(new ResourceStateConflictException("Conflict in resource state"))
+                .when(companyProfileService).deleteOfficersLink(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isConflict());
+        verify(companyProfileService).deleteOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta");
+    }
+
+    @Test()
+    @DisplayName("Delete officers link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void deleteOfficersLinkServiceUnavailable() throws Exception {
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).deleteOfficersLink(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isServiceUnavailable());
+        verify(companyProfileService).deleteOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta" );
+    }
+
+    @Test()
+    @DisplayName("Delete officers link request returns 500 internal server error when a runtime exception is thrown")
+    void deleteOfficersLinkInternalServerError() throws Exception {
+        doThrow(new RuntimeException())
+                .when(companyProfileService).deleteOfficersLink(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isInternalServerError());
+        verify(companyProfileService).deleteOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta" );
+    }
+
 }

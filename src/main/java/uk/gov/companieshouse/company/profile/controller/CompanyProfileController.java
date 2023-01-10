@@ -94,7 +94,10 @@ public class CompanyProfileController {
             @PathVariable("company_number") String companyNumber) {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
-        companyProfileService.deleteExemptionsLink(contextId, companyNumber);
+
+        String linkType = "exemptions";
+        String deltaType = "exemption_delta";
+        companyProfileService.deleteExemptionsLink(contextId, companyNumber, linkType, deltaType);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -114,6 +117,25 @@ public class CompanyProfileController {
         String linkType = "officers";
         String deltaType = "officer_delta";
         companyProfileService.addOfficersLink(contextId, companyNumber, linkType, deltaType);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     * Delete a company officers link on a company profile for the given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
+    @PatchMapping("/company/{company_number}/links/officers/delete")
+    public ResponseEntity<Void> deleteOfficersLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber) {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
+
+        String linkType = "officers";
+        String deltaType = "officer_delta";
+        companyProfileService.deleteOfficersLink(contextId, companyNumber, linkType, deltaType);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
