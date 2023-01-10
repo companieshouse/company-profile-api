@@ -461,7 +461,6 @@ class CompanyProfileControllerTest {
         verify(companyProfileService).addOfficersLink(officersLinkRequest);
     }
 
-
     @Test
     @DisplayName("Delete company officers link")
     void deleteOfficersLink() throws Exception {

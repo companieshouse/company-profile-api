@@ -27,6 +27,7 @@ import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoC
 public class OfficersLinkSteps {
     private String contextId;
     private static final String ADD_OFFICERS_LINK_ENDPOINT = "/company/00006400/links/officers";
+    private static final String DELETE_OFFICERS_LINK_ENDPOINT = "/company/00006400/links/officers/delete";
     private static final String OFFICERS_LINK = "/company/00006400/officers";
 
     @Autowired
@@ -48,7 +49,7 @@ public class OfficersLinkSteps {
         companyProfileRepository.deleteAll();
     }
 
-    @And("the company profile resource for {string} does not already have an officers link")
+    @And("the officers link does not exist for {string}")
     public void checkOfficersLinkIsNotPresent(String companyNumber) {
         Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
@@ -71,6 +72,24 @@ public class OfficersLinkSteps {
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 ADD_OFFICERS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a PATCH request is sent to the delete officers link endpoint for {string}")
+    public void deleteOfficersLink(String companyNumber) throws ApiErrorResponseException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                DELETE_OFFICERS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
@@ -101,6 +120,22 @@ public class OfficersLinkSteps {
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 ADD_OFFICERS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a PATCH request is sent to the delete officers endpoint for {string} without ERIC headers")
+    public void deleteOfficersLinkWithoutAuthenticationOrAuthorisation(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                DELETE_OFFICERS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }
