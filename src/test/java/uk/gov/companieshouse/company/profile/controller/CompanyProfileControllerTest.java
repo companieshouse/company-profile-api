@@ -428,7 +428,6 @@ class CompanyProfileControllerTest {
         verify(companyProfileService).addOfficersLink("123456", MOCK_COMPANY_NUMBER, "officers", "officer_delta");
     }
 
-
     @Test
     @DisplayName("Delete company officers link")
     void deleteOfficersLink() throws Exception {
