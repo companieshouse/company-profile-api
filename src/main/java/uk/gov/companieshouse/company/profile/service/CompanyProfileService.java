@@ -185,7 +185,7 @@ public class CompanyProfileService {
      * @param linkType      The type of link we're adding to the company profile
      * @param deltaType     The delta type required for the update object
      */
-    public void deleteLink(String contextId, String companyNumber, String linkType,
+    private void deleteLink(String contextId, String companyNumber, String linkType,
                            String deltaType) {
         try {
             Update update = new Update();
