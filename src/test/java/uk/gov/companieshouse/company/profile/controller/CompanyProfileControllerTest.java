@@ -307,7 +307,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Delete company exemptions link")
     void deleteExemptionsLink() throws Exception {
-        doNothing().when(companyProfileService).deleteLink(anyString(), anyString(), anyString(), anyString());
+        doNothing().when(companyProfileService).deleteExemptionsLink(anyString(), anyString(), anyString(), anyString());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
