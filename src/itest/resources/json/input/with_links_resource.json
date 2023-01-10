@@ -100,7 +100,8 @@
     "links" : {
       "self" : "/company/00006400",
       "filing_history" : "/company/00006400/filing-history",
-      "officers" : "/company/00006400/officers"
+      "officers" : "/company/00006400/officers",
+      "exemptions" : "/company/00006400/exemptions"
     },
     "registered_office_is_in_dispute" : false,
     "annual_return" : {
