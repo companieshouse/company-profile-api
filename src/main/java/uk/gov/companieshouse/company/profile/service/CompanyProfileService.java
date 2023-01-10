@@ -177,33 +177,25 @@ public class CompanyProfileService {
      *
      * @param contextId     Request ID from request header "x-request-id
      * @param companyNumber The number of the company to update
+     * @param linkType      The type of link we're adding to the company profile
+     * @param deltaType     The delta type required for the update object
      */
-    public void deleteExemptionsLink(String contextId, String companyNumber) {
+    public void deleteLink(String contextId, String companyNumber, String linkType,
+                           String deltaType) {
         try {
-            CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
-                    .orElseThrow(() -> new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
-
-            if (StringUtils.isBlank(document.getCompanyProfile().getLinks().getExemptions())) {
-                logger.error("Exemptions link for company profile already does not exist");
-                throw new ResourceStateConflictException("Resource state conflict; "
-                        + "exemptions link already does not exist");
-            }
-
             Update update = new Update();
-            update.unset("data.links.exemptions");
+            update.unset(String.format("data.links.%s", linkType));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
-                    .setType("exemption_delta")
+                    .setType(deltaType)
                     .setBy(contextId));
             Query query = new Query(Criteria.where("_id").is(companyNumber));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
-            logger.info(String.format("Company exemptions link deleted in Company Profile "
+            logger.info(String.format("Company %s link deleted in Company Profile "
                             + "with context id: %s and company number: %s",
-                    contextId, companyNumber));
+                    linkType, contextId, companyNumber));
 
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
             logger.info(String.format("chs-kafka-api DELETED invoked successfully for context "
@@ -255,6 +247,49 @@ public class CompanyProfileService {
         } else {
             addLink(request);
         }
+    }
+
+    /**
+     * Check if exemptions link does not exist already on document and
+     * call deleteLink if this is false.
+     *
+     * @param contextId     Request ID from request header "x-request-id
+     * @param companyNumber The number of the company to update
+     * @param linkType      The type of link we're adding to the company profile
+     * @param deltaType     The delta type required for the update object
+     */
+    public void deleteExemptionsLink(String contextId, String companyNumber, String linkType,
+                                     String deltaType) {
+        if (StringUtils.isBlank(
+                getDocument(companyNumber).getCompanyProfile().getLinks().getExemptions())) {
+            logger.error("Exemptions link for company profile already does not exist");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "exemptions link already does not exist");
+        } else {
+            deleteLink(contextId, companyNumber, linkType, deltaType);
+        }
+    }
+
+    /**
+     * Check if officers link does not exist already on document and
+     * call deleteLink if this is false.
+     *
+     * @param contextId     Request ID from request header "x-request-id
+     * @param companyNumber The number of the company to update
+     * @param linkType      The type of link we're adding to the company profile
+     * @param deltaType     The delta type required for the update object
+     */
+    public void deleteOfficersLink(String contextId, String companyNumber, String linkType,
+                                   String deltaType) {
+        if (StringUtils.isBlank(
+                getDocument(companyNumber).getCompanyProfile().getLinks().getOfficers())) {
+            logger.error("Officers link for company profile already does not exist");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "officers link already does not exist");
+        } else {
+            deleteLink(contextId, companyNumber, linkType, deltaType);
+        }
+
     }
 
     private CompanyProfileDocument getDocument(String companyNumber) {
