@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -24,6 +25,7 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.logging.Logger;
 
 
@@ -99,8 +101,8 @@ public class CompanyProfileService {
 
             var cpDocument = cpDocumentOptional.orElseThrow(() ->
                     new DocumentNotFoundException(
-                        String.format("No company profile with company number %s found",
-                                companyNumber)));
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
 
             companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
 
@@ -129,7 +131,7 @@ public class CompanyProfileService {
                         + "contextId %s and company number %s", contextId, companyNumber));
             } else {
                 logger.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for "
-                        + "contextId %s and company number %s. Response code %s.",
+                                + "contextId %s and company number %s. Response code %s.",
                         contextId, companyNumber, statusCode.value()));
             }
         } catch (DataAccessException dbException) {
@@ -137,36 +139,29 @@ public class CompanyProfileService {
         }
     }
 
-    /**
-     * Add link to a company profile and call chs-kafka-api
-     * to notify a resource has been changed.
-     *
-     * @param contextId     Request ID from request header "x-request-id
-     * @param companyNumber The number of the company to update
-     * @param linkType      The type of link we're adding to the company profile
-     * @param deltaType     The delta type required for the update object
-     */
-    private void addLink(String contextId, String companyNumber, String linkType,
-                        String deltaType) {
+    private void addLink(LinkRequest request) {
         try {
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
+            Query query = new Query(Criteria.where("_id").is(request.getCompanyNumber()));
             Update update = Update.update(
-                        String.format("data.links.%s", linkType),
-                        String.format("/company/%s/%s", companyNumber, linkType));
+                    String.format("data.links.%s", request.getLinkType()),
+                    String.format("/company/%s/%s", request.getCompanyNumber(),
+                            request.getLinkType()));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
-                    .setType(deltaType)
-                    .setBy(contextId));
+                    .setType(request.getDeltaType())
+                    .setBy(request.getContextId()));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.info(String.format("Company %s link inserted in Company Profile "
                             + "with context id: %s and company number: %s",
-                    linkType, contextId, companyNumber));
+                    request.getLinkType(), request.getContextId(), request.getCompanyNumber()));
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(request.getContextId(),
+                    request.getCompanyNumber());
             logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
-                    + "id: %s and company number: %s", contextId, companyNumber));
+                    + "id: %s and company number: %s", request.getContextId(),
+                    request.getCompanyNumber()));
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());
@@ -180,7 +175,7 @@ public class CompanyProfileService {
      * Delete an exemptions link for a company profile and call chs-kafka-api
      * to notify a resource has been changed.
      *
-     * @param contextId Request ID from request header "x-request-id
+     * @param contextId     Request ID from request header "x-request-id
      * @param companyNumber The number of the company to update
      */
     public void deleteExemptionsLink(String contextId, String companyNumber) {
@@ -225,40 +220,40 @@ public class CompanyProfileService {
     /**
      * Check if exemptions link exists already on document and call addLink if this is false.
      *
-     * @param contextId     Request ID from request header "x-request-id
-     * @param companyNumber The number of the company to update
-     * @param linkType      The type of link we're adding to the company profile
-     * @param deltaType     The delta type required for the update object
+     * @param request Data required to identify type of link
      */
-    public void addExemptionsLink(String contextId, String companyNumber, String linkType,
-                                  String deltaType) {
+    public void addExemptionsLink(LinkRequest request) {
         if (!StringUtils.isBlank(
-                getDocument(companyNumber).getCompanyProfile().getLinks().getExemptions())) {
+                getDocument(request
+                        .getCompanyNumber())
+                        .getCompanyProfile()
+                        .getLinks()
+                        .getExemptions())) {
             logger.error("Exemptions link for company profile already exists");
             throw new ResourceStateConflictException("Resource state conflict; "
                     + "exemptions link already exists");
         } else {
-            addLink(contextId, companyNumber, linkType, deltaType);
+            addLink(request);
         }
     }
 
     /**
      * Check if officers link exists already on document and call addLink if this is false.
      *
-     * @param contextId     Request ID from request header "x-request-id
-     * @param companyNumber The number of the company to update
-     * @param linkType      The type of link we're adding to the company profile
-     * @param deltaType     The delta type required for the update object
+     * @param request Data required to identify type of link
      */
-    public void addOfficersLink(String contextId, String companyNumber, String linkType,
-                                String deltaType) {
+    public void addOfficersLink(LinkRequest request) {
         if (!StringUtils.isBlank(
-                getDocument(companyNumber).getCompanyProfile().getLinks().getOfficers())) {
+                getDocument(request
+                        .getCompanyNumber())
+                        .getCompanyProfile()
+                        .getLinks()
+                        .getOfficers())) {
             logger.error("Officers link for company profile already exists");
             throw new ResourceStateConflictException("Resource state conflict; "
                     + "officers link already exists");
         } else {
-            addLink(contextId, companyNumber, linkType, deltaType);
+            addLink(request);
         }
     }
 
