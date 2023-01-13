@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
 
 @RestController
@@ -20,10 +22,19 @@ public class CompanyProfileController {
 
     private final CompanyProfileService companyProfileService;
     private final Logger logger;
+    private final LinkRequestFactory linkRequestFactory;
 
-    public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService) {
+    /**
+     * Constructor.
+     * @param logger logs messages to the console
+     * @param companyProfileService Company Profile Service
+     * @param linkRequestFactory Link Request Factory
+     */
+    public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService,
+                                    LinkRequestFactory linkRequestFactory) {
         this.logger = logger;
         this.companyProfileService = companyProfileService;
+        this.linkRequestFactory = linkRequestFactory;
     }
 
     /**
@@ -49,8 +60,8 @@ public class CompanyProfileController {
      * Update a company insolvency link.
      *
      * @param companyNumber The company number of the company
-     * @param requestBody The company profile
-     * @return  no response
+     * @param requestBody   The company profile
+     * @return no response
      */
     @PatchMapping("/company/{company_number}/links")
     public ResponseEntity<Void> updateCompanyProfile(
@@ -76,9 +87,8 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
 
-        String linkType = "exemptions";
-        String deltaType = "exemption_delta";
-        companyProfileService.addExemptionsLink(contextId, companyNumber, linkType, deltaType);
+        companyProfileService.addExemptionsLink(
+                linkRequestFactory.createExemptionsLinkRequest(contextId, companyNumber));
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -114,9 +124,8 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
 
-        String linkType = "officers";
-        String deltaType = "officer_delta";
-        companyProfileService.addOfficersLink(contextId, companyNumber, linkType, deltaType);
+        companyProfileService.addOfficersLink(
+                linkRequestFactory.createOfficersLinkRequest(contextId, companyNumber));
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
