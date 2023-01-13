@@ -105,9 +105,8 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
 
-        String linkType = "exemptions";
-        String deltaType = "exemption_delta";
-        companyProfileService.deleteExemptionsLink(contextId, companyNumber, linkType, deltaType);
+        companyProfileService.deleteExemptionsLink(
+                linkRequestFactory.createExemptionsLinkRequest(contextId, companyNumber));
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -142,9 +141,8 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
 
-        String linkType = "officers";
-        String deltaType = "officer_delta";
-        companyProfileService.deleteOfficersLink(contextId, companyNumber, linkType, deltaType);
+        companyProfileService.deleteOfficersLink(
+                linkRequestFactory.createOfficersLinkRequest(contextId, companyNumber));
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
