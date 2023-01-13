@@ -30,6 +30,7 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,6 +45,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
@@ -76,6 +81,9 @@ class CompanyProfileServiceTest {
 
     @Mock
     private UpdateResult updateResult;
+
+    @Mock
+    private LinkRequest linkRequest;
 
     @InjectMocks
     CompanyProfileService companyProfileService;
@@ -214,12 +222,13 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link successfully updates MongoDB and calls chs-kafka-api")
     void addExemptionsLink() throws ApiErrorResponseException {
         // given
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        companyProfileService.addExemptionsLink(exemptionsLinkRequest);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -230,10 +239,11 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws document not found exception")
     void addExemptionsLinkNotFound() {
         // given
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(exemptionsLinkRequest);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -247,13 +257,14 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws resource state conflict exception")
     void addExemptionsLinkConflict() throws ApiErrorResponseException {
         // given
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(exemptionsLinkRequest);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -267,13 +278,14 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws service unavailable exception when illegal argument exception caught")
     void addExemptionsLinkIllegalArgument() throws ApiErrorResponseException {
         // given
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(exemptionsLinkRequest);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -285,10 +297,11 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during findById")
     void addExemptionsLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
         // given
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(exemptionsLinkRequest);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -301,13 +314,14 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during update")
     void addExemptionsLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
         // given
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addExemptionsLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "exemptions", "exemption_data");
+        Executable executable = () -> companyProfileService.addExemptionsLink(exemptionsLinkRequest);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -426,12 +440,13 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link successfully updates MongoDB and calls chs-kafka-api")
     void addOfficersLink() throws ApiErrorResponseException {
         // given
+        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        companyProfileService.addOfficersLink(officersLinkRequest);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -442,10 +457,11 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws document not found exception")
     void addOfficersLinkNotFound() {
         // given
+        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(officersLinkRequest);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -459,13 +475,14 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws resource state conflict exception")
     void addOfficersLinkConflict() throws ApiErrorResponseException {
         // given
+        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(officersLinkRequest);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -479,13 +496,14 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws service unavailable exception when illegal argument exception caught")
     void addOfficersLinkIllegalArgument() throws ApiErrorResponseException {
         // given
+        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(officersLinkRequest);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -497,10 +515,11 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officer link throws service unavailable exception when data access exception thrown during findById")
     void addOfficersLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
         // given
+        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(officersLinkRequest);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -513,13 +532,14 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws service unavailable exception when data access exception thrown during update")
     void addOfficersLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
         // given
+        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.addOfficersLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "officers", "officer_data");
+        Executable executable = () -> companyProfileService.addOfficersLink(officersLinkRequest);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
