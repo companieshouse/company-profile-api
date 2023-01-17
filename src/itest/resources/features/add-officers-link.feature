@@ -4,7 +4,7 @@ Feature: Add officers link to company profile
 
     Given the CHS Kafka API is reachable
     And   the company profile resource "<data_file>" exists for "<company_number>"
-    And   the company profile resource for "<company_number>" does not already have an officers link
+    And   the officers link does not exist for "<company_number>"
     When  a PATCH request is sent to the add officers link endpoint for "<company_number>"
     Then  the response code should be 200
     And   the officers link exists for "<company_number>"
