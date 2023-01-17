@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -24,6 +25,7 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.logging.Logger;
 
 
@@ -99,8 +101,8 @@ public class CompanyProfileService {
 
             var cpDocument = cpDocumentOptional.orElseThrow(() ->
                     new DocumentNotFoundException(
-                        String.format("No company profile with company number %s found",
-                                companyNumber)));
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
 
             companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
 
@@ -129,7 +131,7 @@ public class CompanyProfileService {
                         + "contextId %s and company number %s", contextId, companyNumber));
             } else {
                 logger.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for "
-                        + "contextId %s and company number %s. Response code %s.",
+                                + "contextId %s and company number %s. Response code %s.",
                         contextId, companyNumber, statusCode.value()));
             }
         } catch (DataAccessException dbException) {
@@ -137,43 +139,29 @@ public class CompanyProfileService {
         }
     }
 
-    /**
-     * Add an exemptions link to a company profile and call chs-kafka-api
-     * to notify a resource has been changed.
-     *
-     * @param contextId Request ID from request header "x-request-id
-     * @param companyNumber The number of the company to update
-     */
-    public void addExemptionsLink(String contextId, String companyNumber) {
+    private void addLink(LinkRequest request) {
         try {
-            CompanyProfileDocument document = companyProfileRepository.findById(companyNumber)
-                    .orElseThrow(() -> new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
-
-            if (!StringUtils.isBlank(document.getCompanyProfile().getLinks().getExemptions())) {
-                logger.error("Exemptions link for company profile already exists");
-                throw new ResourceStateConflictException("Resource state conflict; "
-                        + "exemptions link already exists");
-            }
-
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
-            Update update = Update.update("data.links.exemptions",
-                    String.format("/company/%s/exemptions", companyNumber));
+            Query query = new Query(Criteria.where("_id").is(request.getCompanyNumber()));
+            Update update = Update.update(
+                    String.format("data.links.%s", request.getLinkType()),
+                    String.format("/company/%s/%s", request.getCompanyNumber(),
+                            request.getLinkType()));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
-                    .setType("exemption_delta")
-                    .setBy(contextId));
+                    .setType(request.getDeltaType())
+                    .setBy(request.getContextId()));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
-            logger.info(String.format("Company exemptions link inserted in Company Profile "
+            logger.info(String.format("Company %s link inserted in Company Profile "
                             + "with context id: %s and company number: %s",
-                    contextId, companyNumber));
+                    request.getLinkType(), request.getContextId(), request.getCompanyNumber()));
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(request.getContextId(),
+                    request.getCompanyNumber());
             logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
-                    + "id: %s and company number: %s", contextId, companyNumber));
+                    + "id: %s and company number: %s", request.getContextId(),
+                    request.getCompanyNumber()));
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());
@@ -187,7 +175,7 @@ public class CompanyProfileService {
      * Delete an exemptions link for a company profile and call chs-kafka-api
      * to notify a resource has been changed.
      *
-     * @param contextId Request ID from request header "x-request-id
+     * @param contextId     Request ID from request header "x-request-id
      * @param companyNumber The number of the company to update
      */
     public void deleteExemptionsLink(String contextId, String companyNumber) {
@@ -223,6 +211,58 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB");
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
+    /**
+     * Check if exemptions link exists already on document and call addLink if this is false.
+     *
+     * @param request Data required to identify type of link
+     */
+    public void addExemptionsLink(LinkRequest request) {
+        if (!StringUtils.isBlank(
+                getDocument(request
+                        .getCompanyNumber())
+                        .getCompanyProfile()
+                        .getLinks()
+                        .getExemptions())) {
+            logger.error("Exemptions link for company profile already exists");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "exemptions link already exists");
+        } else {
+            addLink(request);
+        }
+    }
+
+    /**
+     * Check if officers link exists already on document and call addLink if this is false.
+     *
+     * @param request Data required to identify type of link
+     */
+    public void addOfficersLink(LinkRequest request) {
+        if (!StringUtils.isBlank(
+                getDocument(request
+                        .getCompanyNumber())
+                        .getCompanyProfile()
+                        .getLinks()
+                        .getOfficers())) {
+            logger.error("Officers link for company profile already exists");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "officers link already exists");
+        } else {
+            addLink(request);
+        }
+    }
+
+    private CompanyProfileDocument getDocument(String companyNumber) {
+        try {
+            return companyProfileRepository.findById(companyNumber)
+                    .orElseThrow(() -> new DocumentNotFoundException(
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
         } catch (DataAccessException exception) {
             logger.error("Error accessing MongoDB");
             throw new ServiceUnavailableException(exception.getMessage());
