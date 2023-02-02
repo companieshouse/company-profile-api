@@ -138,17 +138,13 @@ public class ExceptionHandlerConfig {
 
     /**
      * ResourceStateConflictException handler.
-     * Thrown when the requested document already has an exemptions link.
+     * Thrown when the requested document already has an resource link.
      *
-     * @param ex      exception to handle.
-     * @param request request.
      * @return error response to return.
      */
     @ExceptionHandler(value = {ResourceStateConflictException.class})
-    public ResponseEntity<Object> handleResourceStateConflictException(Exception ex,
-            WebRequest request) {
-        return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
-                HttpStatus.CONFLICT);
+    public ResponseEntity<Object> handleResourceStateConflictException() {
+        return new ResponseEntity<>(HttpStatus.CONFLICT);
     }
 
     private String generateShortCorrelationId() {
