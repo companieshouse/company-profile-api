@@ -60,6 +60,7 @@ public class ExemptionsLinkSteps {
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -110,6 +111,7 @@ public class ExemptionsLinkSteps {
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -132,5 +134,4 @@ public class ExemptionsLinkSteps {
                 DELETE_EXEMPTIONS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
-
 }

@@ -90,6 +90,7 @@ public class CompanyProfileSteps {
         headers.set("x-request-id", "5234234234");
         headers.set("ERIC-Identity" , "SOME_IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
         String uri = "/company/{company_number}/links";
@@ -114,6 +115,7 @@ public class CompanyProfileSteps {
         headers.set("x-request-id", "5234234234");
         headers.set("ERIC-Identity" , "SOME_IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
         String uri = "/company/{company_number}/links";
@@ -152,6 +154,7 @@ public class CompanyProfileSteps {
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("ERIC-Identity" , "SOME_IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         this.contextId = "5234234234";
         headers.set("x-request-id", this.contextId);
@@ -265,7 +268,7 @@ public class CompanyProfileSteps {
         Optional<CompanyProfileDocument> actual = companyProfileRepository.findById(this.companyNumber);
         LocalDateTime at = actual.get().getUpdated().getAt();
 
-        /**
+        /*
          * Initially the updated year is set to 2021, if the call to db is triggered then the year is set to 2022.
          * Since the save operation is not invoked the updated date remains as initial year.
          */

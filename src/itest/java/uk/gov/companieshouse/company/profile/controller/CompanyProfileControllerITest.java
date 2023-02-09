@@ -18,7 +18,9 @@ import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CompanyProfileControllerITest {
@@ -112,6 +114,7 @@ class CompanyProfileControllerITest {
         headers.set("x-request-id", "123456");
         headers.add("ERIC-Identity" , "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
         ResponseEntity<Void> responseEntity = restTemplate.exchange(
@@ -159,6 +162,7 @@ class CompanyProfileControllerITest {
         headers.set("x-request-id", "123456");
         headers.add("ERIC-Identity" , "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
         HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
         ResponseEntity<Void> responseEntity = restTemplate.exchange(

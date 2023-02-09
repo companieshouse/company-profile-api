@@ -159,7 +159,9 @@ class CompanyProfileControllerTest {
                 .header("ERIC-Identity-Type", "key")
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "123456")
-                .content(gson.toJson(request))).andExpect(status().isOk());
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .content(gson.toJson(request)))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -173,6 +175,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isNotFound());
     }
@@ -188,6 +191,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isBadRequest());
     }
@@ -203,7 +207,8 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
-                        .content(gson.toJson(new CompanyProfile())))
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isServiceUnavailable());
     }
 
@@ -217,7 +222,8 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
-                        .content(gson.toJson(new CompanyProfile())))
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -232,6 +238,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .header("x-request-id", "123456"))
                 .andExpect(status().isOk());
         verify(companyProfileService).addExemptionsLink(exemptionsLinkRequest);
@@ -249,7 +256,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).addExemptionsLink(exemptionsLinkRequest);
     }
@@ -266,7 +274,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).addExemptionsLink(exemptionsLinkRequest);
     }
@@ -283,7 +292,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).addExemptionsLink(exemptionsLinkRequest);
     }
@@ -299,7 +309,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).addExemptionsLink(exemptionsLinkRequest);
     }
@@ -315,7 +326,8 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).deleteExemptionsLink(exemptionsLinkRequest);
     }
@@ -332,7 +344,8 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).deleteExemptionsLink(exemptionsLinkRequest);
     }
@@ -349,7 +362,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).deleteExemptionsLink(exemptionsLinkRequest);
     }
@@ -366,7 +380,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).deleteExemptionsLink(exemptionsLinkRequest);
     }
@@ -383,7 +398,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).deleteExemptionsLink(exemptionsLinkRequest);
     }
@@ -399,7 +415,8 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).addOfficersLink(officersLinkRequest);
     }
@@ -416,8 +433,9 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
-                .andExpect(status().isNotFound());
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+)                .andExpect(status().isNotFound());
         verify(companyProfileService).addOfficersLink(officersLinkRequest);
     }
 
@@ -433,7 +451,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).addOfficersLink(officersLinkRequest);
     }
@@ -450,7 +469,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).addOfficersLink(officersLinkRequest);
     }
@@ -466,7 +486,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).addOfficersLink(officersLinkRequest);
     }
@@ -482,7 +503,8 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
@@ -499,7 +521,8 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
@@ -516,7 +539,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
@@ -533,7 +557,8 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
@@ -550,9 +575,9 @@ class CompanyProfileControllerTest {
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
-
 }
