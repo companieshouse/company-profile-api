@@ -145,7 +145,7 @@ public class CompanyProfileService {
             Update update = Update.update(
                     String.format("data.links.%s", request.getLinkType()),
                     String.format("/company/%s/%s", request.getCompanyNumber(),
-                            request.getLinkType()));
+                            convertToDBformat(request)));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
@@ -331,5 +331,47 @@ public class CompanyProfileService {
         } else {
             update.unset(key);
         }
+    }
+
+    /**
+     * Check if psc statements link exists already on document and
+     * call addLink if this is false.
+     *
+     * @param request Data required to identify type of link
+     */
+    public void addPscStatementsLink(LinkRequest request) {
+        if (!StringUtils.isBlank(getDocument(request.getCompanyNumber())
+                .getCompanyProfile()
+                .getLinks()
+                .getPersonsWithSignificantControlStatements())) {
+            logger.error("PSC statements link for company profile already exists");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "PSC statements link already exists");
+        } else {
+            addLink(request);
+        }
+    }
+
+    /**
+     * Check if psc statements link does not exist already on document and
+     * call deleteLink if this is false.
+     *
+     * @param request Data required to identify type of link
+     */
+    public void deletePscStatementsLink(LinkRequest request) {
+        if (StringUtils.isBlank(getDocument(request.getCompanyNumber())
+                .getCompanyProfile()
+                .getLinks()
+                .getPersonsWithSignificantControlStatements())) {
+            logger.error("PSC statements link for company profile already does not exist");
+            throw new ResourceStateConflictException("Resource state conflict; "
+                    + "PSC statements link does not exist already");
+        } else {
+            deleteLink(request);
+        }
+    }
+
+    private String convertToDBformat(LinkRequest request) {
+        return request.getLinkType().replace('_','-');
     }
 }
