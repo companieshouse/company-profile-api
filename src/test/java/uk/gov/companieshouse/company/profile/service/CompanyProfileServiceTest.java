@@ -45,7 +45,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.*;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
@@ -668,8 +673,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link successfully updates MongoDB and calls chs-kafka-api")
     void addPscStatementsLink() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -686,8 +691,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws document not found exception")
     void addPscStatementsLinkNotFound() {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -705,8 +710,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws resource state conflict exception")
     void addPscStatementsLinkConflict() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -728,8 +733,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws service unavailable exception when illegal argument exception caught")
     void addPscStatementsLinkIllegalArgument() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -748,8 +753,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws service unavailable exception when data access exception thrown during findById")
     void addPscStatementsLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -766,8 +771,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws service unavailable exception when data access exception thrown during update")
     void addPscStatementsLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -786,8 +791,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link successfully updates MongoDB and calls chs-kafka-api")
     void deletePscStatementsLink() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -806,8 +811,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws document not found exception")
     void deletePscStatementsLinkNotFound() {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -825,8 +830,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws resource state conflict exception")
     void deletePscStatementsLinkConflict() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -846,8 +851,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws service unavailable exception when illegal argument exception caught")
     void deletePscStatementsLinkIllegalArgument() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -868,8 +873,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws service unavailable exception when data access exception thrown during findById")
     void deletePscStatementsLinkDataAccessExceptionFindById() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -886,8 +891,8 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws service unavailable exception when data access exception thrown during update")
     void deletePscStatementsLinkDataAccessExceptionUpdate() throws ApiErrorResponseException {
         // given
-        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSCSTATEMENTS_LINK_TYPE,
-                PSCSTATEMENTS_DELTA_TYPE);
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE,
+                PSC_STATEMENTS_DELTA_TYPE);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
