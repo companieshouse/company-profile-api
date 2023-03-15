@@ -8,7 +8,7 @@ public class LinkRequest {
     public static final String OFFICERS_DELTA_TYPE = "officer_delta";
     public static final String PSC_STATEMENTS_LINK_TYPE =
             "persons_with_significant_control_statements";
-    public static final String PSC_STATEMENTS_DELTA_TYPE = "PscStatement_delta";
+    public static final String PSC_STATEMENTS_DELTA_TYPE = "psc_statement_delta";
 
     private final String contextId;
     private final String companyNumber;
