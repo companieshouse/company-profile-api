@@ -17,6 +17,8 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -61,6 +63,10 @@ class CompanyProfileControllerTest {
     private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
     private static final String OFFICERS_LINK_URL = String.format("/company/%s/links/officers", MOCK_COMPANY_NUMBER);
     private static final String DELETE_OFFICERS_LINK_URL = String.format("/company/%s/links/officers/delete", MOCK_COMPANY_NUMBER);
+    private static final String PSC_STATEMENTS_LINK_URL = String.format(
+            "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
+    private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
+            "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -580,4 +586,183 @@ class CompanyProfileControllerTest {
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
+
+    @Test
+    @DisplayName("add PSC Statements link")
+    void addPscStatementsLink() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doNothing().when(companyProfileService).addPscStatementsLink(any());
+
+        mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isOk());
+        verify(companyProfileService).addPscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("add PSC Statements request returns 404 not found when document not found exception is thrown")
+    void addPscStatementsLinkNotFound() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).addPscStatementsLink(any());
+
+        mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isNotFound());
+        verify(companyProfileService).addPscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("add PSC Statements request returns 409 not found when resource state conflict exception is thrown")
+    void addPscStatementsLinkConflict() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new ResourceStateConflictException("Conflict in resource state"))
+                .when(companyProfileService).addPscStatementsLink(any());
+
+        mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isConflict());
+        verify(companyProfileService).addPscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("add PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void addPscStatementsLinkServiceUnavailable() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).addPscStatementsLink(any());
+
+        mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isServiceUnavailable());
+        verify(companyProfileService).addPscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("add PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void addPscStatementsLinkInternalServerError() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new RuntimeException())
+                .when(companyProfileService).addPscStatementsLink(any());
+
+        mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isInternalServerError());
+        verify(companyProfileService).addPscStatementsLink(pscStatementsLinkRequest);
+    }
+    @Test
+    @DisplayName("Delete PSC Statements link")
+    void deletePscStatementsLink() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doNothing().when(companyProfileService).deletePscStatementsLink(any());
+
+        mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isOk());
+        verify(companyProfileService).deletePscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("Delete PSC Statements request returns 404 not found when document not found exception is thrown")
+    void deletePscStatementsLinkNotFound() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).deletePscStatementsLink(any());
+
+        mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isNotFound());
+        verify(companyProfileService).deletePscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("Delete PSC Statements request returns 409 not found when resource state conflict exception is thrown")
+    void deletePscStatementsLinkConflict() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new ResourceStateConflictException("Conflict in resource state"))
+                .when(companyProfileService).deletePscStatementsLink(any());
+
+        mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isConflict());
+        verify(companyProfileService).deletePscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("Delete PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void deletePscStatementsLinkServiceUnavailable() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).deletePscStatementsLink(any());
+
+        mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isServiceUnavailable());
+        verify(companyProfileService).deletePscStatementsLink(pscStatementsLinkRequest);
+    }
+
+    @Test
+    @DisplayName("Delete PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void deletePscStatementsLinkInternalServerError() throws Exception {
+        LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+        when(linkRequestFactory.createPscStatementsLinkRequest(any(), any())).thenReturn(pscStatementsLinkRequest);
+        doThrow(new RuntimeException())
+                .when(companyProfileService).deletePscStatementsLink(any());
+
+        mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isInternalServerError());
+        verify(companyProfileService).deletePscStatementsLink(pscStatementsLinkRequest);
+    }
+
+
 }
