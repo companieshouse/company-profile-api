@@ -587,7 +587,7 @@ class CompanyProfileControllerTest {
         verify(companyProfileService).deleteOfficersLink(officersLinkRequest);
     }
 
-    @Test
+   /* @Test
     @DisplayName("add PSC Statements link")
     void addPscStatementsLink() throws Exception {
         LinkRequest pscStatementsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
@@ -762,7 +762,5 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).deletePscStatementsLink(pscStatementsLinkRequest);
-    }
-
-
+    }*/
 }

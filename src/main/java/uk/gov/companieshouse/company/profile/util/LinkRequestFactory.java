@@ -21,7 +21,8 @@ public class LinkRequestFactory {
                 contextId, companyNumber, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
     }
 
-    public LinkRequest createPscStatementsLinkRequest(String contextId, String companyNumber) {
+    public LinkRequest createPersonsWithSignificantControlStatementsLinkRequest(
+            String contextId, String companyNumber) {
         return new LinkRequest(
                 contextId, companyNumber, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
     }

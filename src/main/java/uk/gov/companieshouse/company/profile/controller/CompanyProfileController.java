@@ -1,7 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import java.lang.reflect.InvocationTargetException;
 import javax.validation.Valid;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +16,8 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
+
+
 
 @RestController
 public class CompanyProfileController {
@@ -152,7 +154,7 @@ public class CompanyProfileController {
      * @param companyNumber The number of the company
      * @return no response
      */
-    @PatchMapping("/company/{company_number}/links/persons-with-significant-control-statements")
+    /*@PatchMapping("/company/{company_number}/links/persons-with-significant-control-statements")
     public ResponseEntity<Void> addPscStatementsLink(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber
@@ -160,16 +162,17 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.addPscStatementsLink(
-                linkRequestFactory.createPscStatementsLinkRequest(contextId, companyNumber));
+                linkRequestFactory.createPersonsWithControlStatementsLinkRequest
+                (contextId, companyNumber));
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    /**
+    *//**
      * Delete a psc statements link on a company profile for the given company number.
      *
      * @param companyNumber The number of the company
      * @return no response
-     */
+     *//*
     @PatchMapping("/company/{company_number}/links/"
             + "persons-with-significant-control-statements/delete")
     public ResponseEntity<Void> deletePscStatementsLink(
@@ -179,7 +182,46 @@ public class CompanyProfileController {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.deletePscStatementsLink(
-                linkRequestFactory.createPscStatementsLinkRequest(contextId, companyNumber));
+                linkRequestFactory.createPersonsWithControlStatementsLinkRequest
+                (contextId, companyNumber));
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }*/
+
+    /**
+     * add a link on a company profile for the given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
+    @PatchMapping("/company/{company_number}/links/"
+            + "{link_type}")
+    public ResponseEntity<Void> addLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber,
+            @PathVariable("link_type") String linkType
+    ) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
+        companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     * Delete a link on a company profile for the given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return no response
+     */
+    @PatchMapping("/company/{company_number}/links/"
+            + "{link_type}/delete")
+    public ResponseEntity<Void> deleteLink(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber,
+            @PathVariable("link_type") String linkType
+    ) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        logger.info(String.format("Payload successfully received on PATCH endpoint "
+                + "with contextId %s and company number %s", contextId, companyNumber));
+        companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
