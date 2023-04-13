@@ -14,29 +14,22 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
-import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
-
-
 
 @RestController
 public class CompanyProfileController {
 
     private final CompanyProfileService companyProfileService;
     private final Logger logger;
-    private final LinkRequestFactory linkRequestFactory;
 
     /**
      * Constructor.
      * @param logger logs messages to the console
      * @param companyProfileService Company Profile Service
-     * @param linkRequestFactory Link Request Factory
      */
-    public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService,
-                                    LinkRequestFactory linkRequestFactory) {
+    public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService) {
         this.logger = logger;
         this.companyProfileService = companyProfileService;
-        this.linkRequestFactory = linkRequestFactory;
     }
 
     /**
@@ -77,117 +70,6 @@ public class CompanyProfileController {
     }
 
     /**
-     * Add a company exemptions link to a company profile for the given company number.
-     *
-     * @param companyNumber The number of the company
-     * @return no response
-     */
-    @PatchMapping("/company/{company_number}/links/exemptions")
-    public ResponseEntity<Void> addExemptionsLink(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
-
-        companyProfileService.addExemptionsLink(
-                linkRequestFactory.createExemptionsLinkRequest(contextId, companyNumber));
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    /**
-     * Delete a company exemptions link on a company profile for the given company number.
-     *
-     * @param companyNumber The number of the company
-     * @return no response
-     */
-    @PatchMapping("/company/{company_number}/links/exemptions/delete")
-    public ResponseEntity<Void> deleteExemptionsLink(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
-
-        companyProfileService.deleteExemptionsLink(
-                linkRequestFactory.createExemptionsLinkRequest(contextId, companyNumber));
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    /**
-     * Add an officers link to a company profile for the given company number.
-     *
-     * @param companyNumber The number of the company
-     * @return no response
-     */
-    @PatchMapping("/company/{company_number}/links/officers")
-    public ResponseEntity<Void> addOfficersLink(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
-
-        companyProfileService.addOfficersLink(
-                linkRequestFactory.createOfficersLinkRequest(contextId, companyNumber));
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    /**
-     * Delete a company officers link on a company profile for the given company number.
-     *
-     * @param companyNumber The number of the company
-     * @return no response
-     */
-    @PatchMapping("/company/{company_number}/links/officers/delete")
-    public ResponseEntity<Void> deleteOfficersLink(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
-
-        companyProfileService.deleteOfficersLink(
-                linkRequestFactory.createOfficersLinkRequest(contextId, companyNumber));
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    /**
-     * Add a psc statements link on a company profile for the given company number.
-     *
-     * @param companyNumber The number of the company
-     * @return no response
-     */
-    /*@PatchMapping("/company/{company_number}/links/persons-with-significant-control-statements")
-    public ResponseEntity<Void> addPscStatementsLink(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber
-    ) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
-        companyProfileService.addPscStatementsLink(
-                linkRequestFactory.createPersonsWithControlStatementsLinkRequest
-                (contextId, companyNumber));
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    *//**
-     * Delete a psc statements link on a company profile for the given company number.
-     *
-     * @param companyNumber The number of the company
-     * @return no response
-     *//*
-    @PatchMapping("/company/{company_number}/links/"
-            + "persons-with-significant-control-statements/delete")
-    public ResponseEntity<Void> deletePscStatementsLink(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber
-    ) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
-        companyProfileService.deletePscStatementsLink(
-                linkRequestFactory.createPersonsWithControlStatementsLinkRequest
-                (contextId, companyNumber));
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }*/
-
-    /**
      * add a link on a company profile for the given company number.
      *
      * @param companyNumber The number of the company
@@ -224,6 +106,4 @@ public class CompanyProfileController {
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-
-
 }
