@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import java.lang.reflect.InvocationTargetException;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
