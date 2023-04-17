@@ -8,40 +8,29 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEME
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_GET;
 
 import java.util.Map;
-import java.util.function.Function;
+
 import org.springframework.stereotype.Component;
-import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 
 @Component
 public class LinkRequestFactory {
-
-    Map<String, Map<String, Function<Links, String>>> linkRequestMap = Map.ofEntries(
-            Map.entry(LinkRequest.EXEMPTIONS_LINK_TYPE,
-                    Map.ofEntries(Map.entry(EXEMPTIONS_DELTA_TYPE, EXEMPTIONS_GET))),
-            Map.entry(LinkRequest.OFFICERS_LINK_TYPE,
-                    Map.ofEntries(Map.entry(OFFICERS_DELTA_TYPE, OFFICERS_GET))),
-            Map.entry(LinkRequest.PSC_STATEMENTS_LINK_TYPE,
-                    Map.ofEntries(Map.entry(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET))));
+    Map<String, LinkTypeData> linkRequestMap = Map.of(
+            LinkRequest.EXEMPTIONS_LINK_TYPE,
+            new LinkTypeData(EXEMPTIONS_DELTA_TYPE, EXEMPTIONS_GET),
+            LinkRequest.OFFICERS_LINK_TYPE,
+            new LinkTypeData(OFFICERS_DELTA_TYPE, OFFICERS_GET),
+            LinkRequest.PSC_STATEMENTS_LINK_TYPE,
+            new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET));
 
     /**
      * Creates linkRequest object.
      */
-    public LinkRequest createLinkRequest(String linkType, String contextId, String companyNumber)
-            throws NoSuchFieldException {
-        Map<String, Function<Links, String>> linkRequestData;
-        try {
-            linkRequestData = linkRequestMap.get(linkType);
-        } catch (Exception ex) {
-            throw new NoSuchFieldException("no mapping for linkType: " + linkType);
+    public LinkRequest createLinkRequest(String linkType, String contextId, String companyNumber) {
+        if (!linkRequestMap.containsKey(linkType)) {
+            throw new BadRequestException("invalid link type");
         }
-
-        return new LinkRequest(
-                    contextId, companyNumber, linkType,
-                linkRequestData.keySet().stream().findFirst().orElseThrow(() ->
-                        new NoSuchFieldException("no delta type key found for linkType in map: "
-                                + linkType)),
-                linkRequestData.values().stream().findFirst().orElseThrow(() ->
-                        new NoSuchFieldException("no links GET value found for linkType in map: "
-                                + linkType)));
+        LinkTypeData linkTypeData = linkRequestMap.get(linkType);
+        return new LinkRequest(contextId, companyNumber, linkType,
+                linkTypeData.getDeltaType(), linkTypeData.getLinkGetter());
     }
 }

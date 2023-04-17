@@ -7,15 +7,15 @@ public class LinkRequest {
 
     public static final String EXEMPTIONS_LINK_TYPE = "exemptions";
     public static final String EXEMPTIONS_DELTA_TYPE = "exemption_delta";
-    public static final Function<Links, String> EXEMPTIONS_GET = link -> link.getExemptions();
+    public static final Function<Links, String> EXEMPTIONS_GET = Links::getExemptions;
     public static final String OFFICERS_LINK_TYPE = "officers";
     public static final String OFFICERS_DELTA_TYPE = "officer_delta";
-    public static final Function<Links, String> OFFICERS_GET = link -> link.getOfficers();
+    public static final Function<Links, String> OFFICERS_GET = Links::getOfficers;
     public static final String PSC_STATEMENTS_LINK_TYPE =
             "persons-with-significant-control-statements";
     public static final String PSC_STATEMENTS_DELTA_TYPE = "psc_statement_delta";
-    public static final Function<Links, String> PSC_STATEMENTS_GET = link ->
-            link.getPersonsWithSignificantControlStatements();
+    public static final Function<Links, String> PSC_STATEMENTS_GET =
+            Links::getPersonsWithSignificantControlStatements;
 
     private final String contextId;
     private final String companyNumber;

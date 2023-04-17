@@ -1,15 +1,11 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
-
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -45,17 +41,11 @@ public class CompanyProfileService {
     private final MongoTemplate mongoTemplate;
     private final CompanyProfileApiService companyProfileApiService;
     private final LinkRequestFactory linkRequestFactory;
-    static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
-    Map<String, Object> linkRequestMap = Map.ofEntries(
-            Map.entry(LinkRequest.EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE),
-            Map.entry(LinkRequest.OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE),
-            Map.entry(LinkRequest.PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE));
 
     /**
      * Constructor.
      */
+    @Autowired
     public CompanyProfileService(Logger logger,
                                  CompanyProfileRepository companyProfileRepository,
                                  MongoTemplate mongoTemplate,
@@ -275,14 +265,12 @@ public class CompanyProfileService {
         return linkType.replace('-', '_');
     }
 
-
     /**
      * func creates a Link Request for a given link type
      * and calls checkAdd or checkDelete.
      */
     public void processLinkRequest(String linkType, String companyNumber, String contextId,
-                                   boolean delete) throws NoSuchFieldException {
-
+                                   boolean delete) {
         LinkRequest linkRequest =
                 linkRequestFactory.createLinkRequest(linkType, contextId, companyNumber);
 
@@ -294,21 +282,6 @@ public class CompanyProfileService {
     }
 
     /**
-     * func formats linkRequest type, applying caps to first char after '_'
-     * or '-' and substring(0,1)
-     * to invoke getLink for their respective type.
-     */
-    private String formatLinkType(String linkType) {
-        while (linkType.contains("-")) {
-            linkType = linkType.replaceFirst("-[a-z]",
-                    String.valueOf(
-                            Character.toUpperCase(linkType.charAt(linkType.indexOf("-") + 1))));
-        }
-        return linkType.substring(0, 1).toUpperCase() + linkType.substring(1);
-    }
-
-
-    /**
      * Checks if link for given type exists in document and
      * call addLink if this is false.
      */
@@ -318,9 +291,9 @@ public class CompanyProfileService {
                             new ResourceNotFoundException("no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
-        boolean linkData = Optional.of(links).map(linkRequest.getCheckLink()).isPresent();
+        String linkData = linkRequest.getCheckLink().apply(links);
 
-        if (linkData) {
+        if (!StringUtils.isBlank(linkData)) {
             logger.error(linkRequest.getLinkType() + " link for company profile already exists");
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
@@ -339,9 +312,9 @@ public class CompanyProfileService {
                         new ResourceNotFoundException("no data for company profile: "
                                 + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
-        boolean linkData = Optional.of(links).map(linkRequest.getCheckLink()).isPresent();
+        String linkData = linkRequest.getCheckLink().apply(links);
 
-        if (!linkData) {
+        if (StringUtils.isBlank(linkData)) {
             logger.error(linkRequest.getLinkType() + " link for company profile already"
                     + " does not exist");
             throw new ResourceStateConflictException("Resource state conflict; "
