@@ -1,12 +1,15 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import java.lang.reflect.InvocationTargetException;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -29,6 +32,8 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.util.LinkRequest;
+import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
 
 
@@ -39,8 +44,14 @@ public class CompanyProfileService {
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
     private final CompanyProfileApiService companyProfileApiService;
+    private final LinkRequestFactory linkRequestFactory;
     static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+    Map<String, Object> linkRequestMap = Map.ofEntries(
+            Map.entry(LinkRequest.EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE),
+            Map.entry(LinkRequest.OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE),
+            Map.entry(LinkRequest.PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE));
 
     /**
      * Constructor.
@@ -48,11 +59,13 @@ public class CompanyProfileService {
     public CompanyProfileService(Logger logger,
                                  CompanyProfileRepository companyProfileRepository,
                                  MongoTemplate mongoTemplate,
-                                 CompanyProfileApiService companyProfileApiService) {
+                                 CompanyProfileApiService companyProfileApiService,
+                                 LinkRequestFactory linkRequestFactory) {
         this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
         this.companyProfileApiService = companyProfileApiService;
+        this.linkRequestFactory = linkRequestFactory;
     }
 
     /**
@@ -141,29 +154,30 @@ public class CompanyProfileService {
         }
     }
 
-    private void addLink(String link, String companyNumber, String contextId, String delta) {
+    private void addLink(LinkRequest linkRequest) {
         try {
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
+            Query query = new Query(Criteria.where("_id").is(linkRequest.getCompanyNumber()));
             Update update = Update.update(
-                    String.format("data.links.%s", convertToDBformat(link)),
-                    String.format("/company/%s/%s", companyNumber,
-                            link));
+                    String.format("data.links.%s", convertToDBformat(linkRequest.getLinkType())),
+                    String.format("/company/%s/%s", linkRequest.getCompanyNumber(),
+                            linkRequest.getLinkType()));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
-                    .setType(delta)
-                    .setBy(contextId));
+                    .setType(linkRequest.getDeltaType())
+                    .setBy(linkRequest.getContextId()));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.info(String.format("Company %s link inserted in Company Profile "
                             + "with context id: %s and company number: %s",
-                    link, contextId, companyNumber));
+                    linkRequest.getLinkType(), linkRequest.getContextId(),
+                    linkRequest.getCompanyNumber()));
 
-            companyProfileApiService.invokeChsKafkaApi(contextId,
-                    companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(),
+                    linkRequest.getCompanyNumber());
             logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
-                            + "id: %s and company number: %s", contextId,
-                    companyNumber));
+                            + "id: %s and company number: %s", linkRequest.getContextId(),
+                    linkRequest.getCompanyNumber()));
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());
@@ -173,27 +187,29 @@ public class CompanyProfileService {
         }
     }
 
-    private void deleteLink(String link, String companyNumber, String contextId, String delta) {
+    private void deleteLink(LinkRequest linkRequest) {
         try {
             Update update = new Update();
-            update.unset(String.format("data.links.%s", convertToDBformat(link)));
+            update.unset(String.format("data.links.%s",
+                    convertToDBformat(linkRequest.getLinkType())));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
-                    .setType(delta)
-                    .setBy(contextId));
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
+                    .setType(linkRequest.getDeltaType())
+                    .setBy(linkRequest.getContextId()));
+            Query query = new Query(Criteria.where("_id").is(linkRequest.getCompanyNumber()));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.info(String.format("Company %s link deleted in Company Profile "
                             + "with context id: %s and company number: %s",
-                    link, contextId, companyNumber));
+                    linkRequest.getLinkType(), linkRequest.getContextId(),
+                    linkRequest.getCompanyNumber()));
 
-            companyProfileApiService.invokeChsKafkaApi(contextId,
-                    companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(),
+                    linkRequest.getCompanyNumber());
             logger.info(String.format("chs-kafka-api DELETED invoked successfully for context "
-                            + "id: %s and company number: %s", contextId,
-                    companyNumber));
+                            + "id: %s and company number: %s", linkRequest.getContextId(),
+                    linkRequest.getCompanyNumber()));
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
             logger.error("Error calling chs-kafka-api");
             throw new ServiceUnavailableException(exception.getMessage());
@@ -259,28 +275,21 @@ public class CompanyProfileService {
         return linkType.replace('-', '_');
     }
 
-    /**
-     * formats link type and concatenates delta string to it.
-     */
-    private String convertDeltaType(String linkType) {
-        return linkType
-                .replace(linkType.charAt(linkType.lastIndexOf(115)),'_')
-                .concat("delta");
-    }
 
     /**
      * func creates a Link Request for a given link type
      * and calls checkAdd or checkDelete.
      */
     public void processLinkRequest(String linkType, String companyNumber, String contextId,
-                                   boolean delete)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String delta = convertDeltaType(linkType);
+                                   boolean delete) throws NoSuchFieldException {
+
+        LinkRequest linkRequest =
+                linkRequestFactory.createLinkRequest(linkType, contextId, companyNumber);
 
         if (delete) {
-            checkForDeleteLink(linkType, companyNumber, contextId, delta);
+            checkForDeleteLink(linkRequest);
         } else {
-            checkForAddLink(linkType, companyNumber, contextId, delta);
+            checkForAddLink(linkRequest);
         }
     }
 
@@ -303,27 +312,20 @@ public class CompanyProfileService {
      * Checks if link for given type exists in document and
      * call addLink if this is false.
      */
-    public void checkForAddLink(String link, String companyNumber,
-                                String contextId, String delta)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Links links;
-        try {
-            links = Optional.ofNullable(getDocument(companyNumber))
-                    .map(CompanyProfileDocument::getCompanyProfile)
-                    .map(Data::getLinks).get();
-        } catch (NullPointerException ex) {
-            throw new ResourceNotFoundException("no data for company profile: "
-                    + companyNumber, ex);
-        }
+    public void checkForAddLink(LinkRequest linkRequest) {
+        Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
+                    .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+                            new ResourceNotFoundException("no data for company profile: "
+                                    + linkRequest.getCompanyNumber()));
+        Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
+        boolean linkData = Optional.of(links).map(linkRequest.getCheckLink()).isPresent();
 
-        if (!StringUtils.isBlank(
-                (String) links.getClass().getMethod("get" + formatLinkType(link))
-                        .invoke(links))) {
-            logger.error(link + " link for company profile already exists");
+        if (linkData) {
+            logger.error(linkRequest.getLinkType() + " link for company profile already exists");
             throw new ResourceStateConflictException("Resource state conflict; "
-                    + link + " link already exists");
+                    + linkRequest.getLinkType() + " link already exists");
         } else {
-            addLink(link, companyNumber, contextId, delta);
+            addLink(linkRequest);
         }
     }
 
@@ -331,28 +333,21 @@ public class CompanyProfileService {
      * Checks if link for given type does not exist in document and
      * call deleteLink if this is false.
      */
-    public void checkForDeleteLink(String link, String companyNumber,
-                                   String contextId, String delta)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Links links;
-        try {
-            links = Optional.ofNullable(getDocument(companyNumber))
-                    .map(CompanyProfileDocument::getCompanyProfile)
-                    .map(Data::getLinks).get();
-        } catch (NullPointerException ex) {
-            throw new ResourceNotFoundException("no data for company profile: "
-                    + companyNumber, ex);
-        }
+    public void checkForDeleteLink(LinkRequest linkRequest) {
+        Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
+                .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+                        new ResourceNotFoundException("no data for company profile: "
+                                + linkRequest.getCompanyNumber()));
+        Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
+        boolean linkData = Optional.of(links).map(linkRequest.getCheckLink()).isPresent();
 
-        if (StringUtils.isBlank(
-                (String) links.getClass().getMethod("get" + formatLinkType(link))
-                        .invoke(links))) {
-            logger.error(link + " link for company profile already"
+        if (!linkData) {
+            logger.error(linkRequest.getLinkType() + " link for company profile already"
                     + " does not exist");
             throw new ResourceStateConflictException("Resource state conflict; "
-                    + link + " link already does not exist");
+                    + linkRequest.getLinkType() + " link already does not exist");
         } else {
-            deleteLink(link, companyNumber, contextId, delta);
+            deleteLink(linkRequest);
         }
     }
 }
