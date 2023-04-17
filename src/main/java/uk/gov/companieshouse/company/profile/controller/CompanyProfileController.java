@@ -81,7 +81,7 @@ public class CompanyProfileController {
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType
-    ) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    ) throws NoSuchFieldException {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
@@ -100,7 +100,7 @@ public class CompanyProfileController {
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType
-    ) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    ) throws NoSuchFieldException {
         logger.info(String.format("Payload successfully received on PATCH endpoint "
                 + "with contextId %s and company number %s", contextId, companyNumber));
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
