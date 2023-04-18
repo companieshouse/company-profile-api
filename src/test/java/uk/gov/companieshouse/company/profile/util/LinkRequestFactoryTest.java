@@ -36,7 +36,7 @@ public class LinkRequestFactoryTest {
                 EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         LinkRequest linkRequest = linkRequestFactory
                 .createLinkRequest(EXEMPTIONS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        assertThat(expectedLinkRequest.equals(linkRequest));
+        assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class LinkRequestFactoryTest {
                 OFFICERS_DELTA_TYPE, Links::getOfficers);
         LinkRequest linkRequest = linkRequestFactory
                 .createLinkRequest(OFFICERS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        assertThat(expectedLinkRequest.equals(linkRequest));
+        assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class LinkRequestFactoryTest {
                 Links::getPersonsWithSignificantControlStatements);
         LinkRequest linkRequest = linkRequestFactory
                 .createLinkRequest(PSC_STATEMENTS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        assertThat(expectedLinkRequest.equals(linkRequest));
+        assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
     }
 
     @Test
