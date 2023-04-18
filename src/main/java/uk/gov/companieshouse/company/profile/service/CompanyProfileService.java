@@ -311,7 +311,8 @@ public class CompanyProfileService {
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException("no data for company profile: "
                                 + linkRequest.getCompanyNumber()));
-        Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
+        Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
+                new ResourceStateConflictException("links data not found"));
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (StringUtils.isBlank(linkData)) {
