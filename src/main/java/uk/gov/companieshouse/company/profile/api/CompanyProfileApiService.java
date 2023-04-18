@@ -38,6 +38,8 @@ public class CompanyProfileApiService {
     public ApiResponse<Void> invokeChsKafkaApi(String contextId, String companyNumber)
             throws ApiErrorResponseException {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
+        String resourceHandler = internalApiClient.getInternalBasePath();
+        logger.trace(String.format("Created client %s", resourceHandler));
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(

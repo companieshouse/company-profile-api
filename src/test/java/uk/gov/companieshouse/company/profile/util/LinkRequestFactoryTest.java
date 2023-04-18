@@ -1,34 +1,67 @@
 package uk.gov.companieshouse.company.profile.util;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.companieshouse.api.company.Links;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
+import org.junit.jupiter.api.function.Executable;
+import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 
-class LinkRequestFactoryTest {
+@RunWith(SpringRunner.class)
+public class LinkRequestFactoryTest {
 
-    private static final String CONTEXT_ID = "123456";
-    private static final String COMPANY_NUMBER = "00006400";
-    private final LinkRequestFactory linkRequestFactory = new LinkRequestFactory();
+    private LinkRequestFactory linkRequestFactory;
+    private static final String MOCK_CONTEXT_ID = "12456";
+    private static final String MOCK_COMPANY_NUMBER = "123456";
 
-    @Test
-    void shouldCreateExemptionsLinkRequest() {
-        LinkRequest exemptionsLinkRequest = linkRequestFactory.createExemptionsLinkRequest(CONTEXT_ID, COMPANY_NUMBER);
-        assertEquals(CONTEXT_ID, exemptionsLinkRequest.getContextId());
-        assertEquals(COMPANY_NUMBER, exemptionsLinkRequest.getCompanyNumber());
-        assertEquals(EXEMPTIONS_LINK_TYPE, exemptionsLinkRequest.getLinkType());
-        assertEquals(EXEMPTIONS_DELTA_TYPE, exemptionsLinkRequest.getDeltaType());
+    @Before
+    public void setUp() {
+        linkRequestFactory = new LinkRequestFactory();
     }
 
     @Test
-    void createOfficersLinkRequest() {
-        LinkRequest officersLinkRequest = linkRequestFactory.createOfficersLinkRequest(CONTEXT_ID, COMPANY_NUMBER);
-        assertEquals(CONTEXT_ID, officersLinkRequest.getContextId());
-        assertEquals(COMPANY_NUMBER, officersLinkRequest.getCompanyNumber());
-        assertEquals(OFFICERS_LINK_TYPE, officersLinkRequest.getLinkType());
-        assertEquals(OFFICERS_DELTA_TYPE, officersLinkRequest.getDeltaType());
+    public void createLinkRequestForExemptions() {
+        LinkRequest expectedLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE,
+                EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
+        LinkRequest linkRequest = linkRequestFactory
+                .createLinkRequest(EXEMPTIONS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
+    }
+
+    @Test
+    public void createLinkRequestForOfficers() {
+        LinkRequest expectedLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE,
+                OFFICERS_DELTA_TYPE, Links::getOfficers);
+        LinkRequest linkRequest = linkRequestFactory
+                .createLinkRequest(OFFICERS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
+    }
+
+    @Test
+    public void createLinkRequestForPscStatements() {
+        LinkRequest expectedLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
+                Links::getPersonsWithSignificantControlStatements);
+        LinkRequest linkRequest = linkRequestFactory
+                .createLinkRequest(PSC_STATEMENTS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
+    }
+
+    @Test
+    public void createLinkRequestThrows() {
+        Executable executable  = () -> linkRequestFactory
+                .createLinkRequest("office", MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        assertThrows(BadRequestException.class,executable);
     }
 }

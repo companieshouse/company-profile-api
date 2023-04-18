@@ -1,28 +1,36 @@
 package uk.gov.companieshouse.company.profile.util;
 
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_GET;
+
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
+import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
 
 @Component
 public class LinkRequestFactory {
-    public LinkRequest createExemptionsLinkRequest(String contextId, String companyNumber) {
-        return new LinkRequest(
-                contextId, companyNumber, EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE);
-    }
+    Map<String, LinkTypeData> linkRequestMap = Map.of(
+            LinkRequest.EXEMPTIONS_LINK_TYPE,
+            new LinkTypeData(EXEMPTIONS_DELTA_TYPE, EXEMPTIONS_GET),
+            LinkRequest.OFFICERS_LINK_TYPE,
+            new LinkTypeData(OFFICERS_DELTA_TYPE, OFFICERS_GET),
+            LinkRequest.PSC_STATEMENTS_LINK_TYPE,
+            new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET));
 
-    public LinkRequest createOfficersLinkRequest(String contextId, String companyNumber) {
-        return new LinkRequest(
-                contextId, companyNumber, OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE);
-    }
-
-    public LinkRequest createPscStatementsLinkRequest(String contextId, String companyNumber) {
-        return new LinkRequest(
-                contextId, companyNumber, PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE);
+    /**
+     * Creates linkRequest object.
+     */
+    public LinkRequest createLinkRequest(String linkType, String contextId, String companyNumber) {
+        if (!linkRequestMap.containsKey(linkType)) {
+            throw new BadRequestException("invalid link type");
+        }
+        LinkTypeData linkTypeData = linkRequestMap.get(linkType);
+        return new LinkRequest(contextId, companyNumber, linkType,
+                linkTypeData.getDeltaType(), linkTypeData.getLinkGetter());
     }
 }
