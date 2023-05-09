@@ -4,6 +4,8 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_GET;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_GET;
 
@@ -19,6 +21,8 @@ public class LinkRequestFactory {
             new LinkTypeData(EXEMPTIONS_DELTA_TYPE, EXEMPTIONS_GET),
             LinkRequest.OFFICERS_LINK_TYPE,
             new LinkTypeData(OFFICERS_DELTA_TYPE, OFFICERS_GET),
+            LinkRequest.PSC_LINK_TYPE,
+            new LinkTypeData(PSC_DELTA_TYPE, PSC_GET),
             LinkRequest.PSC_STATEMENTS_LINK_TYPE,
             new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET));
 
