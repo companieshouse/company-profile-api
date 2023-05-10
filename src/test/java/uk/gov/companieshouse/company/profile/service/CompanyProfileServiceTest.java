@@ -1149,7 +1149,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/psc", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1158,7 +1158,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
-        assertEquals("Resource state conflict; psc" +
+        assertEquals("Resource state conflict; persons-with-significant-control" +
                 " link already exists", exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
@@ -1248,7 +1248,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/psc", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
 
         // when
         companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1300,7 +1300,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
-        assertEquals("Resource state conflict; psc" +
+        assertEquals("Resource state conflict; persons-with-significant-control" +
                 " link already does not exist", exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
@@ -1320,7 +1320,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/psc", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
@@ -1368,7 +1368,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/psc", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
         when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
