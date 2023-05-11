@@ -11,7 +11,7 @@ Feature: Add psc link to company profile
 
     Examples:
       | data_file                  | company_number |
-      | without_links_resource     | 01777777       |
+      | without_links_resource     | 00006400       |
 
   Scenario Outline: Add psc link unsuccessfully - company profile resource does not exist
 
@@ -21,7 +21,7 @@ Feature: Add psc link to company profile
 
     Examples:
       | company_number |
-      | 01777777       |
+      | 00006400       |
 
   Scenario Outline: Add psc link unsuccessfully - user not authenticated or authorised
 
@@ -30,7 +30,7 @@ Feature: Add psc link to company profile
 
     Examples:
       | company_number |
-      | 01777777       |
+      | 00006400       |
 
   Scenario Outline: Add psc link unsuccessfully - link already exists
 
@@ -41,7 +41,7 @@ Feature: Add psc link to company profile
 
     Examples:
       | data_file                | company_number |
-      | with_links_resource      | 01777777       |
+      | with_links_resource      | 00006400       |
 
   Scenario Outline: Add psc link unsuccessfully - CHS Kafka API is unavailable
 
@@ -52,7 +52,7 @@ Feature: Add psc link to company profile
 
     Examples:
       | data_file                  | company_number |
-      | without_links_resource     | 01777777       |
+      | without_links_resource     | 00006400       |
 
   Scenario Outline: Add psc link unsuccessfully - the database is unavailable
 
@@ -62,4 +62,4 @@ Feature: Add psc link to company profile
 
     Examples:
       | company_number |
-      | 01777777       |
+      | 00006400       |
