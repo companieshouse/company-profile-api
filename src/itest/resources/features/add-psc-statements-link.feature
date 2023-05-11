@@ -54,7 +54,7 @@ Feature: Add psc statements link to company profile
       | data_file                  | company_number |
       | without_links_resource     | 00006400       |
 
-  Scenario Outline: Add officers link unsuccessfully - the database is unavailable
+  Scenario Outline: Add psc statements link unsuccessfully - the database is unavailable
 
     Given the company profile database is down
     When  a PATCH request is sent to the add psc statements link endpoint for "<company_number>"
