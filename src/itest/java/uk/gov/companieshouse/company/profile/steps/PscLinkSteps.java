@@ -28,9 +28,9 @@ import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoC
 
 public class PscLinkSteps {
     private String contextId;
-    private static final String ADD_PSC_LINK_ENDPOINT = "/company/01777777/links/persons-with-significant-control";
-    private static final String DELETE_PSC_LINK_ENDPOINT = "/company/01777777/links/persons-with-significant-control/delete";
-    private static final String PSC_LINK = "/company/01777777/links/persons-with-significant-control";
+    private static final String ADD_PSC_LINK_ENDPOINT = "/company/00006400/links/persons-with-significant-control";
+    private static final String DELETE_PSC_LINK_ENDPOINT = "/company/00006400/links/persons-with-significant-control/delete";
+    private static final String PSC_LINK = "/company/00006400/persons-with-significant-control";
 
     @Autowired
     private ObjectMapper objectMapper;
