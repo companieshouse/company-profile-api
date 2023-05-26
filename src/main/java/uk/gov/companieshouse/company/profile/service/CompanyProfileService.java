@@ -39,7 +39,7 @@ public class CompanyProfileService {
     private final Logger logger;
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
-    //private final CompanyProfileApiService companyProfileApiService;
+    private final CompanyProfileApiService companyProfileApiService;
     private final LinkRequestFactory linkRequestFactory;
 
     /**
