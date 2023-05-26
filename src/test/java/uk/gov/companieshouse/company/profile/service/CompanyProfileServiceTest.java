@@ -102,7 +102,6 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
-        Assertions.fail();
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
