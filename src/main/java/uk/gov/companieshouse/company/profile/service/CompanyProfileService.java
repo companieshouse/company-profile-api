@@ -328,15 +328,15 @@ public class CompanyProfileService {
 
     /////////////////////////////////////////////////////
 
-    public Data retrieveCompanyNumberFromDb(String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
+    public Data retrieveCompanyNumber(String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         return companyProfileDocument.getCompanyProfile();
     }
 
     private CompanyProfileDocument getCompanyProfileDocument(String companyNumber) throws ResourceNotFoundException{
-        Optional<CompanyProfileDocument> companyProfileOptional = companyProfileRepository.getDataByCompanyNumber(companyNumber);
+          Optional<CompanyProfileDocument> companyProfileOptional = companyProfileRepository.findById(companyNumber);
         return companyProfileOptional.orElseThrow(() ->
-                new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
+                new ResourceNotFoundException(String.format(
                         "Resource not found for company number: %s", companyNumber)));
     }
 

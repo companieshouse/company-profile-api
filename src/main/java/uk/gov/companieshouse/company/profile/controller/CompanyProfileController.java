@@ -112,7 +112,7 @@ public class CompanyProfileController {
     public ResponseEntity<Data> searchComapnyProfile (@PathVariable("company_number") String companyNumber
     ) throws JsonProcessingException, ResourceNotFoundException {
         logger.info(String.format("Get endpoint for company number %s", companyNumber));
-        Data data = companyProfileService.retrieveCompanyNumberFromDb(companyNumber);
+        Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 }

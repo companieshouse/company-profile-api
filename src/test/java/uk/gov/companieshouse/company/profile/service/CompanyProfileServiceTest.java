@@ -3,6 +3,8 @@ package uk.gov.companieshouse.company.profile.service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
@@ -23,16 +25,16 @@ import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
-import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
-import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exceptions.*;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
+
+import javax.annotation.meta.When;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -1380,4 +1382,30 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
+
+    @Test
+    @DisplayName("When a company number is provided to retrieve company profile successfully then it is returned")
+    public void testRetrieveCompanyNumber() throws ResourceNotFoundException, JsonProcessingException {
+        document.setCompanyProfile(new Data());
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
+
+        Data result = companyProfileService.retrieveCompanyNumber("111");
+
+        assertEquals(document.getCompanyProfile(), result);
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
+    public void testRetrieveCompanyNumberResourceNotFoundException(){
+        String companyNumber = "456";
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(companyNumber));
+        verify(companyProfileRepository, times(1)).findById(companyNumber);
+    }
+
+
 }
