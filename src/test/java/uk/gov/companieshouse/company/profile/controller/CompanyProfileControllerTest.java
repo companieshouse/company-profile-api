@@ -7,8 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +38,7 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
@@ -48,6 +48,7 @@ import uk.gov.companieshouse.logging.Logger;
 @Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private final TestHelper testHelper = new TestHelper();
     private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
     private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
@@ -57,6 +58,8 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
+    private static final String PUT_COMPANY_PROFILE_URL = String.format(
+            "/company/%s", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -691,5 +694,20 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Put Company Profile")
+    void callPutCompanyProfile() throws Exception {
+        doNothing().when(companyProfileService).processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .content(testHelper.createJsonCompanyProfilePayload()))
+                .andExpect(status().isOk());
     }
 }

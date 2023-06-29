@@ -20,6 +20,8 @@
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
+
+        <map-struct.version>1.5.3.Final</map-struct.version>
         <maven-build-helper-plugin.version>3.2.0</maven-build-helper-plugin.version>
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
         <jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
@@ -27,7 +29,7 @@
 
         <!-- Internal -->
         <structured-logging.version>1.9.14</structured-logging.version>
-        <private-api-sdk-java.version>2.0.172</private-api-sdk-java.version>
+        <private-api-sdk-java.version>2.0.272</private-api-sdk-java.version>
         <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>1.4.5</api-helper-java-library.version>
 
@@ -60,6 +62,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${map-struct.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -381,6 +388,13 @@
                         <arg>-Xlint:-processing</arg>
                         <arg>-Xlint:-serial</arg>
                     </compilerArgs>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${map-struct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
@@ -404,6 +418,11 @@
                     <failsOnError>true</failsOnError>
                     <failOnViolation>true</failOnViolation>
                     <configLocation>companieshouse_checks.xml</configLocation>
+                    <compilerArgs>
+                        <compilerArg>
+                            -Amapstruct.defaultComponentModel=spring
+                        </compilerArg>
+                    </compilerArgs>
                 </configuration>
                 <dependencies>
                     <dependency>

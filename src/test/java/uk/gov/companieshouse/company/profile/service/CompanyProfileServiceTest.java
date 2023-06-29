@@ -1,10 +1,12 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
+import io.cucumber.java.BeforeAll;
 import org.junit.Assert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,8 +32,10 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
+import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,10 +97,26 @@ class CompanyProfileServiceTest {
     @Mock
     private LinkRequestFactory linkRequestFactory;
 
+    @Mock
+    private CompanyProfileTransformer companyProfileTransformer;
+
     @InjectMocks
     CompanyProfileService companyProfileService;
 
     private Gson gson = new Gson();
+
+    private TestHelper testHelper;
+
+    private static CompanyProfile COMPANY_PROFILE;
+
+    private static CompanyProfileDocument COMPANY_PROFILE_DOCUMENT;
+
+    @BeforeAll
+    void setUp() throws IOException {
+        testHelper = new TestHelper();
+        COMPANY_PROFILE = testHelper.createCompanyProfileObject();
+        COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
+    }
 
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
@@ -1380,4 +1400,18 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
+
+    @Test
+    @DisplayName("put company profile")
+    void putCompanyProfileSuccessfully() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, Optional.empty()))
+                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                COMPANY_PROFILE);
+        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
+
+
 }

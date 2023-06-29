@@ -28,6 +28,7 @@ import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableExcept
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
@@ -41,6 +42,7 @@ public class CompanyProfileService {
     private final MongoTemplate mongoTemplate;
     private final CompanyProfileApiService companyProfileApiService;
     private final LinkRequestFactory linkRequestFactory;
+    private final CompanyProfileTransformer companyProfileTransformer;
 
     /**
      * Constructor.
@@ -50,12 +52,14 @@ public class CompanyProfileService {
                                  CompanyProfileRepository companyProfileRepository,
                                  MongoTemplate mongoTemplate,
                                  CompanyProfileApiService companyProfileApiService,
-                                 LinkRequestFactory linkRequestFactory) {
+                                 LinkRequestFactory linkRequestFactory,
+                                 CompanyProfileTransformer companyProfileTransformer) {
         this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
         this.companyProfileApiService = companyProfileApiService;
         this.linkRequestFactory = linkRequestFactory;
+        this.companyProfileTransformer = companyProfileTransformer;
     }
 
     /**
@@ -323,5 +327,21 @@ public class CompanyProfileService {
         } else {
             deleteLink(linkRequest);
         }
+    }
+
+    /**
+     * finds existing company profile from db if any and
+     * updates or saves new record into db.
+     */
+    public void processCompanyProfile(String contextId, String companyNumber,
+                                      CompanyProfile companyProfile) {
+        Optional<CompanyProfileDocument> existingProfile =
+                companyProfileRepository.findById(companyNumber);
+        Optional<Links> existingLinks = existingProfile
+                .map(CompanyProfileDocument::getCompanyProfile)
+                .map(Data::getLinks);
+        CompanyProfileDocument companyProfileDocument =
+                companyProfileTransformer.transform(companyProfile, companyNumber, existingLinks);
+        companyProfileRepository.save(companyProfileDocument);
     }
 }

@@ -8,7 +8,6 @@ import uk.gov.companieshouse.api.company.Data;
 
 @ReadingConverter
 public class CompanyProfileDataReadConverter implements Converter<Document, Data> {
-
     private final ObjectMapper objectMapper;
 
     public CompanyProfileDataReadConverter(ObjectMapper objectMapper) {
