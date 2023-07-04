@@ -326,8 +326,6 @@ public class CompanyProfileService {
         }
     }
 
-    /////////////////////////////////////////////////////
-
     public Data retrieveCompanyNumber(String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         return companyProfileDocument.getCompanyProfile();

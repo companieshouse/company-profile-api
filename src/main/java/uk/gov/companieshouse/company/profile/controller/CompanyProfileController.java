@@ -107,7 +107,6 @@ public class CompanyProfileController {
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-//////////////////////////////////////////////////////////////
     @GetMapping("/company/{company_number}")
     public ResponseEntity<Data> searchComapnyProfile (@PathVariable("company_number") String companyNumber
     ) throws JsonProcessingException, ResourceNotFoundException {

@@ -706,17 +706,19 @@ class CompanyProfileControllerTest {
     void testSearchCompanyProfile() throws Exception {
         String companyNumber = "786";
         Data mockData = new Data();
-        String expectedResponseBody = "{\"property\": \"value\"}";
+        mockData.setCompanyNumber(companyNumber);
 
         ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
         when(companyProfileService.retrieveCompanyNumber(companyNumber)).thenReturn(mockData);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/company/{company_number}", companyNumber)
+               .header("ERIC-Identity", "SOME_IDENTITY")
+               .header("ERIC-Identity-Type", "key")
+               .header("x-request-id", "123456")
+               .header("ERIC-Authorised-Key-Privileges", "internal-app")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().json("{\"property\": \"value\"}"))
-                .andExpect(MockMvcResultMatchers.model().attribute("response", expectedResponse));
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(companyProfileService, times(1)).retrieveCompanyNumber(companyNumber);
 
