@@ -64,6 +64,9 @@ class CompanyProfileControllerTest {
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
 
+    private static final String GET_COMPANY_URL = String.format(
+            "/company/{company_number}");
+
     @MockBean
     private Logger logger;
 
@@ -704,15 +707,14 @@ class CompanyProfileControllerTest {
 
     @Test
     void testSearchCompanyProfile() throws Exception {
-        String companyNumber = "786";
         Data mockData = new Data();
-        mockData.setCompanyNumber(companyNumber);
+        mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
 
         ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
-        when(companyProfileService.retrieveCompanyNumber(companyNumber)).thenReturn(mockData);
+        when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/company/{company_number}", companyNumber)
+        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
                .header("ERIC-Identity", "SOME_IDENTITY")
                .header("ERIC-Identity-Type", "key")
                .header("x-request-id", "123456")
@@ -720,7 +722,7 @@ class CompanyProfileControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(companyProfileService, times(1)).retrieveCompanyNumber(companyNumber);
+        verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
     }
 }

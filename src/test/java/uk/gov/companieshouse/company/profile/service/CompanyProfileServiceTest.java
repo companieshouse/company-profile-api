@@ -1390,7 +1390,7 @@ class CompanyProfileServiceTest {
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
 
-        Data result = companyProfileService.retrieveCompanyNumber("111");
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
         assertEquals(document.getCompanyProfile(), result);
         verify(companyProfileRepository, times(1)).findById(anyString());
@@ -1399,12 +1399,10 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
     public void testRetrieveCompanyNumberResourceNotFoundException(){
-        String companyNumber = "456";
-
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(companyNumber));
-        verify(companyProfileRepository, times(1)).findById(companyNumber);
+        assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER));
+        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
     }
 
 
