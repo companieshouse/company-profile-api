@@ -1,8 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -107,11 +106,17 @@ public class CompanyProfileController {
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-//////////////////////////////////////////////////////////////
+
+    /**
+     * Get the data object for given company profile number.
+     *
+     * @param companyNumber The number of the company
+     * @return data object
+     */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<Data> searchComapnyProfile (@PathVariable("company_number") String companyNumber
-    ) throws JsonProcessingException, ResourceNotFoundException {
-        logger.info(String.format("Get endpoint for company number %s", companyNumber));
+    public ResponseEntity<Data> searchComapnyProfile(@PathVariable("company_number")
+                String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
+        logger.info(String.format("Received get request for Company Number %s", companyNumber));
         Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }

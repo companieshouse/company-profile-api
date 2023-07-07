@@ -29,10 +29,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -60,6 +63,9 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
+
+    private static final String GET_COMPANY_URL = String.format(
+            "/company/{company_number}");
 
     @MockBean
     private Logger logger;
@@ -700,19 +706,23 @@ class CompanyProfileControllerTest {
     }
 
     @Test
-    void testSearchCompanyProfile() throws JsonProcessingException, ResourceNotFoundException, com.fasterxml.jackson.core.JsonProcessingException {
-        String companyNumber = "786";
+    void testSearchCompanyProfile() throws Exception {
         Data mockData = new Data();
+        mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
+
         ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
-        when(companyProfileService.retrieveCompanyNumber(companyNumber)).thenReturn(mockData);
+        when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
-        ResponseEntity<Data> actualResponse = companyProfileController.searchComapnyProfile(companyNumber);
+        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
+               .header("ERIC-Identity", "SOME_IDENTITY")
+               .header("ERIC-Identity-Type", "key")
+               .header("x-request-id", "123456")
+               .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-        assertEquals(expectedResponse.getStatusCode(), actualResponse.getStatusCode());
-        assertEquals(expectedResponse.getBody(), actualResponse.getBody());
-        verify(companyProfileService, times(1)).retrieveCompanyNumber(companyNumber);
-
+        verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
     }
 }
