@@ -1,10 +1,10 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -32,6 +32,7 @@ import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
+
 
 
 @Service
@@ -326,17 +327,18 @@ public class CompanyProfileService {
         }
     }
 
-    /////////////////////////////////////////////////////
-
-    public Data retrieveCompanyNumberFromDb(String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
+    public Data retrieveCompanyNumber(String companyNumber)
+            throws JsonProcessingException, ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         return companyProfileDocument.getCompanyProfile();
     }
 
-    private CompanyProfileDocument getCompanyProfileDocument(String companyNumber) throws ResourceNotFoundException{
-        Optional<CompanyProfileDocument> companyProfileOptional = companyProfileRepository.getDataByCompanyNumber(companyNumber);
+    private CompanyProfileDocument getCompanyProfileDocument(String companyNumber)
+          throws ResourceNotFoundException {
+        Optional<CompanyProfileDocument> companyProfileOptional =
+                  companyProfileRepository.findById(companyNumber);
         return companyProfileOptional.orElseThrow(() ->
-                new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
+                new ResourceNotFoundException(String.format(
                         "Resource not found for company number: %s", companyNumber)));
     }
 

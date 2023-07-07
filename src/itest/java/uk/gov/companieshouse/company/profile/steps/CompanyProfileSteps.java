@@ -3,11 +3,13 @@ package uk.gov.companieshouse.company.profile.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
+import io.cucumber.java.Scenario;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
+import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -29,6 +32,7 @@ import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository
 
 import java.io.File;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -47,6 +51,7 @@ public class CompanyProfileSteps {
 
     private String companyNumber;
     private String contextId;
+    private ResponseEntity<Data> response;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -298,4 +303,22 @@ public class CompanyProfileSteps {
         assertThat(companyProfileRepository.findById(companyNumber)).isPresent();
         CucumberContext.CONTEXT.set("companyProfileData", companyProfileData);
     }
+
+    @When("I send GET request to retrieve Company Profile using company number {string}")
+    public void i_send_get_request_to_retrieve_company_profile(String companyNumber) {
+        String uri = "/company/{company_number}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+        headers.add("x-request-id", "123456");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
 }
