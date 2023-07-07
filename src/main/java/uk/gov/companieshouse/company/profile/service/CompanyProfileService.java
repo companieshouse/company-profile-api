@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -345,4 +346,21 @@ public class CompanyProfileService {
                 companyProfileTransformer.transform(companyProfile, companyNumber, existingLinks);
         companyProfileRepository.save(companyProfileDocument);
     }
+
+
+    public Data retrieveCompanyNumber(String companyNumber)
+            throws JsonProcessingException, ResourceNotFoundException {
+        CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
+        return companyProfileDocument.getCompanyProfile();
+    }
+
+    private CompanyProfileDocument getCompanyProfileDocument(String companyNumber)
+            throws ResourceNotFoundException {
+        Optional<CompanyProfileDocument> companyProfileOptional =
+                companyProfileRepository.findById(companyNumber);
+        return companyProfileOptional.orElseThrow(() ->
+                new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
+                        "Resource not found for company number: %s", companyNumber)));
+    }
+
 }

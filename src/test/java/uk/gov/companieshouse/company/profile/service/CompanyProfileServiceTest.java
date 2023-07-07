@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import io.cucumber.java.BeforeAll;
@@ -27,6 +28,7 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
@@ -1413,5 +1415,27 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
+
+    @Test
+    @DisplayName("When a company number is provided to retrieve company profile successfully then it is returned")
+    public void testRetrieveCompanyNumber() throws ResourceNotFoundException, JsonProcessingException {
+        document.setCompanyProfile(new Data());
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertEquals(document.getCompanyProfile(), result);
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
+    public void testRetrieveCompanyNumberResourceNotFoundException(){
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER));
+        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+    }
 
 }
