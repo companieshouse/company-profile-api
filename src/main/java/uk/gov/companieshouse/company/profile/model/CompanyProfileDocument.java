@@ -2,12 +2,10 @@ package uk.gov.companieshouse.company.profile.model;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.format.annotation.DateTimeFormat;
-
 import uk.gov.companieshouse.api.company.Data;
 
 @Document(collection = "#{@environment.getProperty('spring.data.mongodb.collection')}")

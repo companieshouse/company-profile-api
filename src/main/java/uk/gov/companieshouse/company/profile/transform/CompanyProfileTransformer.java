@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.transform;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;

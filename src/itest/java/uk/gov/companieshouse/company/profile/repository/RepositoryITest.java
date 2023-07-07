@@ -6,9 +6,9 @@ import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoCo
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
+import uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig;
 
 import java.time.LocalDateTime;
 

@@ -30,6 +30,7 @@
         <!-- Internal -->
         <structured-logging.version>1.9.14</structured-logging.version>
         <private-api-sdk-java.version>2.0.272</private-api-sdk-java.version>
+        <data-sync-api-sdk-java.version>1.0.3</data-sync-api-sdk-java.version>
         <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>1.4.5</api-helper-java-library.version>
 
@@ -102,6 +103,11 @@
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>private-api-sdk-java</artifactId>
             <version>${private-api-sdk-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>data-sync-api-sdk-java</artifactId>
+            <version>${data-sync-api-sdk-java.version}</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>

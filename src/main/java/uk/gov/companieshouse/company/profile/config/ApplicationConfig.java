@@ -4,18 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import java.time.LocalDate;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -23,16 +19,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.converter.EnumWriteConverter;
+import uk.gov.companieshouse.api.serialization.LocalDateDeserializer;
+import uk.gov.companieshouse.api.serialization.LocalDateSerializer;
 import uk.gov.companieshouse.company.profile.auth.EricTokenAuthenticationFilter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataReadConverter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataWriteConverter;
-import uk.gov.companieshouse.company.profile.converter.EnumConverters;
-import uk.gov.companieshouse.company.profile.serialization.LocalDateDeSerializer;
-import uk.gov.companieshouse.company.profile.serialization.LocalDateSerializer;
 import uk.gov.companieshouse.environment.EnvironmentReader;
 import uk.gov.companieshouse.environment.impl.EnvironmentReaderImpl;
 import uk.gov.companieshouse.logging.Logger;
-
 
 
 @Configuration
@@ -83,10 +79,10 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public MongoCustomConversions mongoCustomConversions() {
         var objectMapper = mongoDbObjectMapper();
-        return new MongoCustomConversions(List
-                .of(new CompanyProfileDataWriteConverter(objectMapper),
-                new CompanyProfileDataReadConverter(objectMapper),new EnumConverters.StringToEnum(),
-                new EnumConverters.EnumToString()));
+        return new MongoCustomConversions(List.of(
+                new CompanyProfileDataWriteConverter(objectMapper),
+                new CompanyProfileDataReadConverter(objectMapper, Data.class),
+                new EnumWriteConverter()));
     }
 
     /**
@@ -101,7 +97,7 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         var module = new SimpleModule();
         module.addSerializer(LocalDate.class, new LocalDateSerializer());
-        module.addDeserializer(LocalDate.class, new LocalDateDeSerializer());
+        module.addDeserializer(LocalDate.class, new LocalDateDeserializer());
         objectMapper.registerModule(module);
 
         return objectMapper;

@@ -16,11 +16,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
-import uk.gov.companieshouse.company.profile.exceptions.MethodNotAllowedException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
-import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
+import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.MethodNotAllowedException;
+import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
 
 

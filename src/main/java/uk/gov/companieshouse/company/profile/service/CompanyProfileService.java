@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -18,13 +17,13 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
+import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
-import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceNotFoundException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
-import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -292,7 +291,8 @@ public class CompanyProfileService {
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                     .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
-                            new ResourceNotFoundException("no data for company profile: "
+                            new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                    "no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
@@ -313,7 +313,8 @@ public class CompanyProfileService {
     public void checkForDeleteLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
-                        new ResourceNotFoundException("no data for company profile: "
+                        new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                "no data for company profile: "
                                 + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                 new ResourceStateConflictException("links data not found"));
