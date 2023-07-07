@@ -3,8 +3,8 @@ package uk.gov.companieshouse.company.profile.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.util.FileCopyUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
-import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
-import uk.gov.companieshouse.company.profile.model.Updated;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

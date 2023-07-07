@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.mapper.LinksMapper;
-import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
-import uk.gov.companieshouse.company.profile.model.Updated;
 
 @Component
 public class CompanyProfileTransformer {
