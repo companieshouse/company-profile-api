@@ -46,3 +46,25 @@ Feature: Process company profile links
     Examples:
       | data                  |
       | 00006400              |
+
+  Scenario Outline: Get Company Profile when sending get request
+
+    Given Company profile api service is running
+    And the company profile links exists for "<companyNumber>"
+    When I send GET request to retrieve Company Profile using company number "<companyNumber>"
+    Then I should receive 200 status code
+
+    Examples:
+      | companyNumber         |
+      | 00006400              |
+
+  Scenario Outline: Get Company Profile when sending get request without Eric headers
+
+    Given Company profile api service is running
+    And the company profile links exists for "<companyNumber>"
+    When I send GET request to retrieve Company Profile using company number "<companyNumber>" without setting Eric headers
+    Then I should receive 401 status code
+
+    Examples:
+      | companyNumber         |
+      | 00006400              |

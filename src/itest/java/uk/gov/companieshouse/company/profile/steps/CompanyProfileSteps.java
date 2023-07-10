@@ -298,4 +298,47 @@ public class CompanyProfileSteps {
         assertThat(companyProfileRepository.findById(companyNumber)).isPresent();
         CucumberContext.CONTEXT.set("companyProfileData", companyProfileData);
     }
+
+    @When("I send GET request to retrieve Company Profile using company number {string}")
+    public void i_send_get_request_to_retrieve_company_profile(String companyNumber) {
+        String uri = "/company/{company_number}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+        headers.add("x-request-id", "123456");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+
+    @When("I send GET request to retrieve Company Profile using company number {string} without setting Eric headers")
+    public void i_send_get_request_to_retrieve_company_profile_without_eric_headers(String companyNumber) {
+        String uri = "/company/{company_number}";
+
+        HttpHeaders headers = new HttpHeaders();
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @Given("the company profile links exists for {string}")
+    public void the_company_profile_links_exists_for(String dataFile) throws IOException {
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        CompanyProfileDocument companyProfileDocument =
+                new CompanyProfileDocument();
+        companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+
+        mongoTemplate.save(companyProfileDocument);
+    }
 }
