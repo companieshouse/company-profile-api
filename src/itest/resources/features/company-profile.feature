@@ -50,18 +50,20 @@ Feature: Process company profile links
   Scenario Outline: Get Company Profile when sending get request
 
     Given Company profile api service is running
-    And the company profile links exists for "<companyNumber>"
+    And a Company Profile exists for "<companyNumber>"
     When I send GET request to retrieve Company Profile using company number "<companyNumber>"
     Then I should receive 200 status code
+    And the Get call response body should match "<result>" file
 
     Examples:
-      | companyNumber         |
-      | 00006400              |
+      | companyNumber         | result                            |
+      | 00006400              | 00006400-getResponse              |
+
 
   Scenario Outline: Get Company Profile when sending get request without Eric headers
 
     Given Company profile api service is running
-    And the company profile links exists for "<companyNumber>"
+    And a Company Profile exists for "<companyNumber>"
     When I send GET request to retrieve Company Profile using company number "<companyNumber>" without setting Eric headers
     Then I should receive 401 status code
 

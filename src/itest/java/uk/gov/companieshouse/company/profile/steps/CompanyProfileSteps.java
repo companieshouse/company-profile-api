@@ -314,6 +314,7 @@ public class CompanyProfileSteps {
                 Data.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
 
@@ -328,17 +329,22 @@ public class CompanyProfileSteps {
                 Data.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
-    @Given("the company profile links exists for {string}")
+    @And("a Company Profile exists for {string}")
     public void the_company_profile_links_exists_for(String dataFile) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = new Updated(LocalDateTime.now().minusYears(1),
+                "abc", "company_delta");
 
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument();
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
 
         mongoTemplate.save(companyProfileDocument);
     }
+
 }
