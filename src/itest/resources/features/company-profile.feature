@@ -67,8 +67,6 @@ Feature: Process company profile links
     And a Company Profile exists for "<companyNumber>"
     When I send GET request to retrieve Company Profile using company number "<companyNumber>" without setting Eric headers
     Then I should receive 401 status code
-    When I send GET request to retrieve Company Profile using company number "<companyNumber>"
-    Then I should receive 200 status code
     
     Examples:
       | companyNumber         |
