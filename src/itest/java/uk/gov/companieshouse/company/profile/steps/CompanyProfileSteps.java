@@ -344,7 +344,6 @@ public class CompanyProfileSteps {
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
 
         LocalDateTime localDateTime = LocalDateTime.now();
-        //Updated updated = mock(Updated.class);
         Updated updated = new Updated(LocalDateTime.now().minusYears(1),
                 "abc", "company_delta");
 

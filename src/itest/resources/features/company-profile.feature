@@ -57,7 +57,7 @@ Feature: Process company profile links
 
     Examples:
       | companyNumber         | result                            |
-      | 00006402              | 00006402                          |
+      | 00006402              | 00006402-getCompanyProfile        |
 
 
 
@@ -67,7 +67,7 @@ Feature: Process company profile links
     And a Company Profile exists for "<companyNumber>"
     When I send GET request to retrieve Company Profile using company number "<companyNumber>" without setting Eric headers
     Then I should receive 401 status code
-    
+
     Examples:
-      | companyNumber         |
-      | 00006400              |
+      | companyNumber     |
+      | 00006402          |
