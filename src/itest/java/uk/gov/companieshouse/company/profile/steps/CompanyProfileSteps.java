@@ -44,6 +44,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
@@ -338,7 +339,7 @@ public class CompanyProfileSteps {
     }
 
     @And("a Company Profile exists for {string}")
-    public void the_company_profile_links_exists_for(String dataFile) throws IOException {
+    public void the_company_profile_exists_for(String dataFile) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
 
