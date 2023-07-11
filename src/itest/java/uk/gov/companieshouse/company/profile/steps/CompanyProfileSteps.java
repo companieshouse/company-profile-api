@@ -319,6 +319,39 @@ public class CompanyProfileSteps {
                 Data.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+    }
+
+
+    @When("I send GET request to retrieve Company Profile using company number {string} without setting Eric headers")
+    public void i_send_get_request_to_retrieve_company_profile_without_eric_headers(String companyNumber) {
+        String uri = "/company/{company_number}";
+
+        HttpHeaders headers = new HttpHeaders();
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+    }
+
+    @And("a Company Profile exists for {string}")
+    public void the_company_profile_links_exists_for(String dataFile) throws IOException {
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        //Updated updated = mock(Updated.class);
+        Updated updated = new Updated(LocalDateTime.now().minusYears(1),
+                "abc", "company_delta");
+
+        CompanyProfileDocument companyProfileDocument =
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated,false);
+        companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+
+        mongoTemplate.save(companyProfileDocument);
     }
 
 }
