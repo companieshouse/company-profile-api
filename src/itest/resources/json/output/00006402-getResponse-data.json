@@ -1,0 +1,40 @@
+{
+  "data": {
+    "accounts": {
+      "annualReturn": null,
+      "branchCompanyDetails": null,
+      "canFile": null,
+      "companyName": null,
+      "companyNumber": null,
+      "companyStatus": null,
+      "status": null,
+      "companyStatusDetail": null,
+      "confirmationStatement": null,
+      "dateOfCessation": null,
+      "dateOfCreation": null,
+      "dateOfDissolution": null,
+      "etag": null,
+      "externalRegistrationNumber": null,
+      "foreignCompanyDetails": null,
+      "hasBeenLiquidated": null,
+      "hasCharges": null,
+      "hasInsolvencyHistory": null,
+      "isCommunityInterestCompany": null,
+      "jurisdiction": null,
+      "lastFullMembersListDate": null,
+      "links": null,
+      "previousCompanyNames": null,
+      "registeredOfficeAddress": null,
+      "registeredOfficeIsInDispute": null,
+      "serviceAddress": null,
+      "sicCodes": null,
+      "subtype": null,
+      "type": null,
+      "undeliverableRegisteredOfficeAddress": null,
+      "hasSuperSecurePscs": null,
+      "proofStatus": null,
+      "officerSummary": null,
+      "partialDataAvailable": null
+    }
+  }
+}

@@ -336,12 +336,14 @@ public class CompanyProfileSteps {
     public void the_company_profile_links_exists_for(String dataFile) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
         LocalDateTime localDateTime = LocalDateTime.now();
+        //Updated updated = mock(Updated.class);
         Updated updated = new Updated(LocalDateTime.now().minusYears(1),
                 "abc", "company_delta");
 
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated,false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
 
         mongoTemplate.save(companyProfileDocument);

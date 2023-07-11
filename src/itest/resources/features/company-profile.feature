@@ -57,7 +57,8 @@ Feature: Process company profile links
 
     Examples:
       | companyNumber         | result                            |
-      | 00006400              | 00006400-getResponse              |
+      | 00006402              | 00006402                          |
+
 
 
   Scenario Outline: Get Company Profile when sending get request without Eric headers
