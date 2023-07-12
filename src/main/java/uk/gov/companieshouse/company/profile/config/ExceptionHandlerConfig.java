@@ -138,7 +138,7 @@ public class ExceptionHandlerConfig {
 
     /**
      * ResourceStateConflictException handler.
-     * Thrown when the requested document already has an resource link.
+     * Thrown when the requested document already has a resource link.
      *
      * @return error response to return.
      */

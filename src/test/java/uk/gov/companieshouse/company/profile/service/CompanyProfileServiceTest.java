@@ -7,8 +7,9 @@ import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
-import io.cucumber.java.BeforeAll;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,17 +108,21 @@ class CompanyProfileServiceTest {
 
     private Gson gson = new Gson();
 
-    private TestHelper testHelper;
-
     private static CompanyProfile COMPANY_PROFILE;
 
     private static CompanyProfileDocument COMPANY_PROFILE_DOCUMENT;
 
+    private static Links EXISTING_LINKS;
+
+    private static CompanyProfileDocument EXISTING_COMPANY_PROFILE_DOCUMENT;
+
     @BeforeAll
-    void setUp() throws IOException {
-        testHelper = new TestHelper();
+    static void setUp() throws IOException {
+        TestHelper testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
+        EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
+        EXISTING_LINKS = testHelper.createExistingLinks();
     }
 
     @Test
@@ -1404,17 +1409,38 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("put company profile")
+    @DisplayName("Put company profile")
     void putCompanyProfileSuccessfully() throws IOException {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, Optional.empty()))
+        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, null))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
+
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
+
+        Assertions.assertNotNull(COMPANY_PROFILE);
+        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
+    @Test
+    @DisplayName("Put company profile with existing links")
+    void putCompanyProfileWithExistingLinksSuccessfully() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS))
+                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                COMPANY_PROFILE);
+
+        Assertions.assertNotNull(COMPANY_PROFILE);
+        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(EXISTING_LINKS);
+        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
 
     @Test
     @DisplayName("When a company number is provided to retrieve company profile successfully then it is returned")

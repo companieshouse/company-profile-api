@@ -342,8 +342,8 @@ public class CompanyProfileService {
         Optional<Links> existingLinks = existingProfile
                 .map(CompanyProfileDocument::getCompanyProfile)
                 .map(Data::getLinks);
-        CompanyProfileDocument companyProfileDocument =
-                companyProfileTransformer.transform(companyProfile, companyNumber, existingLinks);
+        CompanyProfileDocument companyProfileDocument = companyProfileTransformer
+                .transform(companyProfile, companyNumber, existingLinks.orElse(null));
         companyProfileRepository.save(companyProfileDocument);
     }
 
