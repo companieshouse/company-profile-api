@@ -725,6 +725,7 @@ class CompanyProfileControllerTest {
     }
 
     @Test
+    @DisplayName("Retrieve a company profile when sending a GET request")
     void testSearchCompanyProfile() throws Exception {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
