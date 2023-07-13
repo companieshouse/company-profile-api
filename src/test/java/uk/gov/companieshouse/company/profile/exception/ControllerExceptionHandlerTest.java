@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.company.profile.exceptions;
+package uk.gov.companieshouse.company.profile.exception;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -34,6 +34,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.company.profile.controller.CompanyProfileController;
 import uk.gov.companieshouse.logging.Logger;

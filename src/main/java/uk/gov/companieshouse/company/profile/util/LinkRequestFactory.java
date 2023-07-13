@@ -12,7 +12,7 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEME
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
-import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
+import uk.gov.companieshouse.api.exception.BadRequestException;
 
 @Component
 public class LinkRequestFactory {

@@ -7,14 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.company.CompanyProfile;
-
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -51,6 +51,23 @@ public class CompanyProfileController {
                                 new CompanyProfile().data(document.companyProfile),
                                 HttpStatus.OK))
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    /**
+     * PUT a company profile for a given company number.
+     * @param companyProfile   The company profile
+     * @param companyNumber The company number of the company
+     * @return ResponseEntity
+     */
+    @PutMapping("/company/{company_number}")
+    public ResponseEntity<Void> processCompanyProfile(
+            @RequestHeader("x-request-id") String contextId,
+            @PathVariable("company_number") String companyNumber,
+            @RequestBody CompanyProfile companyProfile) {
+        logger.info(String.format("Request received on PUT endpoint for company number %s",
+                companyNumber));
+        companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     /**

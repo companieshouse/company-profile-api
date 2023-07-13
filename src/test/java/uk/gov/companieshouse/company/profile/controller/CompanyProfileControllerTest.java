@@ -8,11 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -36,15 +34,18 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
-import uk.gov.companieshouse.company.profile.exceptions.*;
-import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
-import uk.gov.companieshouse.company.profile.model.Updated;
+import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
@@ -54,6 +55,7 @@ import uk.gov.companieshouse.logging.Logger;
 @Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private final TestHelper testHelper = new TestHelper();
     private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
     private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
@@ -63,6 +65,8 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
+    private static final String PUT_COMPANY_PROFILE_URL = String.format(
+            "/company/%s", MOCK_COMPANY_NUMBER);
 
     private static final String GET_COMPANY_URL = String.format(
             "/company/{company_number}");
@@ -706,6 +710,21 @@ class CompanyProfileControllerTest {
     }
 
     @Test
+    @DisplayName("Put Company Profile")
+    void callPutCompanyProfile() throws Exception {
+        doNothing().when(companyProfileService).processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .content(testHelper.createJsonCompanyProfilePayload()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("Retrieve a company profile when sending a GET request")
     void testSearchCompanyProfile() throws Exception {
         Data mockData = new Data();
@@ -716,11 +735,11 @@ class CompanyProfileControllerTest {
         when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
         mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
-               .header("ERIC-Identity", "SOME_IDENTITY")
-               .header("ERIC-Identity-Type", "key")
-               .header("x-request-id", "123456")
-               .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
