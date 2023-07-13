@@ -342,11 +342,19 @@ public class CompanyProfileService {
         Optional<Links> existingLinks = existingProfile
                 .map(CompanyProfileDocument::getCompanyProfile)
                 .map(Data::getLinks);
+
         CompanyProfileDocument companyProfileDocument = companyProfileTransformer
                 .transform(companyProfile, companyNumber, existingLinks.orElse(null));
-        companyProfileRepository.save(companyProfileDocument);
-    }
 
+        try {
+            companyProfileRepository.save(companyProfileDocument);
+            logger.info(String.format("Company profile is updated in MongoDb for"
+                            + " context id: %s and company number: %s", contextId, companyNumber));
+        } catch (IllegalArgumentException illegalArgumentEx) {
+            throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
+        }
+
+    }
 
     public Data retrieveCompanyNumber(String companyNumber)
             throws JsonProcessingException, ResourceNotFoundException {
