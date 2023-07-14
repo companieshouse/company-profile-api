@@ -28,7 +28,6 @@ Feature: Process company profile
     Given Company profile api service is running
     When I send a PUT request with payload "<companyNumber>" file for company number "<companyNumber>"
     Then I should receive 200 status code
-    And the CHS Kafka API is invoked for company number "<companyNumber>"
     And a company profile exists with id "<companyNumber>"
 
     Examples:

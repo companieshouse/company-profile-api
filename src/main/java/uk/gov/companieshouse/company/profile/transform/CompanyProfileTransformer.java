@@ -35,9 +35,13 @@ public class CompanyProfileTransformer {
         companyProfileDocument.getCompanyProfile().setLinks(links);
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
-        companyProfileDocument.setDeltaAt(LocalDateTime.parse(
-                companyProfile.getDeltaAt(), dateTimeFormatter));
-        companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
+        if (companyProfile.getDeltaAt() != null) {
+            companyProfileDocument.setDeltaAt(LocalDateTime.parse(
+                    companyProfile.getDeltaAt(), dateTimeFormatter));
+        }
+        if (companyProfile.getHasMortgages() != null) {
+            companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
+        }
         companyProfileDocument.setUpdated(new Updated().setAt(LocalDateTime.now()));
         return companyProfileDocument;
     }

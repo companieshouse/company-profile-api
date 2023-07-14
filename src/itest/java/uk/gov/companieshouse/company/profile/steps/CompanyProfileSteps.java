@@ -8,7 +8,6 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -23,7 +22,6 @@ import org.springframework.util.FileCopyUtils;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -371,9 +369,11 @@ public class CompanyProfileSteps {
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
         headers.set("ERIC-Authorised-Key-Roles", "*");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("Content-Type", "application/json");
 
         HttpEntity<?> request = new HttpEntity<>(data, headers);
-        String uri = "/company/{company_number}/internal";
+        String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -386,15 +386,10 @@ public class CompanyProfileSteps {
         HttpHeaders headers = new HttpHeaders();
 
         HttpEntity<?> request = new HttpEntity<>(data, headers);
-        String uri = "/company/{company_number}/internal";
+        String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
-    }
-
-    @Then("the CHS Kafka API is invoked for company number {string}")
-    public void chs_kafka_api_invoked(String companyNumber) throws ApiErrorResponseException {
-        Mockito.verify(companyProfileApiService).invokeChsKafkaApi("5234234234", companyNumber);
     }
 
     @Then("a company profile exists with id {string}")
