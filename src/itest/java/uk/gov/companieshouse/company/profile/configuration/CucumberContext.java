@@ -2,7 +2,6 @@ package uk.gov.companieshouse.company.profile.configuration;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.http.ResponseEntity;
 
 /**
  * Context to store the state.

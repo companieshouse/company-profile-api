@@ -5,7 +5,7 @@
     <parent>
         <groupId>uk.gov.companieshouse</groupId>
         <artifactId>companies-house-parent</artifactId>
-        <version>1.3.0</version>
+        <version>1.3.1</version>
     </parent>
 
     <artifactId>company-profile-api</artifactId>
@@ -27,12 +27,12 @@
 
         <!-- Internal -->
         <structured-logging.version>1.9.14</structured-logging.version>
-        <private-api-sdk-java.version>2.0.172</private-api-sdk-java.version>
+        <private-api-sdk-java.version>2.0.272</private-api-sdk-java.version>
+        <data-sync-api-sdk-java.version>1.0.4</data-sync-api-sdk-java.version>
         <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>1.4.5</api-helper-java-library.version>
 
         <!-- tests -->
-        <assertj-core.version>3.22.0</assertj-core.version>
         <test-containers.version>1.16.3</test-containers.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <cucumber-java.version>7.2.3</cucumber-java.version>
@@ -98,12 +98,21 @@
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>data-sync-api-sdk-java</artifactId>
+            <version>${data-sync-api-sdk-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
             <artifactId>api-sdk-manager-java-library</artifactId>
             <version>${api-sdk-manager-java-library.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -123,7 +132,6 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -143,10 +151,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
         </dependency>
 
 

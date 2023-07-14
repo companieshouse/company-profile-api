@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-
 import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,20 +18,20 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
+import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
-import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
-import uk.gov.companieshouse.company.profile.exceptions.DocumentNotFoundException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceNotFoundException;
-import uk.gov.companieshouse.company.profile.exceptions.ResourceStateConflictException;
-import uk.gov.companieshouse.company.profile.exceptions.ServiceUnavailableException;
-import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
-import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
-
 
 
 @Service
@@ -43,6 +42,7 @@ public class CompanyProfileService {
     private final MongoTemplate mongoTemplate;
     private final CompanyProfileApiService companyProfileApiService;
     private final LinkRequestFactory linkRequestFactory;
+    private final CompanyProfileTransformer companyProfileTransformer;
 
     /**
      * Constructor.
@@ -52,12 +52,14 @@ public class CompanyProfileService {
                                  CompanyProfileRepository companyProfileRepository,
                                  MongoTemplate mongoTemplate,
                                  CompanyProfileApiService companyProfileApiService,
-                                 LinkRequestFactory linkRequestFactory) {
+                                 LinkRequestFactory linkRequestFactory,
+                                 CompanyProfileTransformer companyProfileTransformer) {
         this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
         this.companyProfileApiService = companyProfileApiService;
         this.linkRequestFactory = linkRequestFactory;
+        this.companyProfileTransformer = companyProfileTransformer;
     }
 
     /**
@@ -290,7 +292,8 @@ public class CompanyProfileService {
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                     .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
-                            new ResourceNotFoundException("no data for company profile: "
+                            new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                    "no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
@@ -311,7 +314,8 @@ public class CompanyProfileService {
     public void checkForDeleteLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
-                        new ResourceNotFoundException("no data for company profile: "
+                        new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                "no data for company profile: "
                                 + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                 new ResourceStateConflictException("links data not found"));
@@ -327,6 +331,31 @@ public class CompanyProfileService {
         }
     }
 
+    /**
+     * finds existing company profile from db if any and
+     * updates or saves new record into db.
+     */
+    public void processCompanyProfile(String contextId, String companyNumber,
+                                      CompanyProfile companyProfile) {
+        Optional<CompanyProfileDocument> existingProfile =
+                companyProfileRepository.findById(companyNumber);
+        Optional<Links> existingLinks = existingProfile
+                .map(CompanyProfileDocument::getCompanyProfile)
+                .map(Data::getLinks);
+
+        CompanyProfileDocument companyProfileDocument = companyProfileTransformer
+                .transform(companyProfile, companyNumber, existingLinks.orElse(null));
+
+        try {
+            companyProfileRepository.save(companyProfileDocument);
+            logger.info(String.format("Company profile is updated in MongoDb for"
+                            + " context id: %s and company number: %s", contextId, companyNumber));
+        } catch (IllegalArgumentException illegalArgumentEx) {
+            throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
+        }
+
+    }
+
     public Data retrieveCompanyNumber(String companyNumber)
             throws JsonProcessingException, ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
@@ -334,13 +363,12 @@ public class CompanyProfileService {
     }
 
     private CompanyProfileDocument getCompanyProfileDocument(String companyNumber)
-          throws ResourceNotFoundException {
+            throws ResourceNotFoundException {
         Optional<CompanyProfileDocument> companyProfileOptional =
-                  companyProfileRepository.findById(companyNumber);
+                companyProfileRepository.findById(companyNumber);
         return companyProfileOptional.orElseThrow(() ->
-                new ResourceNotFoundException(String.format(
+                new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
                         "Resource not found for company number: %s", companyNumber)));
     }
-
 
 }

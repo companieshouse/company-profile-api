@@ -16,7 +16,7 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LI
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
 import org.junit.jupiter.api.function.Executable;
-import uk.gov.companieshouse.company.profile.exceptions.BadRequestException;
+import uk.gov.companieshouse.api.exception.BadRequestException;
 
 @RunWith(SpringRunner.class)
 public class LinkRequestFactoryTest {

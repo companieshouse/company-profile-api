@@ -3,13 +3,11 @@ package uk.gov.companieshouse.company.profile.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
-import io.cucumber.java.Scenario;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -20,19 +18,21 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.util.FileCopyUtils;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
-import uk.gov.companieshouse.company.profile.model.CompanyProfileDocument;
-import uk.gov.companieshouse.company.profile.model.Updated;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.http.HttpClient;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -44,7 +44,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
@@ -62,6 +61,9 @@ public class CompanyProfileSteps {
 
     @Autowired
     private CompanyProfileRepository companyProfileRepository;
+
+    @Autowired
+    private CompanyProfileApiService companyProfileApiService;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -174,7 +176,7 @@ public class CompanyProfileSteps {
 
     @Then("I should receive {int} status code")
     public void i_should_receive_status_code(Integer statusCode) {
-        Integer expectedStatusCode = (Integer) CucumberContext.CONTEXT.get("statusCode");
+        Integer expectedStatusCode = CucumberContext.CONTEXT.get("statusCode");
         Assertions.assertThat(expectedStatusCode).isEqualTo(statusCode);
     }
 
@@ -247,11 +249,10 @@ public class CompanyProfileSteps {
 
     @Then("the Get call response body should match {string} file")
     public void the_get_call_response_body_should_match_file(String dataFile) throws IOException {
-        File file = new ClassPathResource("/json/output/" + dataFile + ".json").getFile();
+        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/output/" + dataFile + ".json")));
+        Data expected = objectMapper.readValue(data, Data.class);
 
-        Data expected = objectMapper.readValue(file, Data.class);
-
-        Data actual = (Data) CucumberContext.CONTEXT.get("getResponseBody");
+        Data actual = CucumberContext.CONTEXT.get("getResponseBody");
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -340,8 +341,8 @@ public class CompanyProfileSteps {
 
     @And("a Company Profile exists for {string}")
     public void the_company_profile_exists_for(String dataFile) throws IOException {
-        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
-        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
+        CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
 
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now().minusYears(1),
@@ -352,6 +353,48 @@ public class CompanyProfileSteps {
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
 
         mongoTemplate.save(companyProfileDocument);
+    }
+
+    @When("I send a PUT request with payload {string} file for company number {string}")
+    public void i_send_company_profile_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
+        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "*");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<?> request = new HttpEntity<>(data, headers);
+        String uri = "/company/{company_number}";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @When("I send a PUT request with payload {string} file for company number {string} without setting Eric headers")
+    public void i_send_company_profile_put_request_with_payload_without_headers(String dataFile, String companyNumber) throws IOException {
+        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
+
+        HttpHeaders headers = new HttpHeaders();
+
+        HttpEntity<?> request = new HttpEntity<>(data, headers);
+        String uri = "/company/{company_number}";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @Then("a company profile exists with id {string}")
+    public void company_profile_exists(String companyNumber) {
+        Assertions.assertThat(companyProfileRepository.existsById(companyNumber)).isTrue();
     }
 
 }

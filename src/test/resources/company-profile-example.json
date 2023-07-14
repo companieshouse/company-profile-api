@@ -1,0 +1,77 @@
+{
+  "data": {
+    "type": "private-limited-shares-section-30-exemption",
+    "previous_company_names": [
+      {
+        "name": "SOCIETY OF AUTHORS(THE)",
+        "effective_from": "1979-12-31",
+        "ceased_on": "2016-05-16"
+      },
+      {
+        "ceased_on": "1979-12-31",
+        "name": "INCORPORATED SOCIETY OF AUTHORS,PLAYWRIGHTS AND COMPOSERS (THE)",
+        "effective_from": "1884-06-30"
+      }
+    ],
+    "last_full_members_list_date": "2014-10-08",
+    "accounts": {
+      "next_made_up_to": "2015-12-31",
+      "next_due": "2016-09-30",
+      "next_accounts": {
+        "due_on": "2016-09-30",
+        "period_end_on": "2015-12-31",
+        "overdue": true,
+        "period_start_on": "2015-01-01"
+      },
+      "overdue": true,
+      "last_accounts": {
+        "type": "full",
+        "period_end_on": "2014-12-31",
+        "made_up_to": "2014-12-31",
+        "period_start_on": "2014-01-01"
+      },
+      "accounting_reference_date": {
+        "month": "12",
+        "day": "31"
+      }
+    },
+    "has_charges": true,
+    "company_status": "active",
+    "undeliverable_registered_office_address": false,
+    "registered_office_address": {
+      "postal_code": "SW10 9SB",
+      "locality": "London",
+      "address_line_2": "South Kensington",
+      "address_line_1": "84 Drayton Gardens"
+    },
+    "links": {
+      "self": "/company/00019993",
+      "charges": "/company/00019993/charges",
+      "officers": "/company/00019993/officers",
+      "filing_history": "/company/00019993/filing-history"
+    },
+    "has_insolvency_history": false,
+    "date_of_creation": "1884-06-30",
+    "confirmation_statement": {
+      "next_made_up_to": "2015-10-08",
+      "next_due": "2015-10-22",
+      "overdue": true
+    },
+    "company_number": "6146287",
+    "registered_office_is_in_dispute": false,
+    "proof_status": "statutory",
+    "etag": "040119ed46251c2722c5a1d4c5a04c7ac6f23f86",
+    "jurisdiction": "england-wales",
+    "annual_return": {
+      "overdue": true,
+      "last_made_up_to": "2014-10-08"
+    },
+    "company_name": "SOCIETY OF AUTHORS(THE)",
+    "sic_codes": [
+      "94120"
+    ],
+    "has_super_secure_pscs": false
+  },
+  "delta_at" : "20211029142043360560",
+  "has_mortgages" : false
+}
