@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -69,6 +70,8 @@ class CompanyProfileControllerTest {
             "/company/%s", MOCK_COMPANY_NUMBER);
 
     private static final String GET_COMPANY_URL = String.format(
+            "/company/{company_number}");
+    private static final String DELETE_COMPANY_URL = String.format(
             "/company/{company_number}");
 
     @MockBean
@@ -745,4 +748,5 @@ class CompanyProfileControllerTest {
         verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
     }
+
 }

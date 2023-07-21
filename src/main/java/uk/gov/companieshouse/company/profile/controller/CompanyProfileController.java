@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+//import org.springframework.web.bind.annotation.*;
+//import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +18,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -136,5 +140,31 @@ public class CompanyProfileController {
         logger.info(String.format("Received get request for Company Number %s", companyNumber));
         Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
         return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+
+    /**
+     * Delete the data object for given company profile number.
+     *
+     * @param companyNumber The number of the company
+     * @return ResponseEntity
+     */
+    @DeleteMapping("/company/{company_number}")
+    public ResponseEntity<Void> deleteCompanyProfile(
+            @PathVariable("company_number") String companyNumber,
+            @RequestHeader(value = "api_key", required = false) String apiKey) {
+        if (apiKey == null || apiKey.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            boolean deleted = companyProfileService.deleteCompanyProfile(companyNumber);
+
+            if (!deleted) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+            }
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (ServiceUnavailableException serviceUnavailableException) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
     }
 }
