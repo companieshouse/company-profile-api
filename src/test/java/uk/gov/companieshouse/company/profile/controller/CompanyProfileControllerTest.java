@@ -1,8 +1,16 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -766,10 +774,6 @@ class CompanyProfileControllerTest {
         CompanyProfileDocument mockCompanyProfileDocument = mock(CompanyProfileDocument.class);
 
         doReturn(true).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
-
-//        when(companyProfileService.get(MOCK_COMPANY_NUMBER))
-//                .thenReturn(Optional.ofNullable(mockCompanyProfileDocument))
-//                .thenReturn(null);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")

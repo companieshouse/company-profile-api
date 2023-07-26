@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -150,13 +148,7 @@ public class CompanyProfileController {
      */
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
-            @PathVariable("company_number") String companyNumber
-    //,@RequestHeader(value = "api_key", required = false) String apiKey
-    ) {
-        //        if (apiKey == null || apiKey.isEmpty()) {
-        //            logger.info("Unauthorized access attempt without API key");
-        //            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        //        }
+            @PathVariable("company_number") String companyNumber) {
         try {
             boolean deleted = companyProfileService.deleteCompanyProfile(companyNumber);
 
