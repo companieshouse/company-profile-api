@@ -2,12 +2,7 @@ package uk.gov.companieshouse.company.profile.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -73,6 +68,8 @@ class CompanyProfileControllerTest {
             "/company/{company_number}");
     private static final String DELETE_COMPANY_URL = String.format(
             "/company/{company_number}");
+
+    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s",MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -747,6 +744,71 @@ class CompanyProfileControllerTest {
 
         verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
+    }
+
+    @Test
+    @DisplayName("Return 401 when no api key is present")
+    void deleteCompanyProfileWhenNoApiKeyPresent() throws Exception {
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)).andExpect(status().isUnauthorized());
+
+        verify(companyProfileService
+                ,times(0)).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+    }
+
+
+    @Test
+    @DisplayName("Return 200 and delete company profile")
+    void deleteCompanyProfile() throws Exception {
+        CompanyProfileDocument mockCompanyProfileDocument = mock(CompanyProfileDocument.class);
+
+        doReturn(true).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+
+//        when(companyProfileService.get(MOCK_COMPANY_NUMBER))
+//                .thenReturn(Optional.ofNullable(mockCompanyProfileDocument))
+//                .thenReturn(null);
+
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isOk());
+
+        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Return 404 when no company profile is found")
+    void deleteCompanyProfileNotFound() throws Exception {
+        doReturn(false).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isNotFound());
+
+        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Return 503 when service is unavailable")
+    void deleteCompanyProfileWhenServiceIsUnavailable() throws Exception {
+        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isServiceUnavailable());
+
+        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
     }
 
 }

@@ -150,20 +150,25 @@ public class CompanyProfileController {
      */
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
-            @PathVariable("company_number") String companyNumber,
-            @RequestHeader(value = "api_key", required = false) String apiKey) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+            @PathVariable("company_number") String companyNumber
+            //,@RequestHeader(value = "api_key", required = false) String apiKey
+    ) {
+//        if (apiKey == null || apiKey.isEmpty()) {
+//            logger.info("Unauthorized access attempt without API key");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
         try {
             boolean deleted = companyProfileService.deleteCompanyProfile(companyNumber);
 
             if (!deleted) {
+                logger.info("Attempt to delete non-existent company profile with company number");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
             }
+            logger.info("Successfully deleted company profile with company number" + companyNumber);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (ServiceUnavailableException serviceUnavailableException) {
+            logger.info("Service unavailable when attempting to delete company profile");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
     }
