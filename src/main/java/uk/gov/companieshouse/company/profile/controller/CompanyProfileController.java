@@ -151,12 +151,12 @@ public class CompanyProfileController {
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
             @PathVariable("company_number") String companyNumber
-            //,@RequestHeader(value = "api_key", required = false) String apiKey
+    //,@RequestHeader(value = "api_key", required = false) String apiKey
     ) {
-//        if (apiKey == null || apiKey.isEmpty()) {
-//            logger.info("Unauthorized access attempt without API key");
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//        }
+        //        if (apiKey == null || apiKey.isEmpty()) {
+        //            logger.info("Unauthorized access attempt without API key");
+        //            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        //        }
         try {
             boolean deleted = companyProfileService.deleteCompanyProfile(companyNumber);
 
