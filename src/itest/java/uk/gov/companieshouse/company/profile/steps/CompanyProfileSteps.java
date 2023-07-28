@@ -53,6 +53,9 @@ public class CompanyProfileSteps {
     private String contextId;
     private ResponseEntity<Data> response;
 
+    private static final String DELETE_COMPANY_PROFILE_URI = "/company/00006400/";
+
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -396,5 +399,48 @@ public class CompanyProfileSteps {
     public void company_profile_exists(String companyNumber) {
         Assertions.assertThat(companyProfileRepository.existsById(companyNumber)).isTrue();
     }
+
+    @When("a DELETE request is sent to the company profile endpoint for {string}")
+    public void a_DELETE_request_is_sent_to_the_company_profile_endpoint_for(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.add("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Identity" , "TEST_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+
+        HttpEntity<CompanyProfile> request = new HttpEntity<>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}/", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a DELETE request is sent to the company profile endpoint for {string} without valid ERIC headers")
+    public void a_DELETE_request_is_sent_to_the_company_profile_endpoint_for_without_valid_ERIC_headers(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}/", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @And("the company profile does not exist for {string}")
+    public void the_company_profile_does_not_exist_for(String companyNumber) {
+        Assertions.assertThat(companyProfileRepository.existsById(companyNumber)).isFalse();
+    }
+
 
 }
