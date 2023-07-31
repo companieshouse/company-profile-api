@@ -213,7 +213,7 @@ class CompanyProfileControllerITest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
 
-        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(true);
+        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(false);
 
         HttpHeaders headers = new HttpHeaders();
 

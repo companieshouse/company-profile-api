@@ -777,7 +777,6 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV")
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
