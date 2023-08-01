@@ -13,6 +13,8 @@ import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -28,6 +30,8 @@ class CompanyProfileControllerITest {
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String COMPANY_URL = String.format("/company/%s/links",
             MOCK_COMPANY_NUMBER);
+
+    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s",MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
@@ -172,4 +176,112 @@ class CompanyProfileControllerITest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.getBody()).isNull();
     }
+
+    @Test
+    @DisplayName("Delete a company profile with a given company number")
+    void deleteCompanyProfile() {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+
+        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(true);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add("ERIC-Identity-Type", "key");
+        headers.add("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("x-request-id", "123456");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(
+                DELETE_COMPANY_PROFILE_URL,
+                HttpMethod.DELETE,
+                httpEntity,
+                Void.class);
+
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    @DisplayName("Return 401 Unauthorized response when deleting company profile")
+    void deleteCompanyProfileWithoutSettingEricHeaders() {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+
+        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(false);
+
+        HttpHeaders headers = new HttpHeaders();
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(DELETE_COMPANY_PROFILE_URL,
+                HttpMethod.DELETE,
+                httpEntity,
+                Void.class);
+
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    @DisplayName("Return a 404 Resource Not found response when company profile does not exist")
+    void DeleteCompanyProfileWhenDoesNotExist() {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber("FAKE_COMPANY_NUMBER");
+        mockCompanyProfile.setData(companyData);
+
+        when(companyProfileService.deleteCompanyProfile("FAKE_COMPANY_NUMBER"))
+                .thenThrow(new ResourceNotFoundException(HttpStatus.NOT_FOUND,""));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "123456");
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.add("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(DELETE_COMPANY_PROFILE_URL,
+                HttpMethod.DELETE,
+                httpEntity,
+                Void.class);
+
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
+    }
+
+    @Test
+    @DisplayName("Return 503 when service is unavailable")
+    void deleteCompanyProfileServiceUnavailable() {
+        CompanyProfile mockCompanyProfile = new CompanyProfile();
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyProfile.setData(companyData);
+
+        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER))
+                .thenThrow(new ServiceUnavailableException("Service is unavailable"));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "123456");
+        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.add("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+
+        HttpEntity<CompanyProfile> httpEntity = new HttpEntity<>(mockCompanyProfile, headers);
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(DELETE_COMPANY_PROFILE_URL,
+                HttpMethod.DELETE,
+                httpEntity, Void.class);
+
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+
+
 }

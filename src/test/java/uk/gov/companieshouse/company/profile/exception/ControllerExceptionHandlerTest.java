@@ -12,8 +12,10 @@ import static org.mockito.Mockito.verify;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Constructor;
+import java.time.LocalDate;
 import java.util.stream.Stream;
 
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +39,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.company.profile.controller.CompanyProfileController;
 import uk.gov.companieshouse.logging.Logger;
@@ -69,7 +72,9 @@ class ControllerExceptionHandlerTest {
     @Captor
     private ArgumentCaptor<String> errMsgCaptor;
 
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
+            .create();
 
     @BeforeEach
     void setUp() throws IllegalArgumentException {

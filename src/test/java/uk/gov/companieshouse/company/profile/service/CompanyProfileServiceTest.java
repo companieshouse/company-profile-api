@@ -1464,4 +1464,29 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
     }
 
+    @Test
+    @DisplayName("When company number is provided delete company profile")
+    public void testDeleteCompanyProfile() {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+
+        verify(companyProfileRepository, times(2)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
+    }
+
+    @Test
+    @DisplayName("When company number is null throw ResourceNotFound Exception")
+    public void testDeleteCompanyProfileThrowsResourceNotFoundException() {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(null));
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        });
+
+        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(0)).delete(any());
+    }
+
+
+
 }
