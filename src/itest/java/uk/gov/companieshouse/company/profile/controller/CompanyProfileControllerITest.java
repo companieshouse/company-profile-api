@@ -13,6 +13,8 @@ import org.springframework.http.*;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -28,6 +30,8 @@ class CompanyProfileControllerITest {
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String COMPANY_URL = String.format("/company/%s/links",
             MOCK_COMPANY_NUMBER);
+
+    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s",MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
@@ -172,4 +176,5 @@ class CompanyProfileControllerITest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.getBody()).isNull();
     }
+
 }

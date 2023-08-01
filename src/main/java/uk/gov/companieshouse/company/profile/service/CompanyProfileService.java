@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -370,5 +371,17 @@ public class CompanyProfileService {
                 new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
                         "Resource not found for company number: %s", companyNumber)));
     }
+
+    /** Delete company profile. */
+    @Transactional
+    public void deleteCompanyProfile(String companyNumber) throws ResourceNotFoundException {
+        CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
+
+        companyProfileRepository.delete(companyProfileDocument);
+        logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
+                companyNumber));
+
+    }
+
 
 }

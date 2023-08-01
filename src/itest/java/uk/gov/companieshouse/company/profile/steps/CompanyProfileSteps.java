@@ -9,6 +9,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -28,6 +31,7 @@ import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
+import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,7 +48,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
 public class CompanyProfileSteps {
@@ -52,6 +58,9 @@ public class CompanyProfileSteps {
     private String companyNumber;
     private String contextId;
     private ResponseEntity<Data> response;
+
+    private static final String DELETE_COMPANY_PROFILE_URI = "/company/00006400/";
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -67,6 +76,9 @@ public class CompanyProfileSteps {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @MockBean
+    private CompanyProfileService companyProfileService;
 
     @Before
     public void dbCleanUp(){
@@ -395,6 +407,50 @@ public class CompanyProfileSteps {
     @Then("a company profile exists with id {string}")
     public void company_profile_exists(String companyNumber) {
         Assertions.assertThat(companyProfileRepository.existsById(companyNumber)).isTrue();
+    }
+
+    @When("a DELETE request is sent to the company profile endpoint for {string}")
+    public void a_DELETE_request_is_sent_to_the_company_profile_endpoint_for(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "*");
+        headers.add("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a DELETE request is sent to the company profile endpoint for {string} without valid ERIC headers")
+    public void a_DELETE_request_is_sent_to_the_company_profile_endpoint_for_without_valid_ERIC_headers(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}/", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @And("the company profile does not exist for {string}")
+    public void the_company_profile_does_not_exist_for(String companyNumber) {
+        assertThat(companyProfileRepository.existsById(companyNumber)).isFalse();
     }
 
 }
