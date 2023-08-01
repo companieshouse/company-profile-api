@@ -40,15 +40,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.exception.*;
 import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
-import uk.gov.companieshouse.api.exception.BadRequestException;
-import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
-import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
-import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
@@ -771,9 +769,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Return 200 and delete company profile")
     void deleteCompanyProfile() throws Exception {
-        CompanyProfileDocument mockCompanyProfileDocument = mock(CompanyProfileDocument.class);
-
-        doReturn(true).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        doNothing().when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -789,7 +785,8 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Return 404 when no company profile is found")
     void deleteCompanyProfileNotFound() throws Exception {
-        doReturn(false).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+
+        doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")

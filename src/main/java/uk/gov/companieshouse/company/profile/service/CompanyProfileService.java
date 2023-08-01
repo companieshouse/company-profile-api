@@ -374,18 +374,13 @@ public class CompanyProfileService {
 
     /** Delete company profile. */
     @Transactional
-    public boolean deleteCompanyProfile(String companyNumber) throws ResourceNotFoundException {
+    public void deleteCompanyProfile(String companyNumber) throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
 
         companyProfileRepository.delete(companyProfileDocument);
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                 companyNumber));
 
-        companyProfileDocument = getCompanyProfileDocument(companyNumber);
-        if (companyProfileDocument == null) {
-            return true;
-        }
-        return false;
     }
 
 

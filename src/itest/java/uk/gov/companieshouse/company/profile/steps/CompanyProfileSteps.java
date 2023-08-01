@@ -428,7 +428,7 @@ public class CompanyProfileSteps {
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
-                "/company/{company_number}/", HttpMethod.DELETE, request, Void.class, companyNumber);
+                "/company/{company_number}", HttpMethod.DELETE, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 

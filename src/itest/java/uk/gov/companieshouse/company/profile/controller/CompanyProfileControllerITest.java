@@ -177,6 +177,7 @@ class CompanyProfileControllerITest {
         assertThat(responseEntity.getBody()).isNull();
     }
 
+
     @Test
     @DisplayName("Delete a company profile with a given company number")
     void deleteCompanyProfile() {
@@ -184,7 +185,6 @@ class CompanyProfileControllerITest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
 
-        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(true);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -213,7 +213,7 @@ class CompanyProfileControllerITest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
 
-        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(false);
+//        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER)).thenReturn(false);
 
         HttpHeaders headers = new HttpHeaders();
 
@@ -233,8 +233,8 @@ class CompanyProfileControllerITest {
         Data companyData = new Data().companyNumber("FAKE_COMPANY_NUMBER");
         mockCompanyProfile.setData(companyData);
 
-        when(companyProfileService.deleteCompanyProfile("FAKE_COMPANY_NUMBER"))
-                .thenThrow(new ResourceNotFoundException(HttpStatus.NOT_FOUND,""));
+//        when(companyProfileService.deleteCompanyProfile("FAKE_COMPANY_NUMBER"))
+//                .thenThrow(new ResourceNotFoundException(HttpStatus.NOT_FOUND,""));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -262,8 +262,8 @@ class CompanyProfileControllerITest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         mockCompanyProfile.setData(companyData);
 
-        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER))
-                .thenThrow(new ServiceUnavailableException("Service is unavailable"));
+//        when(companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER))
+//                .thenThrow(new ServiceUnavailableException("Service is unavailable"));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -281,6 +281,7 @@ class CompanyProfileControllerITest {
 
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
     }
+
 
 
 

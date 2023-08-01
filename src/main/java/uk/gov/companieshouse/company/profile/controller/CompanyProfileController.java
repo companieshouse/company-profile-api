@@ -149,22 +149,9 @@ public class CompanyProfileController {
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
-        try {
-            boolean deleted = companyProfileService.deleteCompanyProfile(companyNumber);
+        logger.info("Deleting company profile");
+        companyProfileService.deleteCompanyProfile(companyNumber);
+        return ResponseEntity.status(HttpStatus.OK).build();
 
-            if (!deleted) {
-                logger.info("Attempt to delete non-existent company profile with company number");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-            logger.info("Successfully deleted company profile with company number" + companyNumber);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (ServiceUnavailableException serviceUnavailableException) {
-            logger.info("Service unavailable when attempting to delete company profile");
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        } catch (Exception e) {
-            logger.info("An error occurred in the delete endpoint");
-            logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
     }
 }
