@@ -2,6 +2,8 @@ package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.validation.Valid;
+
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -150,8 +152,15 @@ public class CompanyProfileController {
     public ResponseEntity<Void> deleteCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
         logger.info("Deleting company profile");
-        companyProfileService.deleteCompanyProfile(companyNumber);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        try {
+            companyProfileService.deleteCompanyProfile(companyNumber);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (ResourceNotFoundException resourceNotFoundException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (DataAccessException dataAccessException) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
 
     }
 }

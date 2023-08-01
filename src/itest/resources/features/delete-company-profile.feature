@@ -29,15 +29,15 @@ Feature: Delete company profile
     Examples:
       | company_number |
       | 00006400       |
-    
 
-  Scenario Outline: Delete company profile unsuccessfully - CHS Kafka API is unavailable
-    Given CHS kafka API service is unavailable
-    And the company profile resource "<data_file>" exists for "<company_number>"
+
+  Scenario Outline: Delete company profile unsuccessfully while database is down
+    Given Company profile api service is running
+    And a company profile resource does not exist for "<company_number>"
+    And the company profile database is down
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
     Then the response code should be 503
 
     Examples:
-      | data_file               | company_number |
-      | with_links_resource     | 00006400       |
-
+      | company_number |
+      | 00006400       |
