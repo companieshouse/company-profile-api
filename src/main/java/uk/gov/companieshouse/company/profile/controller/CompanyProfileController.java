@@ -154,10 +154,16 @@ public class CompanyProfileController {
         logger.info("Deleting company profile");
         try {
             companyProfileService.deleteCompanyProfile(companyNumber);
+            logger.info("Successfully deleted company profile with company number: "
+                    + companyNumber);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (ResourceNotFoundException resourceNotFoundException) {
+            logger.error("Error while trying to delete company profile: "
+                    + resourceNotFoundException.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (DataAccessException dataAccessException) {
+            logger.error("Error while trying to delete company profile: "
+                    + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
