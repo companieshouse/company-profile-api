@@ -39,7 +39,7 @@
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
-        <wiremock.version>2.32.0</wiremock.version>
+        <wiremock.version>2.35.1</wiremock.version>
 
         <maven-resources-plugin.version>2.5</maven-resources-plugin.version>
         <!--sonar configuration-->
