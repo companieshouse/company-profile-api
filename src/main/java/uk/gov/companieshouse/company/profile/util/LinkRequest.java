@@ -23,6 +23,11 @@ public class LinkRequest {
     public static final Function<Links, String> PSC_STATEMENTS_GET =
             Links::getPersonsWithSignificantControlStatements;
 
+    public static final String FILING_HISTORY_LINK_TYPE = "filing-history";
+    public static final String FILING_HISTORY_DELTA_TYPE = "filing_history_delta";
+    public static final Function<Links, String> FILING_HISTORY_GET =
+            Links::getFilingHistory;
+
     private final String contextId;
     private final String companyNumber;
     private final String linkType;

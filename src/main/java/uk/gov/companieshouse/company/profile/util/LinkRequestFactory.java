@@ -2,6 +2,8 @@ package uk.gov.companieshouse.company.profile.util;
 
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_GET;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.FILING_HISTORY_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.FILING_HISTORY_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_DELTA_TYPE;
@@ -24,7 +26,9 @@ public class LinkRequestFactory {
             LinkRequest.PSC_LINK_TYPE,
             new LinkTypeData(PSC_DELTA_TYPE, PSC_GET),
             LinkRequest.PSC_STATEMENTS_LINK_TYPE,
-            new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET));
+            new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET),
+            LinkRequest.FILING_HISTORY_LINK_TYPE,
+            new LinkTypeData(FILING_HISTORY_DELTA_TYPE, FILING_HISTORY_GET));
 
     /**
      * Creates linkRequest object.

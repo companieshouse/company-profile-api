@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -70,6 +71,7 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
+    private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
     private static final String PUT_COMPANY_PROFILE_URL = String.format(
             "/company/%s", MOCK_COMPANY_NUMBER);
 
@@ -575,6 +577,20 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Add Filing History link")
+    void addFilingHistoryLink() throws Exception {
+        mockMvc.perform(patch(FILING_HISTORY_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isOk());
+
+        verify(companyProfileService).processLinkRequest("filing-history", MOCK_COMPANY_NUMBER, "123456", false);
     }
 
     @Test
