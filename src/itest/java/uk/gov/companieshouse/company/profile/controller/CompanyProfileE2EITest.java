@@ -63,7 +63,11 @@ class CompanyProfileE2EITest {
 
     @ParameterizedTest
     @CsvSource({
-            "filing-history , filing_history_delta"
+            "filing-history , filing_history_delta",
+            "exemptions , exemption_delta",
+            "officers , officer_delta",
+            "persons-with-significant-control , psc_delta",
+            "persons-with-significant-control-statements , psc_statement_delta"
     })
     @DisplayName("Successfully add link to company profile")
     void testAddLink(final String linkType, final String deltaType) throws Exception {
@@ -93,13 +97,7 @@ class CompanyProfileE2EITest {
 
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        String actualLink;
-        switch (linkType) {
-            case "filing-history":
-                actualLink = actualDocument.getCompanyProfile().getLinks().getFilingHistory();
-                break;
-            default: actualLink = "DID NOT MATCH LINK TYPE";
-        }
+        final String actualLink = filterLinkType(linkType, actualDocument.getCompanyProfile().getLinks());
 
         assertEquals(expectedLink, actualLink);
         assertNotNull(actualDocument.getUpdated().getAt());
@@ -107,5 +105,28 @@ class CompanyProfileE2EITest {
         assertEquals("context_id", actualDocument.getUpdated().getBy());
         assertNotEquals(oldEtag, actualDocument.getCompanyProfile().getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi("context_id", COMPANY_NUMBER);
+    }
+
+    private String filterLinkType(final String linkType, Links links) {
+        String actualLink;
+        switch (linkType) {
+            case "filing-history":
+                actualLink = links.getFilingHistory();
+                break;
+            case "exemptions":
+                actualLink = links.getExemptions();
+                break;
+            case "officers":
+                actualLink = links.getOfficers();
+                break;
+            case "persons-with-significant-control":
+                actualLink = links.getPersonsWithSignificantControl();
+                break;
+            case "persons-with-significant-control-statements":
+                actualLink = links.getPersonsWithSignificantControlStatements();
+                break;
+            default: actualLink = "DID NOT MATCH LINK TYPE";
+        }
+        return actualLink;
     }
 }
