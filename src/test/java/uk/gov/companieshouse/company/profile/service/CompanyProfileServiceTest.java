@@ -1487,6 +1487,10 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository, times(0)).delete(any());
     }
 
-
+    @Test
+    @DisplayName("When company type is plc and company status is not dissolved then can_file is true")
+    public void testDetermineCanFileWhenTrue() {
+        
+    }
 
 }
