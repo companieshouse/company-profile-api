@@ -28,5 +28,8 @@ hs_err_pid*
 # IntelliJ
 /.idea
 
+# VScode
+/.vscode
+
 # Mac
 .DS_Store

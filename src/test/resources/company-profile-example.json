@@ -37,6 +37,7 @@
     },
     "has_charges": true,
     "company_status": "active",
+    "can_file": "true",
     "undeliverable_registered_office_address": false,
     "registered_office_address": {
       "postal_code": "SW10 9SB",

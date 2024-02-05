@@ -89,7 +89,7 @@ public class CompanyProfileService {
                         String.format("No company profile with company number %s found",
                                 companyNumber))
         );
-
+        determineCanFile(companyNumber);
         return companyProfileDocument;
     }
 
@@ -383,5 +383,26 @@ public class CompanyProfileService {
 
     }
 
+    private void determineCanFile(String companyNumber) {
+        CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
+        String companyType = companyProfileDocument.getCompanyProfile().getType();
+        String companyStatus = companyProfileDocument.getCompanyProfile().getCompanyStatus();
 
+        if (companyType == "ltd" || 
+                        companyType == "llp" ||
+                        companyType == "plc" ||
+                        companyType.contains("private")) {
+                if (companyStatus != "dissolved" &&
+                                companyStatus != "converted-closed" &&
+                                companyStatus != "petition-to-restore-dissolved") {
+                                        companyProfileDocument.getCompanyProfile().setCanFile(true);
+                                }
+                else {
+                        companyProfileDocument.getCompanyProfile().setCanFile(false);
+                }
+        }
+        else {
+                companyProfileDocument.getCompanyProfile().setCanFile(false);
+        }
+    }
 }
