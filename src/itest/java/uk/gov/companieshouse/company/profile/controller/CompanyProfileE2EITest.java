@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -68,10 +69,12 @@ class CompanyProfileE2EITest {
     void testAddLink(final String linkType, final String deltaType) throws Exception {
         // given
         final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
+        final String oldEtag = "oldEtag";
 
         CompanyProfileDocument document = new CompanyProfileDocument()
                 .setId(COMPANY_NUMBER)
                 .setCompanyProfile(new Data()
+                        .etag(oldEtag)
                         .links(new Links()
                                 .self("/company/" + COMPANY_NUMBER)));
 
@@ -102,6 +105,7 @@ class CompanyProfileE2EITest {
         assertNotNull(actualDocument.getUpdated().getAt());
         assertEquals(deltaType, actualDocument.getUpdated().getType());
         assertEquals("context_id", actualDocument.getUpdated().getBy());
+        assertNotEquals(oldEtag, actualDocument.getCompanyProfile().getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi("context_id", COMPANY_NUMBER);
     }
 }
