@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 
-import com.fasterxml.jackson.core.io.BigDecimalParser;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +38,7 @@ class CompanyProfileE2EITest {
 
     private static final String COMPANY_NUMBER = "12345678";
     private static final String COMPANY_PROFILE_COLLECTION = "company_profile";
+    private static final String CONTEXT_ID = "context_id";
     private static final String ADD_LINK_ENDPOINT = "/company/{company_number}/links/{link_type}";
 
     @Container
@@ -91,7 +91,7 @@ class CompanyProfileE2EITest {
                 .header("ERIC-Identity", "123")
                 .header("ERIC-Identity-Type", "key")
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                .header("x-request-id", "context_id")
+                .header("x-request-id", CONTEXT_ID)
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
@@ -106,9 +106,9 @@ class CompanyProfileE2EITest {
         assertEquals(expectedLink, actualLink);
         assertNotNull(updated.getAt());
         assertEquals(deltaType, updated.getType());
-        assertEquals("context_id", updated.getBy());
+        assertEquals(CONTEXT_ID, updated.getBy());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi("context_id", COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }
 
     private String filterLinkType(final String linkType, Links links) {
@@ -129,7 +129,8 @@ class CompanyProfileE2EITest {
             case "persons-with-significant-control-statements":
                 actualLink = links.getPersonsWithSignificantControlStatements();
                 break;
-            default: actualLink = "DID NOT MATCH LINK TYPE";
+            default:
+                actualLink = "DID NOT MATCH LINK TYPE";
         }
         return actualLink;
     }
