@@ -388,21 +388,19 @@ public class CompanyProfileService {
         String companyType = companyProfileDocument.getCompanyProfile().getType();
         String companyStatus = companyProfileDocument.getCompanyProfile().getCompanyStatus();
 
-        if (companyType == "ltd" || 
-                        companyType == "llp" ||
-                        companyType == "plc" ||
-                        companyType.contains("private")) {
-                if (companyStatus != "dissolved" &&
-                                companyStatus != "converted-closed" &&
-                                companyStatus != "petition-to-restore-dissolved") {
-                                        companyProfileDocument.getCompanyProfile().setCanFile(true);
-                                }
-                else {
-                        companyProfileDocument.getCompanyProfile().setCanFile(false);
-                }
-        }
-        else {
+        if (companyType == "ltd" 
+                || companyType == "llp" 
+                || companyType == "plc" 
+                || companyType.contains("private")) {
+            if (companyStatus != "dissolved" 
+                    && companyStatus != "converted-closed" 
+                    && companyStatus != "petition-to-restore-dissolved") {
+                companyProfileDocument.getCompanyProfile().setCanFile(true);
+            } else {
                 companyProfileDocument.getCompanyProfile().setCanFile(false);
+            }
+        } else {
+            companyProfileDocument.getCompanyProfile().setCanFile(false);
         }
     }
 }
