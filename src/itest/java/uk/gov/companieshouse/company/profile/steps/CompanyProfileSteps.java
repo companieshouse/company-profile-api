@@ -1,5 +1,13 @@
 package uk.gov.companieshouse.company.profile.steps;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
@@ -7,6 +15,15 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -20,8 +37,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -32,26 +47,6 @@ import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
 public class CompanyProfileSteps {
 
@@ -81,7 +76,7 @@ public class CompanyProfileSteps {
     private CompanyProfileService companyProfileService;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
 
         if (mongoDBContainer.getContainerId() == null) {
@@ -108,7 +103,7 @@ public class CompanyProfileSteps {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "5234234234");
-        headers.set("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("ERIC-Identity", "SOME_IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
@@ -133,7 +128,7 @@ public class CompanyProfileSteps {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "5234234234");
-        headers.set("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("ERIC-Identity", "SOME_IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
@@ -172,7 +167,7 @@ public class CompanyProfileSteps {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.set("ERIC-Identity" , "SOME_IDENTITY");
+        headers.set("ERIC-Identity", "SOME_IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
@@ -233,7 +228,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}/links";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity", "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
 
         ResponseEntity<Data> response = restTemplate.exchange(
@@ -323,7 +318,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity", "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
         headers.add("x-request-id", "123456");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
@@ -361,7 +356,7 @@ public class CompanyProfileSteps {
                 "abc", "company_delta");
 
         CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated,false);
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
 
         mongoTemplate.save(companyProfileDocument);
@@ -422,7 +417,7 @@ public class CompanyProfileSteps {
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
         headers.set("ERIC-Authorised-Key-Roles", "*");
-        headers.add("api-key","g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("api-key", "g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
         headers.set("Content-Type", "application/json");
 

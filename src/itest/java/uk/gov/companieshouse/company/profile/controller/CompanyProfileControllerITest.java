@@ -1,5 +1,10 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
@@ -9,20 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
-import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CompanyProfileControllerITest {
@@ -31,7 +34,7 @@ class CompanyProfileControllerITest {
     private static final String COMPANY_URL = String.format("/company/%s/links",
             MOCK_COMPANY_NUMBER);
 
-    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s",MOCK_COMPANY_NUMBER);
+    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private CompanyProfileService companyProfileService;
@@ -48,13 +51,13 @@ class CompanyProfileControllerITest {
         //Updated updated = mock(Updated.class);
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated, false);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity", "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
 
         ResponseEntity<CompanyProfile> companyProfileResponse = restTemplate.exchange(
@@ -72,7 +75,7 @@ class CompanyProfileControllerITest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData,localDateTime,updated, false);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
@@ -93,7 +96,7 @@ class CompanyProfileControllerITest {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity", "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
 
         ResponseEntity<CompanyProfile> companyProfileResponse = restTemplate.exchange(
@@ -116,7 +119,7 @@ class CompanyProfileControllerITest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "123456");
-        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity", "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
@@ -164,7 +167,7 @@ class CompanyProfileControllerITest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("x-request-id", "123456");
-        headers.add("ERIC-Identity" , "SOME_IDENTITY");
+        headers.add("ERIC-Identity", "SOME_IDENTITY");
         headers.add("ERIC-Identity-Type", "key");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
