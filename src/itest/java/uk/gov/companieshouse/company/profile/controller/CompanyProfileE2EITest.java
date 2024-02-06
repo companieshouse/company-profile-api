@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 
+import com.fasterxml.jackson.core.io.BigDecimalParser;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 
@@ -93,17 +95,19 @@ class CompanyProfileE2EITest {
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
-        final CompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, CompanyProfileDocument.class));
-
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final String actualLink = filterLinkType(linkType, actualDocument.getCompanyProfile().getLinks());
+        final CompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, CompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
 
         assertEquals(expectedLink, actualLink);
-        assertNotNull(actualDocument.getUpdated().getAt());
-        assertEquals(deltaType, actualDocument.getUpdated().getType());
-        assertEquals("context_id", actualDocument.getUpdated().getBy());
-        assertNotEquals(oldEtag, actualDocument.getCompanyProfile().getEtag());
+        assertNotNull(updated.getAt());
+        assertEquals(deltaType, updated.getType());
+        assertEquals("context_id", updated.getBy());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi("context_id", COMPANY_NUMBER);
     }
 
