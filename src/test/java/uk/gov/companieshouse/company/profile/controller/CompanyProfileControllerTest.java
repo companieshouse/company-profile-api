@@ -343,7 +343,6 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
-        ;
     }
 
     @Test
@@ -376,7 +375,6 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
-        ;
     }
 
     @Test()
