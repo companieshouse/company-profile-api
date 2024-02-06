@@ -1,29 +1,29 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-
+import com.google.gson.GsonBuilder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,15 +40,18 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.exception.*;
+import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
-import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
@@ -70,6 +73,7 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
+    private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
     private static final String PUT_COMPANY_PROFILE_URL = String.format(
             "/company/%s", MOCK_COMPANY_NUMBER);
 
@@ -78,7 +82,7 @@ class CompanyProfileControllerTest {
     private static final String DELETE_COMPANY_URL = String.format(
             "/company/{company_number}");
 
-    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s",MOCK_COMPANY_NUMBER);
+    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
 
     @MockBean
     private Logger logger;
@@ -174,12 +178,12 @@ class CompanyProfileControllerTest {
                 isA(CompanyProfile.class));
 
         mockMvc.perform(patch(COMPANY_URL)
-                .header("ERIC-Identity", "SOME_IDENTITY")
-                .header("ERIC-Identity-Type", "key")
-                .contentType(APPLICATION_JSON)
-                .header("x-request-id", "123456")
-                .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                .content(gson.toJson(request)))
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .content(gson.toJson(request)))
                 .andExpect(status().isOk());
     }
 
@@ -227,7 +231,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                .content(gson.toJson(new CompanyProfile())))
+                        .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isServiceUnavailable());
     }
 
@@ -242,7 +246,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key")
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                .content(gson.toJson(new CompanyProfile())))
+                        .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -338,7 +342,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", "123456")
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());;
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -370,7 +374,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", "key")
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());;
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test()
@@ -427,12 +431,12 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
-)                .andExpect(status().isNotFound());
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "123456")
+                .header("ERIC-Identity", "SOME_IDENTITY")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+        ).andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
     }
 
@@ -578,6 +582,20 @@ class CompanyProfileControllerTest {
     }
 
     @Test
+    @DisplayName("Add Filing History link")
+    void addFilingHistoryLink() throws Exception {
+        mockMvc.perform(patch(FILING_HISTORY_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isOk());
+
+        verify(companyProfileService).processLinkRequest("filing-history", MOCK_COMPANY_NUMBER, "123456", false);
+    }
+
+    @Test
     @DisplayName("add PSC Statements request returns 404 not found when document not found exception is thrown")
     void addPscStatementsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
@@ -640,6 +658,7 @@ class CompanyProfileControllerTest {
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
     }
+
     @Test
     @DisplayName("Delete PSC Statements link")
     void deletePscStatementsLink() throws Exception {
@@ -762,7 +781,7 @@ class CompanyProfileControllerTest {
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)).andExpect(status().isUnauthorized());
 
         verify(companyProfileService
-                ,times(0)).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+                , times(0)).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
     }
 
 

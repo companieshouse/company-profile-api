@@ -2,7 +2,6 @@ package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.validation.Valid;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,6 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
-import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -30,7 +28,8 @@ public class CompanyProfileController {
 
     /**
      * Constructor.
-     * @param logger logs messages to the console
+     *
+     * @param logger                logs messages to the console
      * @param companyProfileService Company Profile Service
      */
     public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService) {
@@ -59,8 +58,9 @@ public class CompanyProfileController {
 
     /**
      * PUT a company profile for a given company number.
-     * @param companyProfile   The company profile
-     * @param companyNumber The company number of the company
+     *
+     * @param companyProfile The company profile
+     * @param companyNumber  The company number of the company
      * @return ResponseEntity
      */
     @PutMapping("/company/{company_number}")
@@ -136,7 +136,7 @@ public class CompanyProfileController {
      */
     @GetMapping("/company/{company_number}")
     public ResponseEntity<Data> searchCompanyProfile(@PathVariable("company_number")
-                String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
+                                                     String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
         logger.info(String.format("Received get request for Company Number %s", companyNumber));
         Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
         return new ResponseEntity<>(data, HttpStatus.OK);
