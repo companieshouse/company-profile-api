@@ -1509,4 +1509,46 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
+
+    @Test
+    @DisplayName("Can file set to true when company type ltd and status active")
+    void testDetermineCanFileLtdActiveTrue() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setCompanyStatus("active");
+        companyData.setType("ltd");
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(companyData);
+
+        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+
+        assertEquals(companyData.getCanFile(), true);
+    }
+
+    @Test
+    @DisplayName("Can file set to false when company type ltd and status dissolved")
+    void testDetermineCanFileLtdDissolvedFalse() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setCompanyStatus("dissolved");
+        companyData.setType("ltd");
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(companyData);
+
+        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+
+        assertEquals(companyData.getCanFile(), false);
+    }
+
+    @Test
+    @DisplayName("Can file set to false when company type ltd and status dissolved")
+    void testDetermineCanFileOtherActiveFalse() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setCompanyStatus("active");
+        companyData.setType("other");
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(companyData);
+
+        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+
+        assertEquals(companyData.getCanFile(), false);
+    }
 }
