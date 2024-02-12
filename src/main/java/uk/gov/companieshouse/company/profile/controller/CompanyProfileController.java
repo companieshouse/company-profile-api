@@ -135,8 +135,9 @@ public class CompanyProfileController {
      * @return data object
      */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<Data> searchCompanyProfile(@PathVariable("company_number")
-                                                     String companyNumber) throws JsonProcessingException, ResourceNotFoundException {
+    public ResponseEntity<Data> searchCompanyProfile(
+            @PathVariable("company_number") String companyNumber)
+            throws JsonProcessingException, ResourceNotFoundException {
         logger.info(String.format("Received get request for Company Number %s", companyNumber));
         Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
         return new ResponseEntity<>(data, HttpStatus.OK);
