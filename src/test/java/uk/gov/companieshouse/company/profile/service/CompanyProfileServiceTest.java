@@ -131,10 +131,13 @@ class CompanyProfileServiceTest {
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setType("ltd");
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
         CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
+
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));

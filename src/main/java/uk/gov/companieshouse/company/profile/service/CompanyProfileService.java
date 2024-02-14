@@ -385,19 +385,27 @@ public class CompanyProfileService {
 
     /** Set can_file based on company type and status. */
     public void determineCanFile(String companyNumber) {
-        CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
-        String companyType = companyProfileDocument.getCompanyProfile().getType();
-        String companyStatus = companyProfileDocument.getCompanyProfile().getCompanyStatus();
+        try {
+            CompanyProfileDocument companyProfileDocument =
+                    getCompanyProfileDocument(companyNumber);
+            String companyType = companyProfileDocument.getCompanyProfile().getType();
+            String companyStatus = companyProfileDocument.getCompanyProfile().getCompanyStatus();
 
-        if (companyType.equals("ltd")
-                || companyType.equals("llp")
-                || companyType.equals("plc")
-                || companyType.contains("private")) {
-            companyProfileDocument.getCompanyProfile().setCanFile(!companyStatus.equals("dissolved")
-                    && !companyStatus.equals("converted-closed")
-                    && !companyStatus.equals("petition-to-restore-dissolved"));
-        } else {
-            companyProfileDocument.getCompanyProfile().setCanFile(false);
+            if (companyType.equals("ltd")
+                    || companyType.equals("llp")
+                    || companyType.equals("plc")
+                    || companyType.contains("private")) {
+                companyProfileDocument.getCompanyProfile()
+                        .setCanFile(!companyStatus.equals("dissolved")
+                        && !companyStatus.equals("converted-closed")
+                        && !companyStatus.equals("petition-to-restore-dissolved"));
+            } else {
+                companyProfileDocument.getCompanyProfile().setCanFile(false);
+            }
+        } catch (Exception exception) {
+            logger.error("Error determining can file status " + exception.getMessage());
+
         }
+
     }
 }
