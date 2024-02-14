@@ -47,6 +47,7 @@ public class CompanyProfileTransformerTest {
         Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks(), document.getCompanyProfile().getLinks());
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
+        Assertions.assertEquals(COMPANY_PROFILE.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
     }
 
     @Test
@@ -62,6 +63,7 @@ public class CompanyProfileTransformerTest {
         Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks(), document.getCompanyProfile().getLinks());
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
+        Assertions.assertEquals(COMPANY_PROFILE.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
     }
 
     @Test
