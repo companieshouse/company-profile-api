@@ -24,7 +24,7 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
         try {
             LOGGER.info("Deserialising dates");
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                    .ofPattern("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]'Z'");
             JsonNode jsonNode = jsonParser.readValueAsTree();
             JsonNode dateNode = jsonNode.get("$date");
 
