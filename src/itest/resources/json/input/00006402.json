@@ -37,8 +37,8 @@
     "links": {
       "filing_history": "/company/00006402/filing-history",
       "officers": "/company/00006402/officers",
-      "persons_with_significant_control": "/company/00006402/persons-with-significant-control",
-      "self": "/company/00006402",
+      "persons_with_significant_control": "/company/test/00006402/persons-with-significant-control",
+      "self": "/company/test/00006402",
       "insolvency" : "insolvency"
     },
     "registered_office_address": {
