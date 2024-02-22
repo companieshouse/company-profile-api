@@ -1519,10 +1519,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("ltd");
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(companyData);
+        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        companyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+        companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), true);
     }
@@ -1533,10 +1533,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("dissolved");
         companyData.setType("ltd");
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(companyData);
+        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        companyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+        companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), false);
     }
@@ -1547,10 +1547,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("other");
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(companyData);
+        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        companyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+        companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), false);
     }
