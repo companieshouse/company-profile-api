@@ -134,7 +134,7 @@ public class CompanyProfileController {
      * @param companyNumber The number of the company
      * @return data object
      */
-    @GetMapping("/company/{company_number}")
+    @GetMapping("/company/test/{company_number}")
     public ResponseEntity<Data> searchCompanyProfile(
             @PathVariable("company_number") String companyNumber)
             throws JsonProcessingException, ResourceNotFoundException {
