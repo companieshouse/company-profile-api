@@ -63,7 +63,7 @@ public class CompanyProfileController {
      * @param companyNumber  The company number of the company
      * @return ResponseEntity
      */
-    @PutMapping("/company/{company_number}")
+    @PutMapping("/company/test/{company_number}")
     public ResponseEntity<Void> processCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
