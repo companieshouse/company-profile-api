@@ -123,8 +123,8 @@ class CompanyProfileServiceTest {
         TestHelper testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
-        EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
         EXISTING_LINKS = testHelper.createExistingLinks();
+        EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
     }
 
     @Test
@@ -1434,7 +1434,7 @@ class CompanyProfileServiceTest {
     void putCompanyProfileWithExistingLinksSuccessfully() throws IOException {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS))
-                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+                .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
@@ -1443,7 +1443,7 @@ class CompanyProfileServiceTest {
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_LINKS);
-        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
