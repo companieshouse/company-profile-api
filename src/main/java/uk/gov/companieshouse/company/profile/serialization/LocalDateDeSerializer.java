@@ -41,7 +41,7 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
                 }
             }
 
-            parsedDate = Optional.ofNullable(parsedDate).orElse(LocalDate.now());
+            parsedDate = Optional.ofNullable(parsedDate).orElse(null);
 
             /** If textValue() returns a value we received a string of
              * format yyyy-MM-dd'T'HH:mm:ss'Z
