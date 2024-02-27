@@ -72,7 +72,15 @@ public class LocalDateDeSerializerTest {
        });
     }
 
+    @Test
+    void nullStringReturnsError() throws JsonParseException, IOException{
 
+        String jsonTestString = null;
+
+        assertThrows(NullPointerException.class, ()->{
+            deserialize(jsonTestString);
+        });
+    }
 
     private LocalDate deserialize(String jsonString) throws JsonParseException, IOException {
         JsonParser parser = mapper.getFactory().createParser(jsonString);
