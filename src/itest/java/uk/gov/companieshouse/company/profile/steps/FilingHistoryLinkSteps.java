@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
@@ -26,11 +24,7 @@ import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository
 public class FilingHistoryLinkSteps {
     private String contextId;
     private static final String ADD_FILING_HISTORY_LINK_ENDPOINT = "/company/00006400/links/filing-history";
-    private static final String DELETE_FILING_HISTORY_LINK_ENDPOINT = "/company/00006400/links/filing-history/delete";
     private static final String FILING_HISTORY_LINK = "/company/00006400/filing-history";
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -57,7 +51,7 @@ public class FilingHistoryLinkSteps {
     }
 
     @When("a PATCH request is sent to the add filing history link endpoint for {string}")
-    public void addFilingHistoryLink(String companyNumber) throws ApiErrorResponseException {
+    public void addFilingHistoryLink(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -72,25 +66,6 @@ public class FilingHistoryLinkSteps {
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 ADD_FILING_HISTORY_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
-    }
-
-    @When("a PATCH request is sent to the delete filing history link endpoint for {string}")
-    public void deleteFilingHistoryLink(String companyNumber) throws ApiErrorResponseException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        this.contextId = "5234234234";
-        CucumberContext.CONTEXT.set("contextId", this.contextId);
-        headers.set("x-request-id", this.contextId);
-        headers.set("ERIC-Identity", "TEST-IDENTITY");
-        headers.set("ERIC-Identity-Type", "KEY");
-        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
-
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
-        ResponseEntity<Void> response = restTemplate.exchange(
-                DELETE_FILING_HISTORY_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
@@ -121,22 +96,6 @@ public class FilingHistoryLinkSteps {
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 ADD_FILING_HISTORY_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
-    }
-
-    @When("a PATCH request is sent to the delete filing history endpoint for {string} without ERIC headers")
-    public void deleteFilingHistoryLinkWithoutAuthenticationOrAuthorisation(String companyNumber) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        this.contextId = "5234234234";
-        CucumberContext.CONTEXT.set("contextId", this.contextId);
-        headers.set("x-request-id", this.contextId);
-
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
-        ResponseEntity<Void> response = restTemplate.exchange(
-                DELETE_FILING_HISTORY_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }
