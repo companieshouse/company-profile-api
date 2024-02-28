@@ -8,6 +8,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.logging.Logger;
@@ -27,6 +29,20 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
             JsonNode jsonNode = jsonParser.readValueAsTree();
             JsonNode dateNode = jsonNode.get("$date");
 
+            LocalDate parsedDate = null;
+
+            if (dateNode != null && !dateNode.isNull()) {
+                if (dateNode.isTextual() && dateNode.textValue() != null) {
+                    parsedDate = LocalDate.parse(dateNode.textValue(), dateTimeFormatter);
+                } else if (dateNode.has("$numberLong")) {
+                    long epochMillis = dateNode.get("$numberLong").asLong();
+                    parsedDate = LocalDate.ofInstant(
+                            Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault());
+                }
+            }
+
+            parsedDate = Optional.ofNullable(parsedDate).orElse(null);
+
             /** If textValue() returns a value we received a string of
              * format yyyy-MM-dd'T'HH:mm:ss'Z
              * and use dateTimeFormatter to return LocalDate.
@@ -35,10 +51,7 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
              * from 01/01/1970 and need to return
              * a LocalDate without dateTimeFormatter.
              */
-            return dateNode.textValue() != null
-                    ? LocalDate.parse(dateNode.textValue(), dateTimeFormatter)
-                    : LocalDate.ofInstant(Instant.ofEpochMilli(dateNode.get("$numberLong")
-                    .asLong()), ZoneId.systemDefault());
+            return parsedDate;
         } catch (Exception exception) {
             LOGGER.error("Deserialization failed.", exception);
             throw new BadRequestException(exception.getMessage());
