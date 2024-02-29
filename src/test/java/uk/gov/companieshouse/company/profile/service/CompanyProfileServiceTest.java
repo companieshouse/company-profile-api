@@ -123,8 +123,8 @@ class CompanyProfileServiceTest {
         TestHelper testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
-        EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
         EXISTING_LINKS = testHelper.createExistingLinks();
+        EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
     }
 
     @Test
@@ -1434,7 +1434,7 @@ class CompanyProfileServiceTest {
     void putCompanyProfileWithExistingLinksSuccessfully() throws IOException {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS))
-                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+                .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
@@ -1443,7 +1443,7 @@ class CompanyProfileServiceTest {
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_LINKS);
-        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
@@ -1519,10 +1519,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("ltd");
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(companyData);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+        companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), true);
     }
@@ -1533,10 +1533,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("dissolved");
         companyData.setType("ltd");
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(companyData);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+        companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), false);
     }
@@ -1547,10 +1547,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("other");
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(companyData);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(MOCK_COMPANY_NUMBER);
+        companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), false);
     }
