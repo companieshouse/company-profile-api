@@ -98,8 +98,7 @@
       "next_made_up_to" : "2016-02-01T00:00:00.000Z"
     },
     "links" : {
-      "self" : "/company/00006400",
-      "filing_history" : "/company/00006400/filing-history"
+      "self" : "/company/00006400"
     },
     "registered_office_is_in_dispute" : false,
     "annual_return" : {
