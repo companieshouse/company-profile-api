@@ -77,10 +77,10 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
     private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
     private static final String PUT_COMPANY_PROFILE_URL = String.format(
-            "/company/%s", MOCK_COMPANY_NUMBER);
+            "/company/test/%s", MOCK_COMPANY_NUMBER);
 
     private static final String GET_COMPANY_URL = String.format(
-            "/company/{company_number}");
+            "/company/test/{company_number}");
     private static final String DELETE_COMPANY_URL = String.format(
             "/company/{company_number}");
 
