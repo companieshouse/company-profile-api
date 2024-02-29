@@ -1519,7 +1519,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("ltd");
-        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
@@ -1533,7 +1533,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("dissolved");
         companyData.setType("ltd");
-        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
@@ -1547,7 +1547,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("other");
-        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
