@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
@@ -15,10 +16,8 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -38,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
@@ -448,4 +448,51 @@ public class CompanyProfileSteps {
         assertThat(companyProfileRepository.existsById(companyNumber)).isFalse();
     }
 
+    @When("I send GET request to retrieve Company details using company number {string}")
+    public void iSendGETRequestToRetrieveCompanyDetailsUsingCompanyNumber(String companyNumber) {
+        String uri = "/company/{company_number}/company-detail";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "*");
+        headers.add("api-key", "g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("Content-Type", "application/json");
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+
+    }
+
+    @When("I send GET request to retrieve Company details using company number {string} without setting Eric headers")
+    public void iSendGETRequestToRetrieveCompanyDetailsUsingCompanyNumberWithoutSettingEricHeaders(String companyNumber) {
+        String uri = "/company/{company_number}/company-detail";
+
+        HttpHeaders headers = new HttpHeaders();
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+    }
+
+    @And("the Get call response body should match {string} file for company details")
+    public void theGetCallResponseBodyShouldMatchFileForCompanyDetails(String dataFile) throws IOException {
+        String data = FileCopyUtils.copyToString(new InputStreamReader
+                (new FileInputStream("src/itest/resources/json/output/" + dataFile + ".json")));
+        CompanyDetails expected = objectMapper.readValue(data, CompanyDetails.class);
+
+        Data actual = CucumberContext.CONTEXT.get("getResponseBody");
+
+        assertThat(actual.getCompanyName()).isEqualTo(expected.getCompanyName());
+        assertThat(actual.getCompanyNumber()).isEqualTo(expected.getCompanyNumber());
+        assertThat(actual.getCompanyStatus()).isEqualTo(expected.getCompanyStatus());
+    }
 }

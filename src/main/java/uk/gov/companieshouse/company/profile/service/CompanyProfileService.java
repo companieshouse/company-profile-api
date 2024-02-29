@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
+import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
@@ -381,7 +382,25 @@ public class CompanyProfileService {
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                 companyNumber));
 
+
     }
+
+    /** Get company details. */
+    public Optional<CompanyDetails> getCompanyDetails(String companyNumber) throws JsonProcessingException {
+        try {
+            Data companyProfile = retrieveCompanyNumber(companyNumber);
+            CompanyDetails companyDetails = new CompanyDetails();
+            companyDetails.setCompanyName(companyProfile.getCompanyName());
+            companyDetails.setCompanyNumber(companyProfile.getCompanyNumber());
+            companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
+            return Optional.of(companyDetails);
+        } catch (ResourceNotFoundException resourceNotFoundException) {
+            logger.error(resourceNotFoundException.getMessage());
+            return Optional.empty();
+        }
+
+    }
+
 
     /** Set can_file based on company type and status. */
     public void determineCanFile(String companyNumber) {

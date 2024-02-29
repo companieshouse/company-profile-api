@@ -13,12 +13,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
+
+import java.util.Optional;
 
 @RestController
 public class CompanyProfileController {
@@ -70,6 +74,7 @@ public class CompanyProfileController {
             @RequestBody CompanyProfile companyProfile) {
         logger.info(String.format("Request received on PUT endpoint for company number %s",
                 companyNumber));
+
         companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -170,4 +175,34 @@ public class CompanyProfileController {
 
 
     }
+
+    /**
+     * Get the company details object for given company number.
+     *
+     * @param companyNumber The number of the company
+     * @return company details object
+     */
+    @GetMapping("/company/{company_number}/company-detail")
+    public ResponseEntity<CompanyDetails> getCompanyDetails(
+            @PathVariable("company_number") String companyNumber)
+            throws JsonProcessingException, ResourceNotFoundException {
+
+        logger.info(String.format("Received get request for company details"
+                + " for Company Number %s", companyNumber));
+
+        try {
+            Optional<CompanyDetails> companyDetails = companyProfileService
+                    .getCompanyDetails(companyNumber);
+            return companyDetails.map(details -> ResponseEntity.ok().body(details))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+        } catch (DataAccessException dataAccessException) {
+            logger.error("Error while trying to delete company details: "
+                    + dataAccessException.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+    }
+
+
 }
