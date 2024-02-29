@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
-import java.util.Optional;
+
 
 @RestController
 public class CompanyProfileController {

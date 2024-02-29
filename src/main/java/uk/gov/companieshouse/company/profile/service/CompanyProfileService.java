@@ -386,7 +386,8 @@ public class CompanyProfileService {
     }
 
     /** Get company details. */
-    public Optional<CompanyDetails> getCompanyDetails(String companyNumber) throws JsonProcessingException {
+    public Optional<CompanyDetails> getCompanyDetails(String companyNumber)
+            throws JsonProcessingException {
         try {
             Data companyProfile = retrieveCompanyNumber(companyNumber);
             CompanyDetails companyDetails = new CompanyDetails();
