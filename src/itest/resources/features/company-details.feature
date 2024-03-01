@@ -12,7 +12,7 @@ Feature: Process company details
       | companyNumber         | result                            |
       | 00006402              | 00006402-getCompanyDetail         |
 
-  Scenario Outline: Get Company Profile when sending get request without Eric headers
+  Scenario Outline: Get Company details when sending get request without Eric headers
 
     Given Company profile api service is running
     And a Company Profile exists for "<companyNumber>"
@@ -34,7 +34,7 @@ Feature: Process company details
       | 00006400       |
 
 
-  Scenario Outline: Getting company profile information while database is down
+  Scenario Outline: Getting company details information while database is down
 
     Given Company profile api service is running
     And the company profile database is down
