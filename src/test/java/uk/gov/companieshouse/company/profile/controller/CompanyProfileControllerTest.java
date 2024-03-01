@@ -156,7 +156,7 @@ class CompanyProfileControllerTest {
 
     @Test
     @DisplayName(
-            "Company Profile GET request returns a 404 Resource Not found response when no company profile found")
+            "Company Detail GET request returns a 404 Resource Not found response when no company profile found")
     void getCompanyDetailsNotFound() throws Exception {
         when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
@@ -179,7 +179,7 @@ class CompanyProfileControllerTest {
     }
 
     @Test()
-    @DisplayName("Company Profile GET request returns a 500 Internal Server Error")
+    @DisplayName("Company Detail GET request returns a 500 Internal Server Error")
     void getCompanyDetailsInternalServerError() throws Exception {
         when(companyProfileService.getCompanyDetails(any())).thenThrow(RuntimeException.class);
 
