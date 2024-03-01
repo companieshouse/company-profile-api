@@ -355,7 +355,6 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
-
     }
 
     public Data retrieveCompanyNumber(String companyNumber)
@@ -382,7 +381,6 @@ public class CompanyProfileService {
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                 companyNumber));
 
-
     }
 
     /** Get company details. */
@@ -399,9 +397,7 @@ public class CompanyProfileService {
             logger.error(resourceNotFoundException.getMessage());
             return Optional.empty();
         }
-
     }
-
 
     /** Set can_file based on company type and status. */
     public void determineCanFile(String companyNumber) {
@@ -424,8 +420,6 @@ public class CompanyProfileService {
             }
         } catch (Exception exception) {
             logger.error("Error determining can file status " + exception.getMessage());
-
         }
-
     }
 }

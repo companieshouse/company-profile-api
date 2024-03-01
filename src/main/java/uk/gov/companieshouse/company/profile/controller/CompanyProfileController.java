@@ -23,8 +23,6 @@ import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
-
-
 @RestController
 public class CompanyProfileController {
 
@@ -173,8 +171,6 @@ public class CompanyProfileController {
                     + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
-
-
     }
 
     /**
@@ -202,7 +198,6 @@ public class CompanyProfileController {
                     + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
-
     }
 
 

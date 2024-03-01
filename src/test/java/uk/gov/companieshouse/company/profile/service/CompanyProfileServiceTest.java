@@ -137,13 +137,11 @@ class CompanyProfileServiceTest {
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
-
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
         Optional<CompanyProfileDocument> companyProfileActual =
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
-
 
         assertThat(companyProfileActual).containsSame(mockCompanyProfileDocument);
         verify(logger, times(2)).trace(anyString());
@@ -165,13 +163,11 @@ class CompanyProfileServiceTest {
         mockCompanyDetails.setCompanyNumber(MOCK_COMPANY_NUMBER);
         Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
 
-
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
         Optional<CompanyDetails> companyDetailsActual =
                 companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
-
 
         assertEquals(mockCompanyDetailsOP,companyDetailsActual);
     }
