@@ -66,7 +66,7 @@ public class CompanyProfileController {
      * @param companyNumber  The company number of the company
      * @return ResponseEntity
      */
-    @PutMapping("/company/test/{company_number}")
+    @PutMapping("/company/{company_number}")
     public ResponseEntity<Void> processCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
@@ -138,7 +138,7 @@ public class CompanyProfileController {
      * @param companyNumber The number of the company
      * @return data object
      */
-    @GetMapping("/company/test/{company_number}")
+    @GetMapping("/company/{company_number}")
     public ResponseEntity<Data> searchCompanyProfile(
             @PathVariable("company_number") String companyNumber)
             throws JsonProcessingException, ResourceNotFoundException {
