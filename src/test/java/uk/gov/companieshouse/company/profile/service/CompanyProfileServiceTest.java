@@ -21,6 +21,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
@@ -41,9 +42,7 @@ import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -138,7 +137,6 @@ class CompanyProfileServiceTest {
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
-
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
@@ -147,6 +145,31 @@ class CompanyProfileServiceTest {
 
         assertThat(companyProfileActual).containsSame(mockCompanyProfileDocument);
         verify(logger, times(2)).trace(anyString());
+    }
+
+    @Test
+    @DisplayName("When company details is retrieved successfully then it is returned")
+    void getCompanyDetails() throws JsonProcessingException {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setCompanyName("String");
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("String");
+        CompanyDetails mockCompanyDetails = new CompanyDetails();
+        mockCompanyDetails.setCompanyStatus("String");
+        mockCompanyDetails.setCompanyName("String");
+        mockCompanyDetails.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
+
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
+
+        Optional<CompanyDetails> companyDetailsActual =
+                companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
+
+        assertEquals(mockCompanyDetailsOP,companyDetailsActual);
     }
 
     @Test
@@ -163,6 +186,18 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("When no company profile is retrieved then return empty optional")
+    void getNoCompanyDetailsReturned() throws JsonProcessingException {
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.empty());
+
+        Optional<CompanyDetails> companyDetailsActual =
+                companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
+
+        assertFalse(companyDetailsActual.isPresent());
+    }
+
+    @Test
     @DisplayName("When there's a connection issue while performing the GET request then throw a "
             + "service unavailable exception")
     void getConnectionIssueServiceUnavailable() {
@@ -172,6 +207,19 @@ class CompanyProfileServiceTest {
         Assert.assertThrows(ServiceUnavailableException.class,
                 () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
         verify(logger, times(1)).trace(anyString());
+    }
+
+    @Test
+    @DisplayName("When there's a connection issue while performing the GET request then throw a "
+            + "service unavailable exception")
+    void getCompanyDetailsConnectionIssueServiceUnavailable() {
+        when(companyProfileRepository.findById(anyString()))
+                .thenThrow(new ServiceUnavailableException("Service unavailable"));
+
+        Exception exception = assertThrows(ServiceUnavailableException.class,
+                () -> companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER));
+
+        assertEquals("Service unavailable", exception.getMessage());
     }
 
     @Test
@@ -1554,4 +1602,6 @@ class CompanyProfileServiceTest {
 
         assertEquals(companyData.getCanFile(), false);
     }
+
+
 }

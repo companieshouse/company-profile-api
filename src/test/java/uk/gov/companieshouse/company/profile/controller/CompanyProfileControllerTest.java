@@ -40,6 +40,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.exception.BadRequestException;
@@ -65,6 +66,7 @@ class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private final TestHelper testHelper = new TestHelper();
     private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
+    private static final String COMPANY_DETAILS_URL = String.format("/company/%s/company-detail", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
     private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
     private static final String OFFICERS_LINK_URL = String.format("/company/%s/links/officers", MOCK_COMPANY_NUMBER);
@@ -121,6 +123,25 @@ class CompanyProfileControllerTest {
     }
 
     @Test
+    @DisplayName("Retrieve a company details containing a given company number")
+    void getCompanyDetail() throws Exception {
+        CompanyDetails mockCompanyDetails = new CompanyDetails();
+        mockCompanyDetails.setCompanyStatus("String");
+        mockCompanyDetails.setCompanyName("String");
+        mockCompanyDetails.setCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
+
+        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyDetails));
+
+        mockMvc.perform(get(COMPANY_DETAILS_URL).header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyDetailsOP)))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
     @DisplayName(
             "Company Profile GET request returns a 404 Resource Not found response when no company profile found")
     void getCompanyProfileNotFound() throws Exception {
@@ -133,12 +154,36 @@ class CompanyProfileControllerTest {
                 .andExpect(content().string(""));
     }
 
+    @Test
+    @DisplayName(
+            "Company Detail GET request returns a 404 Resource Not found response when no company profile found")
+    void getCompanyDetailsNotFound() throws Exception {
+        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get(COMPANY_DETAILS_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(""));
+    }
+
     @Test()
     @DisplayName("Company Profile GET request returns a 500 Internal Server Error")
     void getCompanyProfileInternalServerError() throws Exception {
         when(companyProfileService.get(any())).thenThrow(RuntimeException.class);
 
         mockMvc.perform(get(COMPANY_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test()
+    @DisplayName("Company Detail GET request returns a 500 Internal Server Error")
+    void getCompanyDetailsInternalServerError() throws Exception {
+        when(companyProfileService.getCompanyDetails(any())).thenThrow(RuntimeException.class);
+
+        mockMvc.perform(get(COMPANY_DETAILS_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
                         .header("ERIC-Identity-Type", "key"))
                 .andExpect(status().isInternalServerError());
