@@ -315,7 +315,7 @@ public class CompanyProfileSteps {
 
     @When("I send GET request to retrieve Company Profile using company number {string}")
     public void i_send_get_request_to_retrieve_company_profile(String companyNumber) {
-        String uri = "/company/test/{company_number}";
+        String uri = "/company/{company_number}";
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ERIC-Identity", "SOME_IDENTITY");
@@ -334,7 +334,7 @@ public class CompanyProfileSteps {
 
     @When("I send GET request to retrieve Company Profile using company number {string} without setting Eric headers")
     public void i_send_get_request_to_retrieve_company_profile_without_eric_headers(String companyNumber) {
-        String uri = "/company/test/{company_number}";
+        String uri = "/company/{company_number}";
 
         HttpHeaders headers = new HttpHeaders();
 
@@ -380,7 +380,7 @@ public class CompanyProfileSteps {
         headers.set("Content-Type", "application/json");
 
         HttpEntity<?> request = new HttpEntity<>(data, headers);
-        String uri = "/company/test/{company_number}";
+        String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
