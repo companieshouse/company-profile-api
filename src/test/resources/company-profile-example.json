@@ -45,7 +45,7 @@
       "address_line_1": "84 Drayton Gardens"
     },
     "links": {
-      "self": "/company/test/00019993",
+      "self": "/company/00019993",
       "charges": "/company/00019993/charges",
       "officers": "/company/00019993/officers",
       "filing_history": "/company/00019993/filing-history"
