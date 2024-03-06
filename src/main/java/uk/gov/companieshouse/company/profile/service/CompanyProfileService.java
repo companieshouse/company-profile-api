@@ -1,9 +1,12 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+
+import net.bytebuddy.asm.Advice;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -361,6 +364,7 @@ public class CompanyProfileService {
             throws JsonProcessingException, ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
+        companyProfileDocument = determineOverdue(companyProfileDocument);
         return companyProfileDocument.getCompanyProfile();
     }
 
@@ -421,6 +425,29 @@ public class CompanyProfileService {
             logger.error("Error determining can file status " + exception.getMessage());
         }
 
+        companyProfileDocument.setCompanyProfile(companyProfile);
+        return companyProfileDocument;
+    }
+
+    /** Set overdue field based on next due confirmation statement, next accounts and annual return. */
+    public CompanyProfileDocument determineOverdue(CompanyProfileDocument companyProfileDocument) {
+        Data companyProfile = companyProfileDocument.getCompanyProfile();
+        try {
+            LocalDate confirmationStatementNextDue = companyProfile.getConfirmationStatement().getNextDue();
+            LocalDate nextAccountsDueOn = companyProfile.getAccounts().getNextDue();
+            LocalDate annualReturnNextDue = companyProfile.getAnnualReturn().getNextDue();
+            LocalDate currentDate = LocalDate.now();
+
+            if (confirmationStatementNextDue.isBefore(currentDate)
+                    || nextAccountsDueOn.isBefore(currentDate)
+                    || annualReturnNextDue.isBefore(currentDate)) {
+                companyProfile.getConfirmationStatement().setOverdue(true);
+            } else {
+                companyProfile.getConfirmationStatement().setOverdue(false);
+            }
+        } catch (Exception exception) {
+            logger.error("Error determining overdue status " + exception.getMessage());
+        }
         companyProfileDocument.setCompanyProfile(companyProfile);
         return companyProfileDocument;
     }
