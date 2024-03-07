@@ -10,6 +10,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
@@ -39,7 +40,8 @@ public class CompanyProfileApiService {
             throws ApiErrorResponseException {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
         String resourceHandler = internalApiClient.getInternalBasePath();
-        logger.trace(String.format("Created client %s", resourceHandler));
+        logger.traceContext(contextId, String.format("Created client %s", resourceHandler),
+                DataMapHolder.getLogMap());
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
@@ -47,17 +49,19 @@ public class CompanyProfileApiService {
 
         try {
             return changedResourcePost.execute();
-        } catch (ApiErrorResponseException exp) {
-            HttpStatus statusCode = HttpStatus.valueOf(exp.getStatusCode());
+        } catch (ApiErrorResponseException ex) {
+            HttpStatus statusCode = HttpStatus.valueOf(ex.getStatusCode());
             if (statusCode == HttpStatus.SERVICE_UNAVAILABLE) {
-                logger.error(String.format("Service unavailable while calling /resource-changed "
-                        + "with contextId %s and company number %s", contextId, companyNumber),
-                        exp);
-                throw new ServiceUnavailableException(exp.getMessage());
+                logger.errorContext(contextId, String.format("Service unavailable while "
+                        + "calling /resource-changed with company number %s", companyNumber),
+                        new ServiceUnavailableException(ex.getMessage()),
+                        DataMapHolder.getLogMap());
+                throw new ServiceUnavailableException(ex.getMessage());
             } else {
-                logger.error(String.format("Error occurred while calling /resource-changed with "
-                        + "contextId %s and company number %s", contextId, companyNumber), exp);
-                throw exp;
+                logger.errorContext(contextId, String.format("Error occurred while calling "
+                        + "/resource-changed with company number %s", companyNumber), ex,
+                        DataMapHolder.getLogMap());
+                throw ex;
             }
         }
     }
