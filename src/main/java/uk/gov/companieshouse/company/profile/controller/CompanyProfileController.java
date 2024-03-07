@@ -75,8 +75,8 @@ public class CompanyProfileController {
             @RequestBody CompanyProfile companyProfile) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Request received on PUT endpoint " +
-                        "for company number %s", companyNumber), DataMapHolder.getLogMap());
+        logger.infoContext(contextId, String.format("Request received on PUT endpoint "
+                        + "for company number %s", companyNumber), DataMapHolder.getLogMap());
 
         companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
         return ResponseEntity.status(HttpStatus.OK).build();
