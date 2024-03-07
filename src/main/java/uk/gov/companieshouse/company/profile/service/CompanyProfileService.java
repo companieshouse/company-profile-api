@@ -85,8 +85,8 @@ public class CompanyProfileService {
 
         companyProfileDocument.ifPresentOrElse(
                 companyProfile -> logger.trace(
-                        String.format("Successfully retrieved company profile with company " +
-                                "number %s", companyNumber), DataMapHolder.getLogMap()),
+                        String.format("Successfully retrieved company profile with company "
+                                + "number %s", companyNumber), DataMapHolder.getLogMap()),
                 () -> logger.trace(
                         String.format("No company profile with company number %s found",
                                 companyNumber), DataMapHolder.getLogMap())
@@ -143,8 +143,8 @@ public class CompanyProfileService {
                         + "in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
             } else {
-                logger.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked " +
-                        "successfully for company number %s. Response code %s.", companyNumber,
+                logger.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked "
+                        + "successfully for company number %s. Response code %s.", companyNumber,
                         statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
                         DataMapHolder.getLogMap());
             }
