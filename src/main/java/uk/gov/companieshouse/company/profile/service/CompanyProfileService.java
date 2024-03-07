@@ -407,7 +407,9 @@ public class CompanyProfileService {
             String companyType = companyProfile.getType();
             String companyStatus = companyProfile.getCompanyStatus();
 
-            if (companyType.equals("ltd")
+            if (companyType == null || companyStatus == null) {
+                companyProfile.setCanFile(false);
+            }   else if (companyType.equals("ltd")
                     || companyType.equals("llp")
                     || companyType.equals("plc")
                     || companyType.contains("private")) {
