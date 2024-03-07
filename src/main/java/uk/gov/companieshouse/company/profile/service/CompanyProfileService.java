@@ -29,6 +29,7 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
@@ -72,7 +73,7 @@ public class CompanyProfileService {
      */
     public Optional<CompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("Call to retrieve company profile with company number %s",
-                companyNumber));
+                companyNumber), DataMapHolder.getLogMap());
         Optional<CompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
@@ -84,11 +85,11 @@ public class CompanyProfileService {
 
         companyProfileDocument.ifPresentOrElse(
                 companyProfile -> logger.trace(
-                        String.format("Successfully retrieved company profile "
-                                + "with company number %s", companyNumber)),
+                        String.format("Successfully retrieved company profile with company " +
+                                "number %s", companyNumber), DataMapHolder.getLogMap()),
                 () -> logger.trace(
                         String.format("No company profile with company number %s found",
-                                companyNumber))
+                                companyNumber), DataMapHolder.getLogMap())
         );
         return companyProfileDocument;
     }
@@ -134,15 +135,18 @@ public class CompanyProfileService {
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
             if (statusCode.is2xxSuccessful()) {
-                logger.info(String.format("Chs-kafka-api CHANGED invoked successfully for "
-                        + "contextId %s and company number %s", contextId, companyNumber));
+                logger.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
+                        + "invoked successfully for company number %s", companyNumber),
+                        DataMapHolder.getLogMap());
                 updateSpecificFields(cpDocument);
-                logger.info(String.format("Company profile is updated in MongoDB with "
-                        + "contextId %s and company number %s", contextId, companyNumber));
+                logger.infoContext(contextId, String.format("Company profile is updated "
+                        + "in MongoDB with company number %s", companyNumber),
+                        DataMapHolder.getLogMap());
             } else {
-                logger.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for "
-                                + "contextId %s and company number %s. Response code %s.",
-                        contextId, companyNumber, statusCode.value()));
+                logger.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked " +
+                        "successfully for company number %s. Response code %s.", companyNumber,
+                        statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
+                        DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
@@ -150,66 +154,70 @@ public class CompanyProfileService {
     }
 
     private void addLink(LinkRequest linkRequest) {
+        String companyNumber = linkRequest.getCompanyNumber();
+        String contextId = linkRequest.getContextId();
+        String linkType = linkRequest.getLinkType();
         try {
-            Query query = new Query(Criteria.where("_id").is(linkRequest.getCompanyNumber()));
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update(
-                    String.format("data.links.%s", convertToDBformat(linkRequest.getLinkType())),
-                    String.format("/company/%s/%s", linkRequest.getCompanyNumber(),
-                            linkRequest.getLinkType()));
+                    String.format("data.links.%s", convertToDBformat(linkType)),
+                    String.format("/company/%s/%s", companyNumber, linkType));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
-                    .setBy(linkRequest.getContextId()));
+                    .setBy(contextId));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
-            logger.info(String.format("Company %s link inserted in Company Profile "
-                            + "with context id: %s and company number: %s",
-                    linkRequest.getLinkType(), linkRequest.getContextId(),
-                    linkRequest.getCompanyNumber()));
+            logger.infoContext(contextId, String.format("Company %s link inserted "
+                    + "in Company Profile with company number: %s", linkType, companyNumber),
+                    DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(),
-                    linkRequest.getCompanyNumber());
-            logger.info(String.format("chs-kafka-api CHANGED invoked successfully for context "
-                            + "id: %s and company number: %s", linkRequest.getContextId(),
-                    linkRequest.getCompanyNumber()));
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
+                    + "successfully for company number: %s", companyNumber),
+                    DataMapHolder.getLogMap());
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
-            logger.error("Error calling chs-kafka-api");
+            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
+                    DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB");
+            logger.errorContext(contextId, "Error accessing MongoDB", exception,
+                    DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
 
     private void deleteLink(LinkRequest linkRequest) {
+        String companyNumber = linkRequest.getCompanyNumber();
+        String contextId = linkRequest.getContextId();
+        String linkType = linkRequest.getLinkType();
         try {
             Update update = new Update();
-            update.unset(String.format("data.links.%s",
-                    convertToDBformat(linkRequest.getLinkType())));
+            update.unset(String.format("data.links.%s", convertToDBformat(linkType)));
             update.set("data.etag", GenerateEtagUtil.generateEtag());
             update.set("updated", new Updated()
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
-                    .setBy(linkRequest.getContextId()));
-            Query query = new Query(Criteria.where("_id").is(linkRequest.getCompanyNumber()));
+                    .setBy(contextId));
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
-            logger.info(String.format("Company %s link deleted in Company Profile "
-                            + "with context id: %s and company number: %s",
-                    linkRequest.getLinkType(), linkRequest.getContextId(),
-                    linkRequest.getCompanyNumber()));
+            logger.infoContext(contextId, String.format("Company %s link deleted "
+                    + "in Company Profile with company number: %s",
+                    linkType, companyNumber), DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(),
-                    linkRequest.getCompanyNumber());
-            logger.info(String.format("chs-kafka-api DELETED invoked successfully for context "
-                            + "id: %s and company number: %s", linkRequest.getContextId(),
-                    linkRequest.getCompanyNumber()));
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.infoContext(contextId, String.format("chs-kafka-api DELETED invoked "
+                    + "successfully for company number: %s", companyNumber),
+                    DataMapHolder.getLogMap());
         } catch (IllegalArgumentException | ApiErrorResponseException exception) {
-            logger.error("Error calling chs-kafka-api");
+            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
+                    DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB");
+            logger.errorContext(contextId, "Error accessing MongoDB", exception,
+                    DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
@@ -221,7 +229,7 @@ public class CompanyProfileService {
                             String.format("No company profile with company number %s found",
                                     companyNumber)));
         } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB");
+            logger.error("Error accessing MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
@@ -300,7 +308,8 @@ public class CompanyProfileService {
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (!StringUtils.isBlank(linkData)) {
-            logger.error(linkRequest.getLinkType() + " link for company profile already exists");
+            logger.error(linkRequest.getLinkType() + " link for company profile already exists",
+                    DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
@@ -324,7 +333,7 @@ public class CompanyProfileService {
 
         if (StringUtils.isBlank(linkData)) {
             logger.error(linkRequest.getLinkType() + " link for company profile already"
-                    + " does not exist");
+                    + " does not exist", DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already does not exist");
         } else {
@@ -349,8 +358,8 @@ public class CompanyProfileService {
 
         try {
             companyProfileRepository.save(companyProfileDocument);
-            logger.info(String.format("Company profile is updated in MongoDb for"
-                            + " context id: %s and company number: %s", contextId, companyNumber));
+            logger.infoContext(contextId, String.format("Company profile is updated in MongoDb for "
+                            + "company number: %s", companyNumber), DataMapHolder.getLogMap());
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
@@ -380,7 +389,7 @@ public class CompanyProfileService {
 
         companyProfileRepository.delete(companyProfileDocument);
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
-                companyNumber));
+                companyNumber), DataMapHolder.getLogMap());
 
     }
 
@@ -395,7 +404,7 @@ public class CompanyProfileService {
             companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
             return Optional.of(companyDetails);
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error(resourceNotFoundException.getMessage());
+            logger.error(resourceNotFoundException.getMessage(), DataMapHolder.getLogMap());
             return Optional.empty();
         }
     }
@@ -420,7 +429,8 @@ public class CompanyProfileService {
                 companyProfile.setCanFile(false);
             }
         } catch (Exception exception) {
-            logger.error("Error determining can file status " + exception.getMessage());
+            logger.error("Error determining can file status " + exception.getMessage(),
+                    DataMapHolder.getLogMap());
         }
 
         companyProfileDocument.setCompanyProfile(companyProfile);
