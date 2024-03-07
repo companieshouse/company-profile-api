@@ -19,7 +19,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
-import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -49,8 +49,10 @@ public class CompanyProfileController {
     @GetMapping("/company/{company_number}/links")
     public ResponseEntity<CompanyProfile> getCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
         logger.info(String.format("Request received on GET endpoint for company number %s",
-                companyNumber));
+                companyNumber), DataMapHolder.getLogMap());
         return companyProfileService.get(companyNumber)
                 .map(document ->
                         new ResponseEntity<>(
@@ -71,8 +73,10 @@ public class CompanyProfileController {
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile companyProfile) {
-        logger.info(String.format("Request received on PUT endpoint for company number %s",
-                companyNumber));
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
+        logger.infoContext(contextId, String.format("Request received on PUT endpoint " +
+                        "for company number %s", companyNumber), DataMapHolder.getLogMap());
 
         companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -90,26 +94,30 @@ public class CompanyProfileController {
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @Valid @RequestBody CompanyProfile requestBody) throws ApiErrorResponseException {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
+        logger.infoContext(contextId, String.format("Payload received on insolvency PATCH endpoint "
+                + "for company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     /**
-     * add a link on a company profile for the given company number.
+     * Add a link on a company profile for the given company number.
      *
      * @param companyNumber The number of the company
+     * @param linkType The type of link
      * @return no response
      */
-    @PatchMapping("/company/{company_number}/links/"
-            + "{link_type}")
+    @PatchMapping("/company/{company_number}/links/{link_type}")
     public ResponseEntity<Void> addLink(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
+        logger.infoContext(contextId, String.format("Payload received on PATCH endpoint "
+                + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -118,16 +126,18 @@ public class CompanyProfileController {
      * Delete a link on a company profile for the given company number.
      *
      * @param companyNumber The number of the company
+     * @param linkType The type of link
      * @return no response
      */
-    @PatchMapping("/company/{company_number}/links/"
-            + "{link_type}/delete")
+    @PatchMapping("/company/{company_number}/links/{link_type}/delete")
     public ResponseEntity<Void> deleteLink(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType) {
-        logger.info(String.format("Payload successfully received on PATCH endpoint "
-                + "with contextId %s and company number %s", contextId, companyNumber));
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
+        logger.infoContext(contextId, String.format("Payload received on DELETE endpoint "
+                + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -142,7 +152,10 @@ public class CompanyProfileController {
     public ResponseEntity<Data> searchCompanyProfile(
             @PathVariable("company_number") String companyNumber)
             throws JsonProcessingException, ResourceNotFoundException {
-        logger.info(String.format("Received get request for Company Number %s", companyNumber));
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
+        logger.info(String.format("Received get request for Company Number %s", companyNumber),
+                DataMapHolder.getLogMap());
         Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
@@ -156,19 +169,22 @@ public class CompanyProfileController {
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
             @PathVariable("company_number") String companyNumber) {
-        logger.info("Deleting company profile");
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
+        logger.info(String.format("Deleting company profile with company number %s", companyNumber),
+                DataMapHolder.getLogMap());
         try {
             companyProfileService.deleteCompanyProfile(companyNumber);
             logger.info("Successfully deleted company profile with company number: "
-                    + companyNumber);
+                    + companyNumber, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error("Error while trying to delete company profile: "
-                    + resourceNotFoundException.getMessage());
+            logger.error("Error while trying to delete company profile.",
+                    resourceNotFoundException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to delete company profile: "
-                    + dataAccessException.getMessage());
+            logger.error("Error while trying to delete company profile.",
+                    dataAccessException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
     }
@@ -183,10 +199,10 @@ public class CompanyProfileController {
     public ResponseEntity<CompanyDetails> getCompanyDetails(
             @PathVariable("company_number") String companyNumber)
             throws JsonProcessingException, ResourceNotFoundException {
-
+        DataMapHolder.get()
+                .companyNumber(companyNumber);
         logger.info(String.format("Received get request for company details"
-                + " for Company Number %s", companyNumber));
-
+                + " for Company Number %s", companyNumber), DataMapHolder.getLogMap());
         try {
             Optional<CompanyDetails> companyDetails = companyProfileService
                     .getCompanyDetails(companyNumber);
@@ -194,11 +210,10 @@ public class CompanyProfileController {
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to delete company details: "
-                    + dataAccessException.getMessage());
+            logger.error("Error while trying to get company details.", dataAccessException,
+                    DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
     }
-
 
 }
