@@ -429,17 +429,21 @@ public class CompanyProfileService {
         return companyProfileDocument;
     }
 
-    /** Set overdue field based on next due confirmation statement, next accounts and annual return. */
+    /** Set overdue field based on next due confirmation statement,
+     * next accounts, and annual return. */
     public CompanyProfileDocument determineOverdue(CompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
-            LocalDate confirmationStatementNextDue = companyProfile.getConfirmationStatement().getNextDue();
-            LocalDate nextAccountsDueOn = companyProfile.getAccounts().getNextDue();
+            LocalDate confirmationStatementNextDue = companyProfile
+                                                        .getConfirmationStatement().getNextDue();
+            LocalDate nextAccountsDueOn = companyProfile.getAccounts().getNextAccounts().getDueOn();
             LocalDate annualReturnNextDue = companyProfile.getAnnualReturn().getNextDue();
             LocalDate currentDate = LocalDate.now();
 
-            companyProfile.getConfirmationStatement().setOverdue(confirmationStatementNextDue.isBefore(currentDate));
-            companyProfile.getAccounts().getNextAccounts().setOverdue(nextAccountsDueOn.isBefore(currentDate));
+            companyProfile.getConfirmationStatement()
+                    .setOverdue(confirmationStatementNextDue.isBefore(currentDate));
+            companyProfile.getAccounts()
+                    .getNextAccounts().setOverdue(nextAccountsDueOn.isBefore(currentDate));
             companyProfile.getAnnualReturn().setOverdue(annualReturnNextDue.isBefore(currentDate));
         } catch (Exception exception) {
             logger.error("Error determining overdue status " + exception.getMessage());

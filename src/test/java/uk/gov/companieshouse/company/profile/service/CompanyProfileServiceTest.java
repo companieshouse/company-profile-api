@@ -97,6 +97,18 @@ class CompanyProfileServiceTest {
     private LinkRequest linkRequest;
 
     @Mock
+    ConfirmationStatement confirmationStatement;
+
+    @Mock
+    AnnualReturn annualReturn;
+
+    @Mock
+    Accounts accounts;
+
+    @Mock
+    NextAccounts nextAccounts;
+
+    @Mock
     private LinkRequestFactory linkRequestFactory;
 
     @Mock
@@ -1599,6 +1611,28 @@ class CompanyProfileServiceTest {
         companyProfileService.determineCanFile(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), false);
+    }
+
+    @Test
+    @DisplayName(("Overdue set to false when next due after current date"))
+    void testDetermineOverdueFalse() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setConfirmationStatement(confirmationStatement);
+        companyData.setAnnualReturn(annualReturn);
+        companyData.setAccounts(accounts);
+        when(accounts.getNextAccounts()).thenReturn(nextAccounts);
+        when(nextAccounts.getDueOn()).thenReturn(LocalDate.of(2050, 1, 1));
+        when(confirmationStatement.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
+        when(annualReturn.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(confirmationStatement.getOverdue(), false);
+        assertEquals(nextAccounts.getOverdue(), false);
+        assertEquals(annualReturn.getOverdue(), false);
     }
 
     @Test
