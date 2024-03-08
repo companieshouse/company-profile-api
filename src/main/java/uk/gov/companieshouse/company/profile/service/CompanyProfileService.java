@@ -438,13 +438,9 @@ public class CompanyProfileService {
             LocalDate annualReturnNextDue = companyProfile.getAnnualReturn().getNextDue();
             LocalDate currentDate = LocalDate.now();
 
-            if (confirmationStatementNextDue.isBefore(currentDate)
-                    || nextAccountsDueOn.isBefore(currentDate)
-                    || annualReturnNextDue.isBefore(currentDate)) {
-                companyProfile.getConfirmationStatement().setOverdue(true);
-            } else {
-                companyProfile.getConfirmationStatement().setOverdue(false);
-            }
+            companyProfile.getConfirmationStatement().setOverdue(confirmationStatementNextDue.isBefore(currentDate));
+            companyProfile.getAccounts().getNextAccounts().setOverdue(nextAccountsDueOn.isBefore(currentDate));
+            companyProfile.getAnnualReturn().setOverdue(annualReturnNextDue.isBefore(currentDate));
         } catch (Exception exception) {
             logger.error("Error determining overdue status " + exception.getMessage());
         }
