@@ -1614,6 +1614,21 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("Can file set to false when company type is null")
+    void testDetermineCanFileCompanyTypeNull() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setCompanyStatus("active");
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineCanFile(companyProfileDocument);
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(companyData.getCanFile(), false);
+    }
+
+    @Test
     @DisplayName(("Overdue set to false when next due fields are after current date"))
     void testDetermineOverdueFalse() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
