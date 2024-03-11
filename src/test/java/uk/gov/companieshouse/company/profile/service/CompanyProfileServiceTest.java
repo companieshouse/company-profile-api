@@ -154,7 +154,7 @@ class CompanyProfileServiceTest {
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertThat(companyProfileActual).containsSame(mockCompanyProfileDocument);
-        verify(logger, times(2)).trace(anyString());
+        verify(logger, times(2)).trace(anyString(), any());
     }
 
     @Test
@@ -192,7 +192,7 @@ class CompanyProfileServiceTest {
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertTrue(companyProfileActual.isEmpty());
-        verify(logger, times(2)).trace(anyString());
+        verify(logger, times(2)).trace(anyString(), any());
     }
 
     @Test
@@ -216,7 +216,7 @@ class CompanyProfileServiceTest {
 
         Assert.assertThrows(ServiceUnavailableException.class,
                 () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
-        verify(logger, times(1)).trace(anyString());
+        verify(logger, times(1)).trace(anyString(), any());
     }
 
     @Test
@@ -241,7 +241,7 @@ class CompanyProfileServiceTest {
 
         Assert.assertThrows(BadRequestException.class,
                 () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
-        verify(logger, times(1)).trace(anyString());
+        verify(logger, times(1)).trace(anyString(), any());
     }
 
     @Test
