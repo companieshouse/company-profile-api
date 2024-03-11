@@ -453,7 +453,7 @@ public class CompanyProfileService {
                         .setOverdue(annualReturnNextDue.isBefore(currentDate));
             }
         } catch (NullPointerException nullPointerException) {
-            logger.error("Null");
+            logger.info("Overdue field not populated");
         } catch (Exception exception) {
             logger.error("Error determining overdue status " + exception.getMessage());
         }
