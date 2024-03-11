@@ -1614,7 +1614,7 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName(("Overdue set to false when next due after current date"))
+    @DisplayName(("Overdue set to false when next due fields are after current date"))
     void testDetermineOverdueFalse() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setConfirmationStatement(confirmationStatement);
@@ -1636,7 +1636,7 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("Overdue set to true when next due is before current date")
+    @DisplayName("Overdue set to true when next due fields are before current date")
     void testDetermineOverdueTrue() {
         CompanyProfileDocument companyProfileDocument = COMPANY_PROFILE_DOCUMENT;
 
@@ -1647,4 +1647,25 @@ class CompanyProfileServiceTest {
         assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue(), true);
     }
 
+    @Test
+    @DisplayName("Overdue not set when next due fields are null")
+    void testDetermineOverDueNull() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setConfirmationStatement(confirmationStatement);
+        companyData.setAnnualReturn(annualReturn);
+        companyData.setAccounts(accounts);
+        when(accounts.getNextAccounts()).thenReturn(nextAccounts);
+        when(nextAccounts.getDueOn()).thenReturn(null);
+        when(confirmationStatement.getNextDue()).thenReturn(null);
+        when(annualReturn.getNextDue()).thenReturn(null);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(confirmationStatement.getOverdue(), false);
+        assertEquals(nextAccounts.getOverdue(), false);
+        assertEquals(annualReturn.getOverdue(), false);
+    }
 }
