@@ -4,8 +4,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static javax.management.Query.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,10 +39,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -73,7 +78,7 @@ public class CompanyProfileSteps {
     private MongoTemplate mongoTemplate;
 
     @MockBean
-    private CompanyProfileService companyProfileService;
+    private CompanyProfileService companyProfileService = mock(CompanyProfileService.class);
 
     @Before
     public void dbCleanUp() {
@@ -83,6 +88,7 @@ public class CompanyProfileSteps {
             mongoDBContainer.start();
         }
         companyProfileRepository.deleteAll();
+
     }
 
     @Given("the CHS Kafka API is reachable")
@@ -315,7 +321,7 @@ public class CompanyProfileSteps {
 
     @When("I send GET request to retrieve Company Profile using company number {string}")
     public void i_send_get_request_to_retrieve_company_profile(String companyNumber) {
-        String uri = "/company/test/{company_number}";
+        String uri = "/company/{company_number}";
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ERIC-Identity", "SOME_IDENTITY");
@@ -363,8 +369,10 @@ public class CompanyProfileSteps {
     }
 
     @When("I send a PUT request with payload {string} file for company number {string}")
-    public void i_send_company_profile_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
-        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
+    public void i_send_company_profile_put_request_with_payload(
+            String dataFile, String companyNumber) throws IOException {
+        String data = FileCopyUtils.copyToString(new InputStreamReader(
+                new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -380,7 +388,7 @@ public class CompanyProfileSteps {
         headers.set("Content-Type", "application/json");
 
         HttpEntity<?> request = new HttpEntity<>(data, headers);
-        String uri = "/company/test/{company_number}";
+        String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -494,5 +502,75 @@ public class CompanyProfileSteps {
         assertThat(actual.getCompanyName()).isEqualTo(expected.getCompanyName());
         assertThat(actual.getCompanyNumber()).isEqualTo(expected.getCompanyNumber());
         assertThat(actual.getCompanyStatus()).isEqualTo(expected.getCompanyStatus());
+    }
+
+    @When("a DELETE request is sent to the company profile endpoint for {string} with insufficient access")
+    public void aDELETERequestIsSentToTheCompanyProfileEndpointForWithInsufficientAccess(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "basic-role");
+        headers.add("api-key", "g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Authorised-Key-Privileges", "");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("I send GET request to retrieve Company Profile using company number {string} with insufficient access")
+    public void iSendGETRequestToRetrieveCompanyProfileUsingCompanyNumberWithInsufficientAccess(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "basic-role");
+        headers.add("ERIC-Authorised-Key-Privileges", "");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        ResponseEntity<Data> response = restTemplate.exchange(
+                "/company/{company_number}", HttpMethod.GET, request, Data.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("I send a PUT request with payload {string} file for company number {string} with insufficient access")
+    public void iSendAPUTRequestWithPayloadFileForCompanyNumberWithInsufficientAccess(String companyNumber, String dataFile) throws IOException {
+        String data = FileCopyUtils.copyToString(
+                new InputStreamReader(new FileInputStream(
+                        "src/itest/resources/json/input/" + dataFile + ".json")));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "basic-role");
+        headers.add("ERIC-Authorised-Key-Privileges", "");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<?> request = new HttpEntity<>(data, headers);
+        String uri = "/company/{company_number}";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
 }
