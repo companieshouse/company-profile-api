@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -370,6 +371,7 @@ public class CompanyProfileService {
             throws JsonProcessingException, ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
+        companyProfileDocument = determineOverdue(companyProfileDocument);
         return companyProfileDocument.getCompanyProfile();
     }
 
@@ -433,6 +435,38 @@ public class CompanyProfileService {
                     DataMapHolder.getLogMap());
         }
 
+        companyProfileDocument.setCompanyProfile(companyProfile);
+        return companyProfileDocument;
+    }
+
+    /** Set overdue field based on next due confirmation statement,
+     * next accounts, and annual return. */
+    public CompanyProfileDocument determineOverdue(CompanyProfileDocument companyProfileDocument) {
+        Data companyProfile = companyProfileDocument.getCompanyProfile();
+        try {
+            LocalDate confirmationStatementNextDue = companyProfile
+                                                        .getConfirmationStatement().getNextDue();
+            LocalDate nextAccountsDueOn = companyProfile.getAccounts().getNextAccounts().getDueOn();
+            LocalDate annualReturnNextDue = companyProfile.getAnnualReturn().getNextDue();
+            LocalDate currentDate = LocalDate.now();
+
+            if (confirmationStatementNextDue != null) {
+                companyProfile.getConfirmationStatement()
+                        .setOverdue(confirmationStatementNextDue.isBefore(currentDate));
+            }
+            if (nextAccountsDueOn != null) {
+                companyProfile.getAccounts()
+                        .getNextAccounts().setOverdue(nextAccountsDueOn.isBefore(currentDate));
+            }
+            if (annualReturnNextDue != null) {
+                companyProfile.getAnnualReturn()
+                        .setOverdue(annualReturnNextDue.isBefore(currentDate));
+            }
+        } catch (NullPointerException nullPointerException) {
+            logger.info("Overdue field not populated");
+        } catch (Exception exception) {
+            logger.error("Error determining overdue status " + exception.getMessage());
+        }
         companyProfileDocument.setCompanyProfile(companyProfile);
         return companyProfileDocument;
     }

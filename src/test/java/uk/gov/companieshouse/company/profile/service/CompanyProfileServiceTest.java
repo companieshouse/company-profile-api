@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -21,10 +22,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import uk.gov.companieshouse.api.company.CompanyDetails;
-import uk.gov.companieshouse.api.company.CompanyProfile;
-import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.*;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -97,6 +95,18 @@ class CompanyProfileServiceTest {
 
     @Mock
     private LinkRequest linkRequest;
+
+    @Mock
+    ConfirmationStatement confirmationStatement;
+
+    @Mock
+    AnnualReturn annualReturn;
+
+    @Mock
+    Accounts accounts;
+
+    @Mock
+    NextAccounts nextAccounts;
 
     @Mock
     private LinkRequestFactory linkRequestFactory;
@@ -1616,4 +1626,59 @@ class CompanyProfileServiceTest {
         assertEquals(companyData.getCanFile(), false);
     }
 
+    @Test
+    @DisplayName(("Overdue set to false when next due fields are after current date"))
+    void testDetermineOverdueFalse() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setConfirmationStatement(confirmationStatement);
+        companyData.setAnnualReturn(annualReturn);
+        companyData.setAccounts(accounts);
+        when(accounts.getNextAccounts()).thenReturn(nextAccounts);
+        when(nextAccounts.getDueOn()).thenReturn(LocalDate.of(2050, 1, 1));
+        when(confirmationStatement.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
+        when(annualReturn.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(confirmationStatement.getOverdue(), false);
+        assertEquals(nextAccounts.getOverdue(), false);
+        assertEquals(annualReturn.getOverdue(), false);
+    }
+
+    @Test
+    @DisplayName("Overdue set to true when next due fields are before current date")
+    void testDetermineOverdueTrue() {
+        CompanyProfileDocument companyProfileDocument = COMPANY_PROFILE_DOCUMENT;
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getConfirmationStatement().getOverdue(), true);
+        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAccounts().getNextAccounts().getOverdue(), true);
+        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue(), true);
+    }
+
+    @Test
+    @DisplayName("Overdue not set when next due fields are null")
+    void testDetermineOverDueNull() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setConfirmationStatement(confirmationStatement);
+        companyData.setAnnualReturn(annualReturn);
+        companyData.setAccounts(accounts);
+        when(accounts.getNextAccounts()).thenReturn(nextAccounts);
+        when(nextAccounts.getDueOn()).thenReturn(null);
+        when(confirmationStatement.getNextDue()).thenReturn(null);
+        when(annualReturn.getNextDue()).thenReturn(null);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(confirmationStatement.getOverdue(), false);
+        assertEquals(nextAccounts.getOverdue(), false);
+        assertEquals(annualReturn.getOverdue(), false);
+    }
 }

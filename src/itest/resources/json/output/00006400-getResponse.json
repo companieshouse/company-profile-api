@@ -7,7 +7,7 @@
       "next_accounts": null,
       "next_due": null,
       "next_made_up_to": null,
-      "overdue": null
+      "overdue": true
     },
     "annual_return": null,
     "branch_company_details": null,
