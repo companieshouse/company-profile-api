@@ -1618,12 +1618,10 @@ class CompanyProfileServiceTest {
     void testDetermineCanFileCompanyTypeNull() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
-
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
-        companyProfileService.determineOverdue(companyProfileDocument);
 
         assertEquals(companyData.getCanFile(), false);
     }
