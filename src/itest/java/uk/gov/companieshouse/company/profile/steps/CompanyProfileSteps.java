@@ -538,7 +538,7 @@ public class CompanyProfileSteps {
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
-        headers.set("ERIC-Authorised-Key-Roles", "basic-role");
+        headers.set("ERIC-Authorised-Key-Roles", "");
         headers.add("ERIC-Authorised-Key-Privileges", "");
         headers.set("Content-Type", "application/json");
 
