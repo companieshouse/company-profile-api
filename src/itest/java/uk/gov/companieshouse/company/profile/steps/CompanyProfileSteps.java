@@ -340,7 +340,7 @@ public class CompanyProfileSteps {
 
     @When("I send GET request to retrieve Company Profile using company number {string} without setting Eric headers")
     public void i_send_get_request_to_retrieve_company_profile_without_eric_headers(String companyNumber) {
-        String uri = "/company/test/{company_number}";
+        String uri = "/company/{company_number}";
 
         HttpHeaders headers = new HttpHeaders();
 
