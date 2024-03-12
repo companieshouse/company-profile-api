@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -53,12 +54,17 @@ public class CompanyProfileController {
                 .companyNumber(companyNumber);
         logger.info(String.format("Request received on GET endpoint for company number %s",
                 companyNumber), DataMapHolder.getLogMap());
-        return companyProfileService.get(companyNumber)
-                .map(document ->
-                        new ResponseEntity<>(
-                                new CompanyProfile().data(document.companyProfile),
-                                HttpStatus.OK))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        try {
+            return companyProfileService.get(companyNumber)
+                    .map(document ->
+                            new ResponseEntity<>(
+                                    new CompanyProfile().data(document.companyProfile),
+                                    HttpStatus.OK))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        } catch (HttpClientErrorException.Forbidden forbidden) {
+            logger.info("Forbidden request");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     /**
@@ -76,10 +82,18 @@ public class CompanyProfileController {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.infoContext(contextId, String.format("Request received on PUT endpoint "
-                        + "for company number %s", companyNumber), DataMapHolder.getLogMap());
-
-        companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
-        return ResponseEntity.status(HttpStatus.OK).build();
+                + "for company number %s", companyNumber), DataMapHolder.getLogMap());
+        try {
+            companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (HttpClientErrorException.Forbidden forbidden) {
+            logger.info("Forbidden request");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (DataAccessException dataAccessException) {
+            logger.error("Error while trying to delete company details: "
+                    + dataAccessException.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
     }
 
     /**
@@ -156,8 +170,21 @@ public class CompanyProfileController {
                 .companyNumber(companyNumber);
         logger.info(String.format("Received get request for Company Number %s", companyNumber),
                 DataMapHolder.getLogMap());
-        Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
-        return new ResponseEntity<>(data, HttpStatus.OK);
+        try {
+            Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (HttpClientErrorException.Forbidden forbidden) {
+            logger.info("Forbidden request");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (ResourceNotFoundException resourceNotFoundException) {
+            logger.error("Error while trying to delete company profile: "
+                    + resourceNotFoundException.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (DataAccessException dataAccessException) {
+            logger.error("Error while trying to delete company profile: "
+                    + dataAccessException.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
     }
 
     /**
@@ -186,6 +213,9 @@ public class CompanyProfileController {
             logger.error("Error while trying to delete company profile.",
                     dataAccessException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        } catch (HttpClientErrorException.Forbidden forbidden) {
+            logger.info("Forbidden request");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 

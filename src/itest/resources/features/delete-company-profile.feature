@@ -21,6 +21,15 @@ Feature: Delete company profile
       | company_number |
       | 00006400       |
 
+
+  Scenario Outline: Delete company profile unsuccessfully - forbidden request
+    When a DELETE request is sent to the company profile endpoint for "<company_number>" with insufficient access
+    Then the response code should be 403
+
+    Examples:
+      | company_number |
+      | 00006400       |
+
   Scenario Outline: Delete company profile unsuccessfully - company profile resource does not exist
     Given a company profile resource does not exist for "<company_number>"
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
