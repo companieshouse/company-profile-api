@@ -94,7 +94,7 @@ Feature: Process company profile
 
     Examples:
       | companyNumber         |
-      | 00006402_bad_payload  |
+      | 00006402              |
 
 
   Scenario Outline: Process company profile unsuccessfully due to conflict

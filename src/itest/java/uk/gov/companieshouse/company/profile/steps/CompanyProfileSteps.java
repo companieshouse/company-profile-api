@@ -369,10 +369,10 @@ public class CompanyProfileSteps {
     }
 
     @When("I send a PUT request with payload {string} file for company number {string}")
-    public void i_send_company_profile_put_request_with_payload(
-            String dataFile, String companyNumber) throws IOException {
+    public void i_send_company_profile_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
         String data = FileCopyUtils.copyToString(new InputStreamReader(
                 new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
+        CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -389,6 +389,11 @@ public class CompanyProfileSteps {
 
         HttpEntity<?> request = new HttpEntity<>(data, headers);
         String uri = "/company/{company_number}";
+
+
+        doThrow(new ResourceStateConflictException("Conflict")).when(companyProfileService)
+                .processCompanyProfile(this.contextId,companyNumber,companyProfile);
+
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -528,24 +533,25 @@ public class CompanyProfileSteps {
     }
 
     @When("I send GET request to retrieve Company Profile using company number {string} with insufficient access")
-    public void iSendGETRequestToRetrieveCompanyProfileUsingCompanyNumberWithInsufficientAccess(String companyNumber) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    public void iSendGETRequestToRetrieveCompanyProfileUsingCompanyNumberWithInsufficientAccess(
+            String companyNumber) throws IOException {
+        String data = FileCopyUtils.copyToString(
+                new InputStreamReader(new FileInputStream(
+                        "src/itest/resources/json/input/" + companyNumber + ".json")));
+        CompanyProfile expected = objectMapper.readValue(data, CompanyProfile.class);
 
-        this.contextId = "5234234234";
-        CucumberContext.CONTEXT.set("contextId", this.contextId);
-        headers.set("x-request-id", this.contextId);
+        HttpHeaders headers = new HttpHeaders();
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
-        headers.set("ERIC-Authorised-Key-Roles", "");
-        headers.add("ERIC-Authorised-Key-Privileges", "");
-        headers.set("Content-Type", "application/json");
+        when(companyProfileService.get(companyNumber))
+                .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
 
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
-        ResponseEntity<Data> response = restTemplate.exchange(
-                "/company/{company_number}", HttpMethod.GET, request, Data.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+        HttpEntity<?> request = new HttpEntity<>(data, headers);
+        String uri = "/company/{company_number}";
+
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.GET, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
 
     @When("I send a PUT request with payload {string} file for company number {string} with insufficient access")

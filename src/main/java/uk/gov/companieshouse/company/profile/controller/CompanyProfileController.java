@@ -1,8 +1,10 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.dockerjava.api.exception.ConflictException;
 import java.util.Optional;
 import javax.validation.Valid;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -90,9 +92,13 @@ public class CompanyProfileController {
             logger.info("Forbidden request");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to delete company details: "
+            logger.error("Error while trying to process company details: "
                     + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        } catch (ConflictException conflictException) {
+            logger.error("Error while trying to process company details: "
+                    + conflictException.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
@@ -177,11 +183,11 @@ public class CompanyProfileController {
             logger.info("Forbidden request");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error("Error while trying to delete company profile: "
+            logger.error("Error while trying to get company profile: "
                     + resourceNotFoundException.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to delete company profile: "
+            logger.error("Error while trying to get company profile: "
                     + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }

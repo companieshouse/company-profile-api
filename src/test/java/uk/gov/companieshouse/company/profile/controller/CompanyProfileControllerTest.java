@@ -949,8 +949,6 @@ class CompanyProfileControllerTest {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
-
         doThrow(HttpClientErrorException.Forbidden.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
