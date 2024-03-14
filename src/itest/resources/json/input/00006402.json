@@ -51,6 +51,7 @@
     "sic_codes": [
       "72110"
     ],
-    "type": "ltd"
+    "type": "ltd",
+    "super_secure_managing_officer_count": "1"
   }
 }
