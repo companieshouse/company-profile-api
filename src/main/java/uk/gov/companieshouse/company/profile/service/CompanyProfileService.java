@@ -372,6 +372,12 @@ public class CompanyProfileService {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
+
+        //SuperSecureManagingOfficerCount should not be returned on a Get request
+        if (companyProfileDocument.getCompanyProfile() != null) {
+            companyProfileDocument.getCompanyProfile().setSuperSecureManagingOfficerCount(null);
+        }
+
         return companyProfileDocument.getCompanyProfile();
     }
 
