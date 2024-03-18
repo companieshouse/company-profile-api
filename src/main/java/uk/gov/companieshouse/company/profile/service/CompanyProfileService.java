@@ -16,10 +16,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
+import uk.gov.companieshouse.api.company.Accounts;
+import uk.gov.companieshouse.api.company.AnnualReturn;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.ConfirmationStatement;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.NextAccounts;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
@@ -450,26 +454,30 @@ public class CompanyProfileService {
     public CompanyProfileDocument determineOverdue(CompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
-            LocalDate confirmationStatementNextDue = companyProfile
-                                                        .getConfirmationStatement().getNextDue();
-            LocalDate nextAccountsDueOn = companyProfile.getAccounts().getNextAccounts().getDueOn();
-            LocalDate annualReturnNextDue = companyProfile.getAnnualReturn().getNextDue();
             LocalDate currentDate = LocalDate.now();
 
-            if (confirmationStatementNextDue != null) {
-                companyProfile.getConfirmationStatement()
-                        .setOverdue(confirmationStatementNextDue.isBefore(currentDate));
-            }
-            if (nextAccountsDueOn != null) {
-                companyProfile.getAccounts()
-                        .getNextAccounts().setOverdue(nextAccountsDueOn.isBefore(currentDate));
-            }
-            if (annualReturnNextDue != null) {
-                companyProfile.getAnnualReturn()
-                        .setOverdue(annualReturnNextDue.isBefore(currentDate));
-            }
-        } catch (NullPointerException nullPointerException) {
-            logger.info("Overdue field not populated");
+
+            Optional.ofNullable(companyProfile.getConfirmationStatement())
+                    .map(ConfirmationStatement::getNextDue)
+                    .ifPresent(nextDue -> {
+                        companyProfile.getConfirmationStatement()
+                            .setOverdue(nextDue.isBefore(currentDate));
+                    });
+
+            Optional.ofNullable(companyProfile.getAccounts())
+                    .map(Accounts::getNextAccounts)
+                    .map(NextAccounts::getDueOn)
+                    .ifPresent(nextDue -> {
+                        companyProfile.getAccounts().getNextAccounts()
+                                .setOverdue(nextDue.isBefore(currentDate));
+                    });
+
+            Optional.ofNullable(companyProfile.getAnnualReturn())
+                    .map(AnnualReturn::getNextDue)
+                    .ifPresent(nextDue -> {
+                        companyProfile.getAnnualReturn()
+                                .setOverdue(nextDue.isBefore(currentDate));
+                    });
         } catch (Exception exception) {
             logger.error("Error determining overdue status " + exception.getMessage());
         }
