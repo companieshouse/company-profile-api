@@ -1,11 +1,11 @@
 Feature: Delete company profile
 
   Scenario Outline: Delete company profile successfully
-    Given  the CHS Kafka API is reachable
+    Given the CHS Kafka API is reachable
     And the company profile resource "<data_file>" exists for "<company_number>"
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
-    And  the company profile does not exist for "<company_number>"
-    Then the response code should be 200
+    And the company profile does not exist for "<company_number>"
+    Then I should receive 200 status code
 
 
     Examples:

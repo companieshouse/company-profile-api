@@ -1,6 +1,9 @@
 package uk.gov.companieshouse.company.profile.api;
 
 import java.time.OffsetDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
@@ -10,12 +13,17 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
 public class CompanyProfileApiService {
 
+    @Value("${chs.kafka.api.url}")
+    private String chsKafkaApiUrl;
+    @Value("${chs.kafka.api.uri}")
+    private String resourceChangedUri;
     private static final String CHANGED_EVENT_TYPE = "changed";
     private static final String CHANGED_RESOURCE_URI = "/resource-changed";
     private final Logger logger;
@@ -63,6 +71,36 @@ public class CompanyProfileApiService {
                         DataMapHolder.getLogMap());
                 throw ex;
             }
+        }
+    }
+
+    /**
+     * Invoke chs-kafka api with delete event.
+     *
+     * @param companyNumber company insolvency number
+     * @param contextId context ID
+     * @return response returned from chs-kafka api
+     */
+    public ApiResponse<Void> invokeChsKafkaApiWithDeleteEvent(String contextId,
+                                                              String companyNumber) {
+        InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
+        internalApiClient.setBasePath(chsKafkaApiUrl);
+        PrivateChangedResourcePost privateChangedResourcePost = internalApiClient
+                .privateChangedResourceHandler()
+                .postChangedResource(resourceChangedUri,
+                        mapChangedResource(companyNumber, contextId));
+        return handleApiCall(privateChangedResourcePost);
+    }
+
+    private ApiResponse<Void> handleApiCall(PrivateChangedResourcePost privateChangedResourcePost) {
+        try {
+            return privateChangedResourcePost.execute();
+        } catch (ApiErrorResponseException exception) {
+            logger.error("Unsuccessful call to /resource-changed endpoint", exception);
+            throw new ServiceUnavailableException(exception.getMessage());
+        } catch (RuntimeException exception) {
+            logger.error("Error occurred while calling /resource-changed endpoint", exception);
+            throw exception;
         }
     }
 
