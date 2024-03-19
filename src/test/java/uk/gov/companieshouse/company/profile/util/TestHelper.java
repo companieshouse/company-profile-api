@@ -42,6 +42,7 @@ public class TestHelper {
 
     public Links createExistingLinks() {
         Links existingLinks = new Links();
+        existingLinks.setInsolvency("/company/00010001/insolvency");
         existingLinks.setCharges("/company/00010001/charges");
         return existingLinks;
     }
