@@ -1681,4 +1681,19 @@ class CompanyProfileServiceTest {
         assertEquals(nextAccounts.getOverdue(), false);
         assertEquals(annualReturn.getOverdue(), false);
     }
+
+    @Test
+    @DisplayName("Overdue not set when all fields are null")
+    void testDetermineOverDueAllNull() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(confirmationStatement.getOverdue(), false);
+        assertEquals(nextAccounts.getOverdue(), false);
+        assertEquals(annualReturn.getOverdue(), false);
+    }
 }
