@@ -51,7 +51,7 @@ public class CompanyProfileTransformer {
         Links links = new Links();
         if (companyProfile.getData().getLinks() != null) {
             // Iterating through each link in the Links class and calling the getter and setter
-            for (Field linkField : Links.class.getDeclaredFields()){
+            for (Field linkField : Links.class.getDeclaredFields()) {
                 String upperCamelCaseField = linkField.getName().substring(0, 1).toUpperCase()
                         + linkField.getName().substring(1);
                 String getMethodName = "get" + upperCamelCaseField;
@@ -61,7 +61,7 @@ public class CompanyProfileTransformer {
                     Method setMethod = Links.class.getMethod(setMethodName, String.class);
 
                     String newLink = (String) getMethod.invoke(companyProfile.getData().getLinks());
-                    if (newLink != null){
+                    if (newLink != null) {
                         setMethod.invoke(links, newLink);
                     } else {
                         if (existinglinks != null) {
