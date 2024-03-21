@@ -84,10 +84,9 @@ public class CompanyProfileApiService {
     public ApiResponse<Void> invokeChsKafkaApiWithDeleteEvent(String contextId,
                                                               String companyNumber) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
-        internalApiClient.setBasePath(chsKafkaApiUrl);
         PrivateChangedResourcePost privateChangedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
-                .postChangedResource(resourceChangedUri,
+                .postChangedResource(CHANGED_RESOURCE_URI,
                         mapChangedResource(companyNumber, contextId));
         return handleApiCall(privateChangedResourcePost);
     }
