@@ -46,7 +46,21 @@ Feature: Delete company profile
     And the company profile database is down
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
     Then the response code should be 503
+    And the CHS Kafka API is not invoked
 
     Examples:
       | company_number |
       | 00006400       |
+
+
+  Scenario Outline: Delete psc statement when kafka-api is not available
+    Given Company profile api service is running
+    And the company profile resource "<data_file>" exists for "<company_number>"
+    And CHS Kafka API service is unavailable
+    When a DELETE request is sent to the company profile endpoint for "<company_number>"
+    Then the response code should be 503
+    And the CHS Kafka API is not invoked
+
+    Examples:
+      | data_file               | company_number |
+      | with_links_resource     | 00006400       |
