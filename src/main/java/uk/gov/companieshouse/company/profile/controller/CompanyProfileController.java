@@ -150,7 +150,7 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on DELETE endpoint "
+        logger.infoContext(contextId, String.format("Payload received on the DELETE links endpoint "
                 + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
