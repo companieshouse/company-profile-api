@@ -130,7 +130,7 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on PATCH endpoint "
+        logger.infoContext(contextId, String.format("Payload received for the PATCH links endpoint "
                 + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
         return ResponseEntity.status(HttpStatus.OK).build();
