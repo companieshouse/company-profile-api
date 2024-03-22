@@ -198,7 +198,7 @@ public class CompanyProfileSteps {
         verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/resource-changed")));
     }
 
-    @When("CHS Kafka API service is unavailable")
+    @When("CHS kafka API service is unavailable")
     public void chs_kafka_service_unavailable() {
         WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
     }
