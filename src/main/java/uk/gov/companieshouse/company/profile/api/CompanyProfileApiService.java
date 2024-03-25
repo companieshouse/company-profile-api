@@ -20,10 +20,6 @@ import uk.gov.companieshouse.logging.Logger;
 @Service
 public class CompanyProfileApiService {
 
-    @Value("${chs.kafka.api.url}")
-    private String chsKafkaApiUrl;
-    @Value("${chs.kafka.api.uri}")
-    private String resourceChangedUri;
     private static final String CHANGED_EVENT_TYPE = "changed";
     private static final String CHANGED_RESOURCE_URI = "/resource-changed";
     private final Logger logger;

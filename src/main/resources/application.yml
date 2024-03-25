@@ -17,8 +17,6 @@ chs:
     api:
       endpoint: ${CHS_KAFKA_API_URL:localhost}
       key: ${CHS_API_KEY:chsApiKey}
-      url: ${CHS_KAFKA_API_URL:localhost}
-      uri: ${COMPANY_PROFILE_API_RESOURCE_CHANGED_URI:/private/resource-changed}
 
 mongodb:
   company-profile:
