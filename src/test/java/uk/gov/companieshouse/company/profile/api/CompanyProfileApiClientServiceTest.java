@@ -68,6 +68,24 @@ class CompanyProfileApiClientServiceTest {
         verify(changedResourcePost, times(1)).execute();
     }
 
+    @Test
+    void should_invoke_delete_chs_kafka_endpoint_successfully() throws ApiErrorResponseException {
+
+        when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
+        when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(privateChangedResourceHandler.postChangedResource(Mockito.any(), Mockito.any())).thenReturn(changedResourcePost);
+        when(changedResourcePost.execute()).thenReturn(response);
+
+        ApiResponse<Void> apiResponse = companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("123456", "CH4000056");
+
+        Assertions.assertThat(apiResponse).isNotNull();
+
+        verify(apiClientService, times(1)).getInternalApiClient();
+        verify(internalApiClient, times(1)).privateChangedResourceHandler();
+        verify(privateChangedResourceHandler, times(1)).postChangedResource(Mockito.any(), Mockito.any());
+        verify(changedResourcePost, times(1)).execute();
+    }
+
     @ParameterizedTest
     @MethodSource("provideExceptionParameters")
     void should_handle_exception_when_chs_kafka_endpoint_throws_appropriate_exception(int statusCode, String statusMessage, Class<Throwable> exception) throws ApiErrorResponseException {
@@ -84,6 +102,30 @@ class CompanyProfileApiClientServiceTest {
         Assert.assertThrows(exception,
                 () -> companyProfileApiService.invokeChsKafkaApi
                         ("3245435", "CH4000056"));
+
+        verify(apiClientService, times(1)).getInternalApiClient();
+        verify(internalApiClient, times(1)).privateChangedResourceHandler();
+        verify(privateChangedResourceHandler, times(1)).postChangedResource(Mockito.any(),
+                Mockito.any());
+        verify(changedResourcePost, times(1)).execute();
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideExceptionParameters")
+    void should_handle_exception_when_chs_kafka_delete_endpoint_throws_appropriate_exception(int statusCode, String statusMessage, Class<Throwable> exception) throws ApiErrorResponseException {
+        HttpResponseException.Builder builder =
+                new HttpResponseException.Builder(statusCode, statusMessage, new HttpHeaders());
+        ApiErrorResponseException apiErrorResponseException =
+                new ApiErrorResponseException(builder);
+
+        when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
+        when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(privateChangedResourceHandler.postChangedResource(Mockito.any(), Mockito.any())).thenReturn(changedResourcePost);
+        when(changedResourcePost.execute()).thenThrow(apiErrorResponseException);
+
+        Assert.assertThrows(ServiceUnavailableException.class,
+                () -> companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(
+                        "3245435", "CH4000056"));
 
         verify(apiClientService, times(1)).getInternalApiClient();
         verify(internalApiClient, times(1)).privateChangedResourceHandler();
