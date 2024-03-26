@@ -1545,7 +1545,7 @@ class CompanyProfileServiceTest {
     @DisplayName("When company number is provided delete company profile")
     public void testDeleteCompanyProfile() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
@@ -1557,7 +1557,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+            companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
         });
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
@@ -1765,4 +1765,18 @@ class CompanyProfileServiceTest {
 
 
 
+    @Test
+    @DisplayName("Overdue not set when all fields are null")
+    void testDetermineOverDueAllNull() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setCompanyProfile(companyData);
+
+        companyProfileService.determineOverdue(companyProfileDocument);
+
+        assertEquals(confirmationStatement.getOverdue(), false);
+        assertEquals(nextAccounts.getOverdue(), false);
+        assertEquals(annualReturn.getOverdue(), false);
+    }
 }

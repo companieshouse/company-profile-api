@@ -130,7 +130,7 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on PATCH endpoint "
+        logger.infoContext(contextId, String.format("Payload received for the PATCH links endpoint "
                 + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -150,7 +150,7 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on DELETE endpoint "
+        logger.infoContext(contextId, String.format("Payload received on the DELETE links endpoint "
                 + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -195,13 +195,14 @@ public class CompanyProfileController {
      */
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
+            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.info(String.format("Deleting company profile with company number %s", companyNumber),
                 DataMapHolder.getLogMap());
         try {
-            companyProfileService.deleteCompanyProfile(companyNumber);
+            companyProfileService.deleteCompanyProfile(contextId, companyNumber);
             logger.info("Successfully deleted company profile with company number: "
                     + companyNumber, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.OK).build();

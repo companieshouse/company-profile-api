@@ -6,4 +6,3 @@ routes:
    2: ^/company/(.*)/links.*
    3: ^/company/(.*)/company-detail
    4: ^/company/(.){8}$
-

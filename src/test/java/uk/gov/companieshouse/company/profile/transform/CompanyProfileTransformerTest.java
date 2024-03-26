@@ -7,6 +7,8 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
+import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.StructuredLogger;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -15,17 +17,19 @@ import java.time.format.DateTimeFormatter;
 
 public class CompanyProfileTransformerTest {
 
+    Logger logger = new StructuredLogger("CompanyProfileTransformerTest");
+
     private CompanyProfileTransformer transformer;
-
     private CompanyProfile COMPANY_PROFILE;
-
     private CompanyProfile COMPANY_PROFILE_WITHOUT_LINKS;
-
     private Links EXISTING_LINKS;
+    private final String NEW_CHARGES_LINK = "/company/00019993/charges";
+    private final String EXISTING_CHARGES_LINK = "/company/00010001/charges";
+    private final String EXISTING_INSOLVENCY_LINK = "/company/00010001/insolvency";
 
     @BeforeEach
     public void setUp() throws IOException {
-        transformer = new CompanyProfileTransformer();
+        transformer = new CompanyProfileTransformer(logger);
         TestHelper testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         EXISTING_LINKS = testHelper.createExistingLinks();
@@ -45,6 +49,9 @@ public class CompanyProfileTransformerTest {
         Assertions.assertEquals(COMPANY_PROFILE.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNotNull(document.getCompanyProfile().getLinks());
         Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks(), document.getCompanyProfile().getLinks());
+        Assertions.assertEquals(NEW_CHARGES_LINK, document.getCompanyProfile().getLinks().getCharges());
+        Assertions.assertNull(document.getCompanyProfile().getLinks().getInsolvency());
+
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
         Assertions.assertEquals(COMPANY_PROFILE.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
@@ -61,6 +68,9 @@ public class CompanyProfileTransformerTest {
         Assertions.assertEquals(COMPANY_PROFILE.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNotNull(document.getCompanyProfile().getLinks());
         Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks(), document.getCompanyProfile().getLinks());
+        Assertions.assertEquals(NEW_CHARGES_LINK, document.getCompanyProfile().getLinks().getCharges());
+        Assertions.assertEquals(EXISTING_INSOLVENCY_LINK, document.getCompanyProfile().getLinks().getInsolvency());
+
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
         Assertions.assertEquals(COMPANY_PROFILE.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
@@ -77,6 +87,9 @@ public class CompanyProfileTransformerTest {
         Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNotNull(document.getCompanyProfile().getLinks());
         Assertions.assertEquals(EXISTING_LINKS, document.getCompanyProfile().getLinks());
+        Assertions.assertEquals(EXISTING_CHARGES_LINK, document.getCompanyProfile().getLinks().getCharges());
+        Assertions.assertEquals(EXISTING_INSOLVENCY_LINK, document.getCompanyProfile().getLinks().getInsolvency());
+
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
     }
@@ -93,6 +106,7 @@ public class CompanyProfileTransformerTest {
                 .ofPattern("yyyyMMddHHmmssSSSSSS")));
         Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNull(document.getCompanyProfile().getLinks());
+
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
     }

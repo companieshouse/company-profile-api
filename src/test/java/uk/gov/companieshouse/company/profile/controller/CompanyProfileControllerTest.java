@@ -1010,17 +1010,17 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Return 401 when no api key is present")
     void deleteCompanyProfileWhenNoApiKeyPresent() throws Exception {
-        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL).header("x-request-id", "123456")).andExpect(status().isUnauthorized());
 
         verify(companyProfileService
-                , times(0)).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+                , times(0)).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
     }
 
 
     @Test
     @DisplayName("Return 200 and delete company profile")
     void deleteCompanyProfile() throws Exception {
-        doNothing().when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        doNothing().when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -1030,7 +1030,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
 
-        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1038,7 +1038,7 @@ class CompanyProfileControllerTest {
     void deleteCompanyProfileForbiddenRequest() throws Exception {
 
         doThrow(HttpClientErrorException.Forbidden.class)
-                .when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+                .when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -1048,14 +1048,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isForbidden());
 
-        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Return 404 when no company profile is found")
     void deleteCompanyProfileNotFound() throws Exception {
 
-        doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -1065,13 +1065,13 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
 
-        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Return 503 when service is unavailable")
     void deleteCompanyProfileWhenServiceIsUnavailable() throws Exception {
-        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", "SOME_IDENTITY")
@@ -1081,7 +1081,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
 
-        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
     }
 
 }
