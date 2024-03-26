@@ -20,6 +20,7 @@ import uk.gov.companieshouse.logging.Logger;
 @Service
 public class CompanyProfileApiService {
 
+    private static final String DELETE_EVENT_TYPE = "delete";
     private static final String CHANGED_EVENT_TYPE = "changed";
     private static final String CHANGED_RESOURCE_URI = "/resource-changed";
     private final Logger logger;
@@ -49,7 +50,9 @@ public class CompanyProfileApiService {
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
-                        CHANGED_RESOURCE_URI, mapChangedResource(contextId, companyNumber));
+                        CHANGED_RESOURCE_URI, mapChangedResource(contextId,
+                                companyNumber,
+                                CHANGED_EVENT_TYPE));
 
         try {
             return changedResourcePost.execute();
@@ -83,7 +86,7 @@ public class CompanyProfileApiService {
         PrivateChangedResourcePost privateChangedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,
-                        mapChangedResource(companyNumber, contextId));
+                        mapChangedResource(companyNumber, contextId, DELETE_EVENT_TYPE));
         return handleApiCall(privateChangedResourcePost);
     }
 
@@ -99,11 +102,13 @@ public class CompanyProfileApiService {
         }
     }
 
-    private ChangedResource mapChangedResource(String contextId, String companyNumber) {
+    private ChangedResource mapChangedResource(String contextId,
+                                               String companyNumber,
+                                               String eventType) {
         String resourceUri = "/company/" + companyNumber;
 
         ChangedResourceEvent event = new ChangedResourceEvent();
-        event.setType(CHANGED_EVENT_TYPE);
+        event.setType(eventType);
         event.publishedAt(String.valueOf(OffsetDateTime.now()));
 
         ChangedResource changedResource = new ChangedResource();
