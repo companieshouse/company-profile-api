@@ -396,10 +396,13 @@ public class CompanyProfileService {
 
     /** Delete company profile. */
     @Transactional
-    public void deleteCompanyProfile(String companyNumber) throws ResourceNotFoundException {
+    public void deleteCompanyProfile(String contextId,
+                                     String companyNumber) throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
 
         companyProfileRepository.delete(companyProfileDocument);
+        companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber);
+
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                 companyNumber), DataMapHolder.getLogMap());
 

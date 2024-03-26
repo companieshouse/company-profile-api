@@ -77,8 +77,8 @@ public class CompanyProfileSteps {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @MockBean
-    private CompanyProfileService companyProfileService = mock(CompanyProfileService.class);
+    @Autowired
+    private CompanyProfileService companyProfileService;
 
     @Before
     public void dbCleanUp() {

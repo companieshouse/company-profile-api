@@ -1,11 +1,11 @@
 Feature: Delete company profile
 
   Scenario Outline: Delete company profile successfully
-    Given  the CHS Kafka API is reachable
+    Given the CHS Kafka API is reachable
     And the company profile resource "<data_file>" exists for "<company_number>"
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
-    And  the company profile does not exist for "<company_number>"
-    Then the response code should be 200
+    And the company profile does not exist for "<company_number>"
+    Then I should receive 200 status code
 
 
     Examples:
@@ -45,8 +45,22 @@ Feature: Delete company profile
     And a company profile resource does not exist for "<company_number>"
     And the company profile database is down
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
-    Then the response code should be 503
+    Then I should receive 503 status code
+    And the CHS Kafka API is not invoked
 
     Examples:
       | company_number |
       | 00006400       |
+
+
+  Scenario Outline: Delete psc statement unsuccessfully when kafka-api is not available
+    Given Company profile api service is running
+    And the company profile resource "<data_file>" exists for "<company_number>"
+    And CHS kafka API service is unavailable
+    When a DELETE request is sent to the company profile endpoint for "<company_number>"
+    Then I should receive 503 status code
+    And a company profile exists with id "<company_number>"
+
+    Examples:
+      | data_file               | company_number |
+      | with_links_resource     | 00006400       |

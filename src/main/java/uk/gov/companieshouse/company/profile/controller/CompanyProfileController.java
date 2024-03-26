@@ -195,13 +195,14 @@ public class CompanyProfileController {
      */
     @DeleteMapping("/company/{company_number}")
     public ResponseEntity<Void> deleteCompanyProfile(
+            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.info(String.format("Deleting company profile with company number %s", companyNumber),
                 DataMapHolder.getLogMap());
         try {
-            companyProfileService.deleteCompanyProfile(companyNumber);
+            companyProfileService.deleteCompanyProfile(contextId, companyNumber);
             logger.info("Successfully deleted company profile with company number: "
                     + companyNumber, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.OK).build();

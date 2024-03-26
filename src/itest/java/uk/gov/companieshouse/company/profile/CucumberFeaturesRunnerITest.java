@@ -4,6 +4,7 @@ import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.junit.runner.RunWith;
+import org.springframework.test.context.TestPropertySource;
 import uk.gov.companieshouse.company.profile.configuration.AbstractIntegrationTest;
 
 @RunWith(Cucumber.class)
@@ -11,5 +12,6 @@ import uk.gov.companieshouse.company.profile.configuration.AbstractIntegrationTe
         features = "src/itest/resources/features",
         plugin = {"pretty", "json:target/cucumber-report.json"})
 @CucumberContextConfiguration
+@TestPropertySource(properties = {"mongodb.transactional = true"})
 public class CucumberFeaturesRunnerITest extends AbstractIntegrationTest {
 }
