@@ -28,6 +28,10 @@
         "overdue" : true
       }
     },
+    "branch_company_details" : {
+      "parent_company_number" : "00006402",
+      "parent_company_name" : "RENABLE PHARMA LTD"
+    },
     "type" : "private-limited-shares-section-30-exemption",
     "jurisdiction" : "england-wales",
     "undeliverable_registered_office_address" : false,

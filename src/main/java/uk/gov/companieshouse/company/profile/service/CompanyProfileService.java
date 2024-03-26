@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_TYPE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,7 +39,6 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
-
 
 @Service
 public class CompanyProfileService {
@@ -353,6 +355,26 @@ public class CompanyProfileService {
         Optional<Links> existingLinks = existingProfile
                 .map(CompanyProfileDocument::getCompanyProfile)
                 .map(Data::getLinks);
+
+
+        if (companyProfile.getData().getBranchCompanyDetails() != null) {
+            String parentCompanyNumber = companyProfile.getData()
+                    .getBranchCompanyDetails().getParentCompanyNumber();
+
+            if (parentCompanyNumber != null) {
+
+                LinkRequest ukEstablishmentLinkRequest =
+                        new LinkRequest(contextId, parentCompanyNumber,
+                        UK_ESTABLISHMENTS_TYPE,
+                        UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+
+                checkForAddLink(ukEstablishmentLinkRequest);
+            } else {
+                logger.error("Could not find parent company number");
+                throw new ResourceNotFoundException(HttpStatus
+                        .NOT_FOUND,"Parent company number not found");
+            }
+        }
 
         CompanyProfileDocument companyProfileDocument = companyProfileTransformer
                 .transform(companyProfile, companyNumber, existingLinks.orElse(null));
