@@ -46,6 +46,14 @@ public class LocalDateDeSerializerTest {
     }
 
     @Test
+    void deserializeWith1digitMillisecondsTimestamp() throws JsonParseException, IOException{
+        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.3Z\"}}";
+
+        LocalDate returnedDate = deserialize(jsonTestString);
+        assertEquals(LocalDate.of(2023,1,9), returnedDate);
+    }
+
+    @Test
     void longStringReturnsLong() throws JsonParseException, IOException{
        String jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
 

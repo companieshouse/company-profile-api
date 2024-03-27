@@ -13,7 +13,8 @@
     "next_accounts": {
       "due_on": "2022-09-30",
       "period_end_on": "2021-12-31",
-      "period_start_on": "2021-01-01"
+      "period_start_on": "2021-01-01",
+      "overdue": true
     },
     "next_due": "2022-09-30",
     "next_made_up_to": "2021-12-31"
@@ -25,7 +26,8 @@
   "confirmation_statement": {
     "last_made_up_to": "2021-03-04",
     "next_due": "2022-03-18",
-    "next_made_up_to": "2022-03-04"
+    "next_made_up_to": "2022-03-04",
+    "overdue": true
   },
   "date_of_creation": "2015-03-04",
   "etag": "5a3c51b439584d98d420143d6a22996571646302",

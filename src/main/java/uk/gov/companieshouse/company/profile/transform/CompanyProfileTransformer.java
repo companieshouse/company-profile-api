@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.company.profile.transform;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.annotation.Nullable;
@@ -9,12 +11,16 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.logging.Logger;
 
 @Component
 public class CompanyProfileTransformer {
 
+    private final Logger logger;
+
     @Autowired
-    CompanyProfileTransformer() {
+    CompanyProfileTransformer(Logger logger) {
+        this.logger = logger;
     }
 
     /**
@@ -26,13 +32,7 @@ public class CompanyProfileTransformer {
         companyProfileDocument.setId(companyNumber);
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
 
-        Links links;
-        if (companyProfile.getData().getLinks() != null) {
-            links = companyProfile.getData().getLinks();
-        } else {
-            links = existinglinks;
-        }
-        companyProfileDocument.getCompanyProfile().setLinks(links);
+        transformLinks(companyProfile, existinglinks, companyProfileDocument);
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
         if (companyProfile.getDeltaAt() != null) {
@@ -44,5 +44,38 @@ public class CompanyProfileTransformer {
         }
         companyProfileDocument.setUpdated(new Updated().setAt(LocalDateTime.now()));
         return companyProfileDocument;
+    }
+
+    private void transformLinks(CompanyProfile companyProfile, Links existinglinks,
+                                CompanyProfileDocument companyProfileDocument) {
+        Links links = new Links();
+        if (companyProfile.getData().getLinks() != null) {
+            // Iterating through each link in the Links class and calling the getter and setter
+            for (Field linkField : Links.class.getDeclaredFields()) {
+                String upperCamelCaseField = linkField.getName().substring(0, 1).toUpperCase()
+                        + linkField.getName().substring(1);
+                String getMethodName = "get" + upperCamelCaseField;
+                String setMethodName = "set" + upperCamelCaseField;
+                try {
+                    Method getMethod = Links.class.getMethod(getMethodName);
+                    Method setMethod = Links.class.getMethod(setMethodName, String.class);
+
+                    String newLink = (String) getMethod.invoke(companyProfile.getData().getLinks());
+                    if (newLink != null) {
+                        setMethod.invoke(links, newLink);
+                    } else {
+                        if (existinglinks != null) {
+                            String existingLink = (String) getMethod.invoke(existinglinks);
+                            setMethod.invoke(links, existingLink);
+                        }
+                    }
+                } catch (Exception ex) {
+                    logger.error("Error with links reflection: " + ex.getMessage());
+                }
+            }
+        } else {
+            links = existinglinks;
+        }
+        companyProfileDocument.getCompanyProfile().setLinks(links);
     }
 }
