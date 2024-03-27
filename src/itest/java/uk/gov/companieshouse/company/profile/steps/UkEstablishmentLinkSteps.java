@@ -25,7 +25,7 @@ public class UkEstablishmentLinkSteps {
 
     private String contextId;
     private static final String ADD_PUT_ENDPOINT = "/company/00006400";
-    private static final String UK_ESTABLISHMENTS_LINK = "/company/00006400/uk-establishments";
+    private static final String UK_ESTABLISHMENTS_LINK = "/company/00006401/uk-establishments";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -66,8 +66,9 @@ public class UkEstablishmentLinkSteps {
     @And("the uk-establishment link does exist for {string}")
     public void theUkEstablishmentLinkDoesExistFor(String parentCompanyNumber) {
         Optional<CompanyProfileDocument> document = companyProfileRepository.findById(parentCompanyNumber);
-        document.get().getCompanyProfile().getLinks().setUkEstablishments(UK_ESTABLISHMENTS_LINK);
+
         assertThat(document).isPresent();
-        assertThat(document.get().getCompanyProfile().getLinks().getExemptions()).isNotNull();
+        System.out.println(document.get().getCompanyProfile().getLinks());
+        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo("link");
     }
 }

@@ -11,8 +11,8 @@ Feature: Add uk-establishments link to company profile
     And the uk-establishment link exists for "<parent_company_number>"
 
     Examples:
-      | data_file                  | company_number | parent_company_number |
-      | without_links_resource     | 00006400       | 00006401              |
+      | company_number | parent_company_number |
+      | 00006400       | 00006401              |
 
 
   Scenario Outline: Add uk-establishments link unsuccessfully
@@ -22,9 +22,9 @@ Feature: Add uk-establishments link to company profile
     And the company profile resource "<parent_company_number>" exists for "<parent_company_number>"
     And the uk-establishment link does exist for "<parent_company_number>"
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
-    Then the response code should be 200
+    Then the response code should be 409
     And the uk-establishment link exists for "<parent_company_number>"
 
     Examples:
-      | data_file                  | company_number | parent_company_number |
-      | without_links_resource     | 00006400       | 00006401              |
+      | company_number | parent_company_number |
+      | 00006400       | 00006402              |
