@@ -182,7 +182,7 @@ public class CompanyProfileService {
             logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
                     + "successfully for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
-        } catch (IllegalArgumentException | ApiErrorResponseException exception) {
+        } catch (IllegalArgumentException exception) {
             logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
@@ -216,7 +216,7 @@ public class CompanyProfileService {
             logger.infoContext(contextId, String.format("chs-kafka-api DELETED invoked "
                     + "successfully for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
-        } catch (IllegalArgumentException | ApiErrorResponseException exception) {
+        } catch (IllegalArgumentException exception) {
             logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
@@ -399,9 +399,11 @@ public class CompanyProfileService {
     public void deleteCompanyProfile(String contextId,
                                      String companyNumber) throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
+        Data companyProfile = companyProfileDocument.getCompanyProfile();
 
         companyProfileRepository.delete(companyProfileDocument);
-        companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber);
+        companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
+                companyProfile);
 
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                 companyNumber), DataMapHolder.getLogMap());

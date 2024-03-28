@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.InternalApiClient;
+import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.handler.chskafka.PrivateChangedResourceHandler;
@@ -76,7 +77,7 @@ class CompanyProfileApiClientServiceTest {
         when(privateChangedResourceHandler.postChangedResource(Mockito.any(), Mockito.any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
 
-        ApiResponse<Void> apiResponse = companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("123456", "CH4000056");
+        ApiResponse<Void> apiResponse = companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("123456", "CH4000056", new Data());
 
         Assertions.assertThat(apiResponse).isNotNull();
 
@@ -88,7 +89,7 @@ class CompanyProfileApiClientServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideExceptionParameters")
-    void should_handle_exception_when_chs_kafka_endpoint_throws_appropriate_exception(int statusCode, String statusMessage, Class<Throwable> exception) throws ApiErrorResponseException {
+    void should_handle_exception_when_chs_kafka_endpoint_throws_appropriate_exception(int statusCode, String statusMessage) throws ApiErrorResponseException {
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(Mockito.any(), Mockito.any())).thenReturn(changedResourcePost);
@@ -99,7 +100,7 @@ class CompanyProfileApiClientServiceTest {
                 new ApiErrorResponseException(builder);
         when(changedResourcePost.execute()).thenThrow(apiErrorResponseException);
 
-        Assert.assertThrows(exception,
+        Assert.assertThrows(ServiceUnavailableException.class,
                 () -> companyProfileApiService.invokeChsKafkaApi
                         ("3245435", "CH4000056"));
 
@@ -112,7 +113,7 @@ class CompanyProfileApiClientServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideExceptionParameters")
-    void should_handle_exception_when_chs_kafka_delete_endpoint_throws_appropriate_exception(int statusCode, String statusMessage, Class<Throwable> exception) throws ApiErrorResponseException {
+    void should_handle_exception_when_chs_kafka_delete_endpoint_throws_appropriate_exception(int statusCode, String statusMessage) throws ApiErrorResponseException {
         HttpResponseException.Builder builder =
                 new HttpResponseException.Builder(statusCode, statusMessage, new HttpHeaders());
         ApiErrorResponseException apiErrorResponseException =
@@ -125,7 +126,7 @@ class CompanyProfileApiClientServiceTest {
 
         Assert.assertThrows(ServiceUnavailableException.class,
                 () -> companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(
-                        "3245435", "CH4000056"));
+                        "3245435", "CH4000056", new Data()));
 
         verify(apiClientService, times(1)).getInternalApiClient();
         verify(internalApiClient, times(1)).privateChangedResourceHandler();
