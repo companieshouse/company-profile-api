@@ -90,7 +90,7 @@ public class CompanyProfileController {
             logger.info("Forbidden request");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to delete company details: "
+            logger.error("Error while trying to update company details: "
                     + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
