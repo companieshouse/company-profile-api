@@ -66,6 +66,8 @@ class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
 
+    private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
+
     @Mock
     CompanyProfileRepository companyProfileRepository;
 
@@ -121,11 +123,15 @@ class CompanyProfileServiceTest {
 
     private static CompanyProfile COMPANY_PROFILE;
 
+    private static CompanyProfile COMPANY_PROFILE_WITHOUT_LINKS;
+
     private static CompanyProfileDocument COMPANY_PROFILE_DOCUMENT;
 
     private static Links EXISTING_LINKS;
 
     private static CompanyProfileDocument EXISTING_COMPANY_PROFILE_DOCUMENT;
+
+    private static CompanyProfileDocument EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT;
 
     @BeforeAll
     static void setUp() throws IOException {
@@ -134,6 +140,8 @@ class CompanyProfileServiceTest {
         COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
         EXISTING_LINKS = testHelper.createExistingLinks();
         EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
+        COMPANY_PROFILE_WITHOUT_LINKS = testHelper.createCompanyProfileWithoutLinks();
     }
 
     @Test
@@ -1474,6 +1482,8 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Put company profile")
     void putCompanyProfileSuccessfully() throws IOException {
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, null))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
@@ -1490,6 +1500,10 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Put company profile with existing links")
     void putCompanyProfileWithExistingLinksSuccessfully() throws IOException {
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
+                .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
@@ -1681,6 +1695,73 @@ class CompanyProfileServiceTest {
         assertEquals(nextAccounts.getOverdue(), false);
         assertEquals(annualReturn.getOverdue(), false);
     }
+
+
+    @Test
+    @DisplayName("Add new uk establishments links successfully")
+    void addNewUkEstablishmentsLinkSuccessfully() throws IOException {
+        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+
+        companyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
+        companyProfileDocument.getCompanyProfile().setCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+
+        BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
+        branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        CompanyProfile companyProfile = COMPANY_PROFILE;
+        companyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfile);
+
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Add new uk establishments links unsuccessfully and throw 409")
+    void addNewUkEstablishmentsLinkUnsuccessfully() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+
+        BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
+        branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        COMPANY_PROFILE.getData().setBranchCompanyDetails(branchCompanyDetails);
+
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments("/company/3210/uk-establishment");
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, COMPANY_PROFILE);
+
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+
+    @Test
+    @DisplayName("Add new uk establishments links unsuccessfully and throw 503")
+    void addNewUkEstablishmentsLinkUnsuccessfullyAndThrow503() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
+
+        assertThrows(ServiceUnavailableException.class, () -> {
+            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                    COMPANY_PROFILE);
+        });
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+    @Test
+    @DisplayName("Add new uk establishments links unsuccessfully and throw 404")
+    void addNewUkEstablishmentsLinkUnsuccessfullyAndThrow404() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                    COMPANY_PROFILE);
+        });
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+
 
     @Test
     @DisplayName("Overdue not set when all fields are null")
