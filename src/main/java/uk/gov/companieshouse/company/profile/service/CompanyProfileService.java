@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
+import uk.gov.companieshouse.api.company.BranchCompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.ConfirmationStatement;
@@ -360,7 +361,21 @@ public class CompanyProfileService {
                 .map(CompanyProfileDocument::getCompanyProfile)
                 .map(Data::getLinks);
 
+        Optional.ofNullable(companyProfile.getData()).map(Data::getBranchCompanyDetails)
+                .map(BranchCompanyDetails::getParentCompanyNumber)
+                .ifPresent(parentCompanyNumber -> {
+                    LinkRequest ukEstablishmentLinkRequest =
+                            new LinkRequest(contextId, parentCompanyNumber,
+                                    UK_ESTABLISHMENTS_TYPE,
+                                    UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+                    try {
+                        checkForAddLink(ukEstablishmentLinkRequest);
+                    } catch (ResourceStateConflictException resourceStateConflictException) {
+                        logger.info("Parent company link already exists");
+                    }
+                });
 
+        /*
         if (companyProfile.getData().getBranchCompanyDetails() != null) {
             String parentCompanyNumber = companyProfile.getData()
                     .getBranchCompanyDetails().getParentCompanyNumber();
@@ -372,13 +387,21 @@ public class CompanyProfileService {
                         UK_ESTABLISHMENTS_TYPE,
                         UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
 
-                checkForAddLink(ukEstablishmentLinkRequest);
+                Optional<CompanyProfileDocument> companyProfileDocument
+                        = companyProfileRepository.findById(parentCompanyNumber);
+                Optional<String> link = Optional.ofNullable(companyProfileDocument.get()
+                        .getCompanyProfile().getLinks().getUkEstablishments());
+
+                if(link.isEmpty()) {
+                    addLink(ukEstablishmentLinkRequest);
+                }
             } else {
                 logger.error("Could not find parent company number");
                 throw new ResourceNotFoundException(HttpStatus
                         .NOT_FOUND,"Parent company number not found");
             }
         }
+*/
 
         CompanyProfileDocument companyProfileDocument = companyProfileTransformer
                 .transform(companyProfile, companyNumber, existingLinks.orElse(null));

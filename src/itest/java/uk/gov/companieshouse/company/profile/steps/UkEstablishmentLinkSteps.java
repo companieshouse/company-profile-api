@@ -72,8 +72,5 @@ public class UkEstablishmentLinkSteps {
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo("link");
     }
 
-    @And("the company profile resource {string} does not exists for {string}")
-    public void theCompanyProfileResourceDoesNotExistsFor(String companyNumber) {
-        assertThat(companyProfileRepository.findById(companyNumber)).isEmpty();
-    }
+
 }

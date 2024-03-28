@@ -1731,10 +1731,8 @@ class CompanyProfileServiceTest {
 
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments("/company/3210/uk-establishment");
 
-        Executable executable = () -> companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, COMPANY_PROFILE);
 
-        assertThrows(ResourceStateConflictException.class, executable);
         verifyNoInteractions(companyProfileApiService);
     }
 

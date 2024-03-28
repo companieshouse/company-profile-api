@@ -40,7 +40,7 @@
       "persons_with_significant_control": "/company/00006402/persons-with-significant-control",
       "self": "/company/00006402",
       "insolvency" : "insolvency",
-      "uk_establishment" : "link"
+      "uk_establishments" : "link"
     },
     "registered_office_address": {
       "address_line_1": "Ground Floor Marlow International",
