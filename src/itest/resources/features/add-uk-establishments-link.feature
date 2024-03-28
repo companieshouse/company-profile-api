@@ -28,3 +28,14 @@ Feature: Add uk-establishments link to company profile
     Examples:
       | company_number | parent_company_number |
       | 00006400       | 00006402              |
+
+  Scenario Outline: Add uk-establishments link unsuccessfully - parent company does not exist
+
+    Given a company profile resource does not exist for "<parent_company_number>"
+    And the company profile resource "<company_number>" exists for "<company_number>"
+    When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
+    Then the response code should be 404
+
+    Examples:
+      | company_number | parent_company_number |
+      | 00006400       | 00006402              |
