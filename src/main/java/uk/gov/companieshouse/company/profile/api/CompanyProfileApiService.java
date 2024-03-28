@@ -60,7 +60,7 @@ public class CompanyProfileApiService {
         PrivateChangedResourcePost changedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,
-                        mapChangedResource(companyNumber, contextId, DELETED_EVENT_TYPE,
+                        mapChangedResource(contextId, companyNumber, DELETED_EVENT_TYPE,
                                 companyProfile));
         return handleApiCall(contextId, changedResourcePost);
     }
