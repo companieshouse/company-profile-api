@@ -347,9 +347,10 @@ public class CompanyProfileService {
     }
 
     /**
-     * finds existing company profile from db if any and
+     * Finds existing company profile from db if any and
      * updates or saves new record into db.
      */
+    @Transactional
     public void processCompanyProfile(String contextId, String companyNumber,
                                       CompanyProfile companyProfile) {
         Optional<CompanyProfileDocument> existingProfile =
@@ -363,6 +364,8 @@ public class CompanyProfileService {
 
         try {
             companyProfileRepository.save(companyProfileDocument);
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+
             logger.infoContext(contextId, String.format("Company profile is updated in MongoDb for "
                             + "company number: %s", companyNumber), DataMapHolder.getLogMap());
         } catch (IllegalArgumentException illegalArgumentEx) {
