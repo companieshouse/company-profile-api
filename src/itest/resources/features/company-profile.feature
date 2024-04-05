@@ -112,7 +112,6 @@ Feature: Process company profile
     And CHS kafka API service is unavailable
     When I send a PUT request with payload "<companyNumber>" file for company number "<companyNumber>"
     Then I should receive 503 status code
-    And the CHS Kafka API is not invoked
 
     Examples:
       | companyNumber     |

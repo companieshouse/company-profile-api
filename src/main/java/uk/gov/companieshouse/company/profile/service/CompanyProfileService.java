@@ -352,7 +352,9 @@ public class CompanyProfileService {
      */
     @Transactional
     public void processCompanyProfile(String contextId, String companyNumber,
-                                      CompanyProfile companyProfile) {
+                                      CompanyProfile companyProfile)
+            throws ServiceUnavailableException, BadRequestException {
+
         Optional<CompanyProfileDocument> existingProfile =
                 companyProfileRepository.findById(companyNumber);
         Optional<Links> existingLinks = existingProfile
@@ -366,8 +368,8 @@ public class CompanyProfileService {
             companyProfileRepository.save(companyProfileDocument);
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
 
-            logger.infoContext(contextId, String.format("Company profile is updated in MongoDb for "
-                            + "company number: %s", companyNumber), DataMapHolder.getLogMap());
+            logger.infoContext(contextId, String.format("Company profile is updated in "
+                    + "MongoDb for company number: %s", companyNumber), DataMapHolder.getLogMap());
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
