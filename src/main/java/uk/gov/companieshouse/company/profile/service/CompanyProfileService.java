@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_TYPE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
+import uk.gov.companieshouse.api.company.BranchCompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.ConfirmationStatement;
@@ -42,7 +46,6 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
-
 
 @Service
 public class CompanyProfileService {
@@ -359,6 +362,20 @@ public class CompanyProfileService {
         Optional<Links> existingLinks = existingProfile
                 .map(CompanyProfileDocument::getCompanyProfile)
                 .map(Data::getLinks);
+
+        Optional.ofNullable(companyProfile.getData()).map(Data::getBranchCompanyDetails)
+                .map(BranchCompanyDetails::getParentCompanyNumber)
+                .ifPresent(parentCompanyNumber -> {
+                    LinkRequest ukEstablishmentLinkRequest =
+                            new LinkRequest(contextId, parentCompanyNumber,
+                                    UK_ESTABLISHMENTS_TYPE,
+                                    UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+                    try {
+                        checkForAddLink(ukEstablishmentLinkRequest);
+                    } catch (ResourceStateConflictException resourceStateConflictException) {
+                        logger.info("Parent company link already exists");
+                    }
+                });
 
         CompanyProfileDocument companyProfileDocument = companyProfileTransformer
                 .transform(companyProfile, companyNumber, existingLinks.orElse(null));

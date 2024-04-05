@@ -41,6 +41,11 @@
       "self": "/company/00006400",
       "insolvency" : "insolvency"
     },
+    "branch_company_details" : {
+      "parent_company_number" : "00006401",
+      "parent_company_name" : "RENABLE PHARMA LTD",
+      "business_activity" : "liquidation"
+    },
     "registered_office_address": {
       "address_line_1": "Ground Floor Marlow International",
       "address_line_2": "Parkway",
