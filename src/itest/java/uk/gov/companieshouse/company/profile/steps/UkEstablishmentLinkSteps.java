@@ -14,6 +14,7 @@ import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class UkEstablishmentLinkSteps {
 
     private String contextId;
     private static final String ADD_PUT_ENDPOINT = "/company/00006400";
-    private static final String UK_ESTABLISHMENTS_LINK = "/company/00006401/uk-establishments";
+    private static final String UK_ESTABLISHMENTS_LINK = "/company/%s/uk-establishments";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -52,7 +53,7 @@ public class UkEstablishmentLinkSteps {
 
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
-        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(UK_ESTABLISHMENTS_LINK);
+        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, companyNumber));
     }
 
     @And("the uk-establishment link does not exist for {string}")
@@ -69,7 +70,7 @@ public class UkEstablishmentLinkSteps {
 
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
-        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo("link");
+        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
     }
 
 
