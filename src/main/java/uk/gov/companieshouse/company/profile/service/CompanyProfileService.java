@@ -375,34 +375,6 @@ public class CompanyProfileService {
                     }
                 });
 
-        /*
-        if (companyProfile.getData().getBranchCompanyDetails() != null) {
-            String parentCompanyNumber = companyProfile.getData()
-                    .getBranchCompanyDetails().getParentCompanyNumber();
-
-            if (parentCompanyNumber != null) {
-
-                LinkRequest ukEstablishmentLinkRequest =
-                        new LinkRequest(contextId, parentCompanyNumber,
-                        UK_ESTABLISHMENTS_TYPE,
-                        UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-
-                Optional<CompanyProfileDocument> companyProfileDocument
-                        = companyProfileRepository.findById(parentCompanyNumber);
-                Optional<String> link = Optional.ofNullable(companyProfileDocument.get()
-                        .getCompanyProfile().getLinks().getUkEstablishments());
-
-                if(link.isEmpty()) {
-                    addLink(ukEstablishmentLinkRequest);
-                }
-            } else {
-                logger.error("Could not find parent company number");
-                throw new ResourceNotFoundException(HttpStatus
-                        .NOT_FOUND,"Parent company number not found");
-            }
-        }
-*/
-
         CompanyProfileDocument companyProfileDocument = companyProfileTransformer
                 .transform(companyProfile, companyNumber, existingLinks.orElse(null));
 

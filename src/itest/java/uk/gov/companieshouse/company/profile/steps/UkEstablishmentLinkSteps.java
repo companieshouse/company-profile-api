@@ -24,8 +24,6 @@ import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoC
 
 public class UkEstablishmentLinkSteps {
 
-    private String contextId;
-    private static final String ADD_PUT_ENDPOINT = "/company/00006400";
     private static final String UK_ESTABLISHMENTS_LINK = "/company/%s/uk-establishments";
 
     @Autowired
