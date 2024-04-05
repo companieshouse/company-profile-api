@@ -1,10 +1,9 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.MongoTimeoutException;
 import java.util.Optional;
 import javax.validation.Valid;
-
-import com.mongodb.MongoTimeoutException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
