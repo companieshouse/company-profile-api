@@ -96,3 +96,16 @@ Feature: Process company profile
     Examples:
       | company_number |
       | 00006402       |
+
+  Scenario Outline: Get Company Profile returns previous company as null when its empty
+
+    Given Company profile api service is running
+    And a Company Profile exists for "<companyNumber>"
+    When I send GET request to retrieve Company Profile using company number "<companyNumber>"
+    Then I should receive 200 status code
+    And the Get call response body should match "<result>" file
+
+    Examples:
+      | companyNumber         | result                            |
+      | 00006408              | 00006408-getCompanyProfile        |
+
