@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.MongoTimeoutException;
 import java.util.Optional;
 import javax.validation.Valid;
 import org.springframework.dao.DataAccessException;
@@ -19,7 +20,9 @@ import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
+import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
@@ -86,13 +89,15 @@ public class CompanyProfileController {
         try {
             companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
             return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            logger.info("Forbidden request");
+        } catch (HttpClientErrorException.Forbidden ex) {
+            logger.errorContext(contextId, ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to update company details: "
-                    + dataAccessException.getMessage());
+        } catch (ServiceUnavailableException | MongoTimeoutException ex) {
+            logger.errorContext(contextId, ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        } catch (BadRequestException ex) {
+            logger.errorContext(contextId, ex, DataMapHolder.getLogMap());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
@@ -210,9 +215,9 @@ public class CompanyProfileController {
             logger.error("Error while trying to delete company profile.",
                     resourceNotFoundException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (DataAccessException dataAccessException) {
+        } catch (DataAccessException | MongoTimeoutException ex) {
             logger.error("Error while trying to delete company profile.",
-                    dataAccessException, DataMapHolder.getLogMap());
+                    ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         } catch (HttpClientErrorException.Forbidden forbidden) {
             logger.info("Forbidden request");
