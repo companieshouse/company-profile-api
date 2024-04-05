@@ -382,13 +382,13 @@ public class CompanyProfileService {
         //SuperSecureManagingOfficerCount should not be returned on a Get request
         if (companyProfileDocument.getCompanyProfile() != null) {
             companyProfileDocument.getCompanyProfile().setSuperSecureManagingOfficerCount(null);
-        }
 
-        List<PreviousCompanyNames> previousCompanyNames =
-                companyProfileDocument.getCompanyProfile().getPreviousCompanyNames();
+            List<PreviousCompanyNames> previousCompanyNames =
+                    companyProfileDocument.getCompanyProfile().getPreviousCompanyNames();
 
-        if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
-            companyProfileDocument.getCompanyProfile().setPreviousCompanyNames(null);
+            if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
+                companyProfileDocument.getCompanyProfile().setPreviousCompanyNames(null);
+            }
         }
 
         return companyProfileDocument.getCompanyProfile();
