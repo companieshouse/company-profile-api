@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import uk.gov.companieshouse.api.company.ConfirmationStatement;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.NextAccounts;
+import uk.gov.companieshouse.api.company.PreviousCompanyNames;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
@@ -385,6 +387,13 @@ public class CompanyProfileService {
         //SuperSecureManagingOfficerCount should not be returned on a Get request
         if (companyProfileDocument.getCompanyProfile() != null) {
             companyProfileDocument.getCompanyProfile().setSuperSecureManagingOfficerCount(null);
+        }
+
+        List<PreviousCompanyNames> previousCompanyNames =
+                companyProfileDocument.getCompanyProfile().getPreviousCompanyNames();
+
+        if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
+            companyProfileDocument.getCompanyProfile().setPreviousCompanyNames(null);
         }
 
         return companyProfileDocument.getCompanyProfile();
