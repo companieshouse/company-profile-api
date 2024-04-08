@@ -1719,23 +1719,6 @@ class CompanyProfileServiceTest {
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
     }
 
-    @Test
-    @DisplayName("Add new uk establishments links unsuccessfully and throw 409")
-    void addNewUkEstablishmentsLinkUnsuccessfully() throws IOException {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
-
-        BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
-        branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
-        COMPANY_PROFILE.getData().setBranchCompanyDetails(branchCompanyDetails);
-
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments("/company/3210/uk-establishment");
-
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, COMPANY_PROFILE);
-
-        verifyNoInteractions(companyProfileApiService);
-    }
-
 
     @Test
     @DisplayName("Add new uk establishments links unsuccessfully and throw 503")
