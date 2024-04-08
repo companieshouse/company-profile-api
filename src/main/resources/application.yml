@@ -20,7 +20,7 @@ chs:
 
 mongodb:
   company-profile:
-    transactions: ${TRANSACTIONS_ENABLED:false}
+    transactional: ${TRANSACTIONS_ENABLED:true}
     collection:
       name: ${COMPANY_PROFILE_COLLECTION_NAME:company_profile}
 
