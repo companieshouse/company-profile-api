@@ -12,7 +12,7 @@ Feature: Delete uk-establishment link in company profile
 
     Examples:
       | company_number | parent_company_number |
-      | 00006400       | 00006402              |
+      | 00006403       | 00006402              |
 
   Scenario Outline: Delete uk-establishments link unsuccessfully
 
@@ -33,11 +33,12 @@ Feature: Delete uk-establishment link in company profile
     Given the CHS Kafka API is reachable
     And the company profile resource "<parent_company_number>" exists for "<parent_company_number>"
     And the company profile resource "<company_number>" exists for "<company_number>"
+    And the company profile resource "<other_child>" exists for "<other_child>"
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
     Then the response code should be 200
     And the uk-establishment link does exist for "<parent_company_number>"
 
 
     Examples:
-      | company_number | parent_company_number |
-      | 00006400       | 00006408              |
+      | company_number | parent_company_number | other_child |
+      | 00006404       | 00006408              | 00006405    |

@@ -65,7 +65,6 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_LINK_TY
 class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
-
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
 
     @Mock
