@@ -22,7 +22,7 @@
     },
     "can_file": true,
     "company_name": "RENABLE PHARMA LTD",
-    "company_number": "00006408",
+    "company_number": "00006405",
     "company_status": "liquidation",
     "confirmation_statement": {
       "last_made_up_to": "2021-03-04",
@@ -35,12 +35,16 @@
     "jurisdiction": "england-wales",
     "last_full_members_list_date": "2016-03-04",
     "links": {
-      "filing_history": "/company/00006408/filing-history",
-      "officers": "/company/00006408/officers",
-      "persons_with_significant_control": "/company/00006408/persons-with-significant-control",
-      "self": "/company/00006408",
-      "insolvency" : "insolvency",
-      "uk_establishments" : "/company/00006408/uk-establishments"
+      "filing_history": "/company/00006405/filing-history",
+      "officers": "/company/00006405/officers",
+      "persons_with_significant_control": "/company/00006405/persons-with-significant-control",
+      "self": "/company/00006405",
+      "insolvency" : "insolvency"
+    },
+    "branch_company_details" : {
+      "parent_company_number" : "00006408",
+      "parent_company_name" : "RENABLE PHARMA LTD",
+      "business_activity" : "liquidation"
     },
     "registered_office_address": {
       "address_line_1": "Ground Floor Marlow International",
@@ -52,9 +56,6 @@
     "sic_codes": [
       "72110"
     ],
-    "type": "ltd",
-    "super_secure_managing_officer_count": "1",
-    "previous_company_names" : [
-    ]
+    "type": "ltd"
   }
 }
