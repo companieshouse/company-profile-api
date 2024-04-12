@@ -13,6 +13,11 @@
         "effective_from": "1884-06-30"
       }
     ],
+    "branch_company_details" : {
+      "parent_company_number" : "321033",
+      "parent_company_name" : "RENABLE PHARMA LTD",
+      "business_activity" : "liquidation"
+    },
     "last_full_members_list_date": "2014-10-08",
     "accounts": {
       "next_made_up_to": "2015-12-31",
