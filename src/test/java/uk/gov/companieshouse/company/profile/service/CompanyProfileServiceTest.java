@@ -1733,15 +1733,16 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("Add new uk establishments links unsuccessfully and throw 404")
-    void addNewUkEstablishmentsLinkUnsuccessfullyAndThrow404() throws IOException {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
+    @DisplayName("Create parent company profile for uk establishment when not already present")
+    void createParentCompanyForUkEstablishment() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                COMPANY_PROFILE);
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                    COMPANY_PROFILE);
-        });
-        verifyNoInteractions(companyProfileApiService);
+        verify(companyProfileRepository, times(2)).save(any());
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
     }
 
 

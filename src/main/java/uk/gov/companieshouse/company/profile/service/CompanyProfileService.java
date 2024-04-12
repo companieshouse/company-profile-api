@@ -375,6 +375,12 @@ public class CompanyProfileService {
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
                     try {
                         checkForAddLink(ukEstablishmentLinkRequest);
+                    } catch (DocumentNotFoundException documentNotFoundException) {
+                        // create parent company if not present
+                        companyProfileRepository.save(
+                                createParentCompanyDocument(parentCompanyNumber));
+                        companyProfileApiService.invokeChsKafkaApi(
+                                contextId, parentCompanyNumber);
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         logger.info("Parent company link already exists");
                     }
@@ -392,6 +398,20 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
+    }
+
+    private CompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
+        CompanyProfileDocument parentCompanyDocument = new CompanyProfileDocument();
+        parentCompanyDocument.setId(parentCompanyNumber);
+        parentCompanyDocument.setDeltaAt(LocalDateTime.now());
+        Data parentCompanyData = new Data();
+        Links parentCompanyLinks = new Links();
+        String ukEstablishmentLink = String.format("/company/%s/uk-establishments",
+                parentCompanyNumber);
+        parentCompanyLinks.setUkEstablishments(ukEstablishmentLink);
+        parentCompanyData.setLinks(parentCompanyLinks);
+        parentCompanyDocument.setCompanyProfile(parentCompanyData);
+        return parentCompanyDocument;
     }
 
     /** Retrieve company profile. */
