@@ -1719,6 +1719,24 @@ class CompanyProfileServiceTest {
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
     }
 
+    @Test
+    @DisplayName("Delete uk establishments links successfully")
+    void deleteUkEstablishmentsLinkSuccessfully() throws IOException {
+        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        Data companyProfile = companyProfileDocument.getCompanyProfile(); //child company to be deleted
+        BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
+        branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        companyProfile.setBranchCompanyDetails(branchCompanyDetails);
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments("link");
+
+        companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, companyProfile);
+    }
+
 
     @Test
     @DisplayName("Add new uk establishments links unsuccessfully and throw 503")
@@ -1728,6 +1746,17 @@ class CompanyProfileServiceTest {
         assertThrows(ServiceUnavailableException.class, () -> {
             companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                     COMPANY_PROFILE);
+        });
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishments links unsuccessfully and throw 503")
+    void deleteUkEstablishmentsLinkUnsuccessfullyAndThrow503() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
+
+        assertThrows(ServiceUnavailableException.class, () -> {
+            companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
         });
         verifyNoInteractions(companyProfileApiService);
     }
@@ -1744,7 +1773,16 @@ class CompanyProfileServiceTest {
         verifyNoInteractions(companyProfileApiService);
     }
 
+    @Test
+    @DisplayName("Delete uk establishments links unsuccessfully and throw 404")
+    void deleteUkEstablishmentsLinkUnsuccessfullyAndThrow404() throws IOException {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
+        assertThrows(ResourceNotFoundException.class, () -> {
+            companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        });
+        verifyNoInteractions(companyProfileApiService);
+    }
 
     @Test
     @DisplayName("Overdue not set when all fields are null")

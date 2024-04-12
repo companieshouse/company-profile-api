@@ -436,6 +436,20 @@ public class CompanyProfileService {
         companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
                 companyProfile);
 
+        Optional.ofNullable(companyProfile).map(Data::getBranchCompanyDetails)
+                .map(BranchCompanyDetails::getParentCompanyNumber)
+                .ifPresent(parentCompanyNumber -> {
+                    LinkRequest ukEstablishmentLinkRequest =
+                            new LinkRequest(contextId, parentCompanyNumber,
+                                    UK_ESTABLISHMENTS_TYPE,
+                                    UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+                    try {
+                        checkForDeleteLink(ukEstablishmentLinkRequest);
+                    } catch (ResourceStateConflictException resourceStateConflictException) {
+                        logger.info("Parent company link does not exist");
+                    }
+                });
+
         logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                 companyNumber), DataMapHolder.getLogMap());
 

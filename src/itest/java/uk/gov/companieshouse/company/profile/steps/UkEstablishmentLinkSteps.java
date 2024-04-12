@@ -70,6 +70,4 @@ public class UkEstablishmentLinkSteps {
         System.out.println(document.get().getCompanyProfile().getLinks());
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
     }
-
-
 }
