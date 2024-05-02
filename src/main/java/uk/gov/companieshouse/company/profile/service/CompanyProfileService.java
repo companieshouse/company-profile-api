@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -30,6 +31,9 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.NextAccounts;
 import uk.gov.companieshouse.api.company.PreviousCompanyNames;
+import uk.gov.companieshouse.api.company.SelfLink;
+import uk.gov.companieshouse.api.company.UkEstablishment;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
@@ -49,7 +53,8 @@ import uk.gov.companieshouse.logging.Logger;
 
 @Service
 public class CompanyProfileService {
-
+    private static final String RELATED_COMPANIES_KIND = "related-companies";
+    private static final String COMPANY_SELF_LINK = "/company/%s";
     private final Logger logger;
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
@@ -475,6 +480,37 @@ public class CompanyProfileService {
             logger.error(resourceNotFoundException.getMessage(), DataMapHolder.getLogMap());
             return Optional.empty();
         }
+    }
+
+    /**
+     * Returns a list of UK establishments given a parent company number
+     */
+    public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber) throws ResourceNotFoundException {
+        CompanyProfileDocument retrievedDocument = getCompanyProfileDocument(parentCompanyNumber);
+
+        List<UkEstablishment> ukEstablishments = companyProfileRepository
+                .findAllByParentCompanyNumber(retrievedDocument.getId()).stream().map(company -> {
+                    UkEstablishment ukEstablishment = new UkEstablishment();
+                    ukEstablishment.setCompanyName(company.getCompanyProfile().getCompanyName());
+                    ukEstablishment.setCompanyNumber(company.getId());
+                    ukEstablishment.setCompanyStatus(company.getCompanyProfile().getCompanyStatus());
+                    ukEstablishment.setLocality(company.getCompanyProfile()
+                            .getRegisteredOfficeAddress().getLocality());
+                    SelfLink companySelfLink = new SelfLink();
+                    companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
+                    ukEstablishment.setLinks(companySelfLink);
+                    return ukEstablishment;
+                }).collect(Collectors.toList());
+
+        UkEstablishmentsList ukEstablishmentsList = new UkEstablishmentsList();
+        ukEstablishmentsList.setItems(ukEstablishments);
+        ukEstablishmentsList.setKind(RELATED_COMPANIES_KIND);
+        ukEstablishmentsList.setEtag(GenerateEtagUtil.generateEtag());
+        Links parentCompanyLink = new Links();
+        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, retrievedDocument.getId()));
+        ukEstablishmentsList.setLinks(parentCompanyLink);
+
+        return ukEstablishmentsList;
     }
 
     /** Set can_file based on company type and status. */

@@ -6,6 +6,9 @@ import org.springframework.util.FileCopyUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
+import uk.gov.companieshouse.api.company.SelfLink;
+import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 
@@ -65,4 +68,28 @@ public class TestHelper {
         return companyProfileWithOutLinks;
     }
 
+    public CompanyProfileDocument createUkEstablishmentTestInput(String companyNumber) {
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setId(companyNumber);
+        Data data = new Data();
+        data.setCompanyStatus("active");
+        data.setCompanyName("ACME Ltd");
+        RegisteredOfficeAddress registeredOfficeAddress = new RegisteredOfficeAddress();
+        registeredOfficeAddress.setLocality("Wales");
+        data.setRegisteredOfficeAddress(registeredOfficeAddress);
+        companyProfileDocument.setCompanyProfile(data);
+        return companyProfileDocument;
+    }
+
+    public UkEstablishment createUkEstablishmentTestOutput(String companyNumber) {
+        UkEstablishment ukEstablishment = new UkEstablishment();
+        SelfLink selfLink = new SelfLink().company("/company/" + companyNumber);
+        ukEstablishment.setLinks(selfLink);
+        ukEstablishment.setLocality("Wales");
+        ukEstablishment.setCompanyName("ACME Ltd");
+        ukEstablishment.setCompanyStatus("active");
+        ukEstablishment.setCompanyNumber(companyNumber);
+
+        return ukEstablishment;
+    }
 }

@@ -1,0 +1,38 @@
+{
+  "_id" : "<company_number>",
+  "data" : {
+    "etag" : "2f6b00229cf81ab268c4de9526726d258afe52c9",
+    "company_number" : "<company_number>",
+    "branch_company_details" : {
+      "business_activity" : "Trading In And Import And Export Of Merchandise",
+      "parent_company_name" : "SHARKMAN AGS",
+      "parent_company_number" : "<parent_company_number>"
+    },
+    "company_name" : "SHARK AG",
+    "links" : {
+      "self" : "/company/<company_number>",
+      "overseas" : "/company/<parent_company_number>",
+      "filing_history" : "/company/<company_number>/filing-history"
+    },
+    "registered_office_address" : {
+      "locality" : "Harlow",
+      "postal_code" : "CM17 9JA",
+      "region" : "Newhall",
+      "address_line_1" : "52 The Chase"
+    },
+    "type" : "uk-establishment",
+    "company_status" : "open",
+    "previous_company_names" : [
+
+    ],
+    "date_of_creation" : ISODate("2001-09-21T00:00:00.000Z")
+  },
+  "delta_at" : ISODate("2016-05-24T12:35:13.000Z"),
+
+  "parent_company_number" : "<parent_company_number>",
+  "updated" : {
+    "type" : "company_delta",
+    "by" : "57444ae7d20619a7c3dc9711",
+    "at" : ISODate("2016-05-24T14:25:35.491Z")
+  }
+}
