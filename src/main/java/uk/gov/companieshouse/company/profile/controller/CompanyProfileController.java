@@ -253,14 +253,22 @@ public class CompanyProfileController {
         }
     }
 
+    /**
+     * Retrieve a list of uk establishments for a given parent company number.
+     *
+     * @param parentCompanyNumber the supplied parent company number
+     * @return list of uk establishments
+     */
     @GetMapping("/company/{company_number}/uk-establishments")
     public ResponseEntity<UkEstablishmentsList> getUkEstablishments(
             @PathVariable("company_number") String parentCompanyNumber) {
         DataMapHolder.get().companyNumber(parentCompanyNumber);
-        logger.info(String.format("Received get request for uk establishments given parent company number %s",
+        logger.info(String.format("Received get request for uk establishments "
+                        + "given parent company number %s",
                 parentCompanyNumber), DataMapHolder.getLogMap());
         try {
-            UkEstablishmentsList data = companyProfileService.getUkEstablishments(parentCompanyNumber);
+            UkEstablishmentsList data = companyProfileService
+                    .getUkEstablishments(parentCompanyNumber);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (ResourceNotFoundException resourceNotFoundException) {
             logger.error("Unable to locate company profile for company in context.",

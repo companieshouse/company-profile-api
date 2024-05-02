@@ -483,17 +483,26 @@ public class CompanyProfileService {
     }
 
     /**
-     * Returns a list of UK establishments given a parent company number
+     * Retrieves a list of company profile documents.
+     * And then maps them into a list of UK establishments.
+     *
+     * @param parentCompanyNumber the supplied parent company number
+     * @return a list of uk establishments
+     *
+     * @throws ResourceNotFoundException when a company is not located
      */
-    public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber) throws ResourceNotFoundException {
+    public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber)
+            throws ResourceNotFoundException {
         CompanyProfileDocument retrievedDocument = getCompanyProfileDocument(parentCompanyNumber);
 
         List<UkEstablishment> ukEstablishments = companyProfileRepository
-                .findAllByParentCompanyNumber(retrievedDocument.getId()).stream().map(company -> {
+                .findAllByParentCompanyNumber(retrievedDocument.getId())
+                .stream().map(company -> {
                     UkEstablishment ukEstablishment = new UkEstablishment();
                     ukEstablishment.setCompanyName(company.getCompanyProfile().getCompanyName());
                     ukEstablishment.setCompanyNumber(company.getId());
-                    ukEstablishment.setCompanyStatus(company.getCompanyProfile().getCompanyStatus());
+                    ukEstablishment.setCompanyStatus(company.getCompanyProfile()
+                            .getCompanyStatus());
                     ukEstablishment.setLocality(company.getCompanyProfile()
                             .getRegisteredOfficeAddress().getLocality());
                     SelfLink companySelfLink = new SelfLink();
