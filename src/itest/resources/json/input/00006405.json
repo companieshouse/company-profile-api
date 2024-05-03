@@ -1,0 +1,60 @@
+{
+  "has_mortgage": false,
+  "data": {
+    "accounts": {
+      "accounting_reference_date": {
+        "day": "31",
+        "month": "12"
+      },
+      "last_accounts": {
+        "made_up_to": "2020-12-31",
+        "period_end_on": "2020-12-31",
+        "period_start_on": "2020-01-01",
+        "type": "total-exemption-full"
+      },
+      "next_accounts": {
+        "due_on": "2022-09-30",
+        "period_end_on": "2021-12-31",
+        "period_start_on": "2021-01-01"
+      },
+      "next_due": "2022-09-30",
+      "next_made_up_to": "2021-12-31"
+    },
+    "can_file": true,
+    "company_name": "RENABLE PHARMA LTD",
+    "company_number": "00006405",
+    "company_status": "open",
+    "confirmation_statement": {
+      "last_made_up_to": "2021-03-04",
+      "next_due": "2022-03-18",
+      "next_made_up_to": "2022-03-04"
+    },
+    "date_of_creation": "2015-03-04",
+    "etag": "5a3c51b439584d98d420143d6a22996571646302",
+    "has_insolvency_history": true,
+    "jurisdiction": "england-wales",
+    "last_full_members_list_date": "2016-03-04",
+    "links": {
+      "filing_history": "/company/00006405/filing-history",
+      "officers": "/company/00006405/officers",
+      "persons_with_significant_control": "/company/00006405/persons-with-significant-control",
+      "self": "/company/00006405",
+      "insolvency" : "insolvency"
+    },
+    "branch_company_details" : {
+      "parent_company_number" : "00006401",
+      "parent_company_name" : "RENABLE PHARMA LTD",
+      "business_activity" : "liquidation"
+    },
+    "registered_office_address": {
+      "region" : "Prestwick",
+      "address_line_1" : " 5 Shawfarm Road",
+      "locality" : "Ayrshire",
+      "postal_code" : "KA9 2TR"
+    },
+    "sic_codes": [
+      "72110"
+    ],
+    "type": "uk-establishment"
+  }
+}

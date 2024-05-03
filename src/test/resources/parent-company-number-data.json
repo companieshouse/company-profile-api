@@ -28,7 +28,6 @@
     "date_of_creation" : ISODate("2001-09-21T00:00:00.000Z")
   },
   "delta_at" : ISODate("2016-05-24T12:35:13.000Z"),
-
   "parent_company_number" : "<parent_company_number>",
   "updated" : {
     "type" : "company_delta",

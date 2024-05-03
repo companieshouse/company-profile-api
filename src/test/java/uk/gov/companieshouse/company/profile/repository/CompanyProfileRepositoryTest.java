@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import javax.print.Doc;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,7 +55,7 @@ public class CompanyProfileRepositoryTest {
     void findAllCompaniesWithSameParentCompanyNumber() {
         // given
         insertCompanyProfile(COMPANY_NUMBER + 1, PARENT_COMPANY_NUMBER);
-        insertCompanyProfile(COMPANY_NUMBER + 2, PARENT_COMPANY_NUMBER );
+        insertCompanyProfile(COMPANY_NUMBER + 2, PARENT_COMPANY_NUMBER);
         insertCompanyProfile(COMPANY_NUMBER + 3, PARENT_COMPANY_NUMBER + 1);
 
         // when
@@ -68,7 +69,11 @@ public class CompanyProfileRepositoryTest {
 
     private void insertCompanyProfile(String companyNumber, String parentCompanyNumber) {
         templateDocument.put("_id", companyNumber);
-        templateDocument.put("parent_company_number", parentCompanyNumber);
+        Document data = (Document) templateDocument.get("data");
+        Document branchCompanyDetails = (Document) data.get("branch_company_details");
+        branchCompanyDetails.put("parent_company_number", parentCompanyNumber);
+        data.put("branch_company_details", branchCompanyDetails);
+        templateDocument.put("data", data);
 
         mongoTemplate.insert(templateDocument, "company_profile");
     }

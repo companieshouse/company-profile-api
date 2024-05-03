@@ -4,14 +4,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static javax.management.Query.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
@@ -28,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -39,12 +34,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.web.client.HttpClientErrorException;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -354,18 +348,7 @@ public class CompanyProfileSteps {
 
     @And("a Company Profile exists for {string}")
     public void the_company_profile_exists_for(String dataFile) throws IOException {
-        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
-        CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
-
-        LocalDateTime localDateTime = LocalDateTime.now();
-        Updated updated = new Updated(LocalDateTime.now().minusYears(1),
-                "abc", "company_delta");
-
-        CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
-        companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
-
-        mongoTemplate.save(companyProfileDocument);
+        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile));
     }
 
     @When("I send a PUT request with payload {string} file for company number {string}")
@@ -572,5 +555,83 @@ public class CompanyProfileSteps {
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @When("I send a GET request to retrieve UK establishments using company number {string} without Eric headers")
+    public void iSendGETRequestToRetrieveUKEstablishmentsUsingCompanyNumberWithoutSettingEricHeaders(String companyNumber) {
+        String uri = "/company/{company_number}/uk-establishments";
+
+        HttpHeaders headers = new HttpHeaders();
+
+        ResponseEntity<Data> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                Data.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+    }
+
+    @When("I send a GET request to retrieve UK establishments using company number {string}")
+    public void iSendAGETRequestToRetrieveUKEstablishmentsUsingCompanyNumber(String companyNumber) {
+        String uri = "/company/{company_number}/uk-establishments";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.add("api-key", "g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.set("Content-Type", "application/json");
+
+        ResponseEntity<UkEstablishmentsList> response = restTemplate.exchange(
+                uri, HttpMethod.GET, new HttpEntity<>(headers),
+                UkEstablishmentsList.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
+    }
+
+    @And("UK establishments exists for parent company with number {string}")
+    public void ukEstablishmentsExistsForParentCompanyWithNumber(String dataFile) throws IOException {
+        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile));
+        saveCompanyToMongo("src/itest/resources/json/input/00006404.json");
+        saveCompanyToMongo("src/itest/resources/json/input/00006405.json");
+    }
+
+    private void saveCompanyToMongo(String filePath) throws IOException {
+        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(filePath)));
+        CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = new Updated(LocalDateTime.now().minusYears(1),
+                "abc", "company_delta");
+
+        CompanyProfileDocument companyProfileDocument =
+                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
+        companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+
+        mongoTemplate.save(companyProfileDocument);
+    }
+
+    @And("the GET call response body for the list of uk establishments should match {string}")
+    public void theGETCallResponseBodyForTheListOfUkEstablishmentsShouldMatch(String result)
+            throws IOException {
+        String data = FileCopyUtils.copyToString(new InputStreamReader
+                (new FileInputStream("src/itest/resources/json/output/" + result + ".json")));
+        UkEstablishmentsList expected = objectMapper.readValue(data, UkEstablishmentsList.class);
+
+        UkEstablishmentsList actual = CucumberContext.CONTEXT.get("getResponseBody");
+
+        assertThat(actual.getLinks()).isEqualTo(expected.getLinks());
+        assertThat(actual.getItems().get(0).getCompanyNumber())
+                .isEqualTo(expected.getItems().get(0).getCompanyNumber());
+        assertThat(actual.getItems().get(1).getCompanyNumber())
+                .isEqualTo(expected.getItems().get(1).getCompanyNumber());
+        assertThat(actual.getItems().get(0).getLocality())
+                .isEqualTo(expected.getItems().get(0).getLocality());
+        assertThat(actual.getItems().get(1).getLocality())
+                .isEqualTo(expected.getItems().get(1).getLocality());
+        assertThat(actual.getItems().get(0).getLinks())
+                .isEqualTo(expected.getItems().get(0).getLinks());
+        assertThat(actual.getItems().get(1).getLinks())
+                .isEqualTo(expected.getItems().get(1).getLinks());
     }
 }
