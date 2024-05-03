@@ -42,7 +42,7 @@
     "registered_office_is_in_dispute": null,
     "sic_codes": null,
     "subtype": null,
-    "type": "ltd",
+    "type": "uk-establishments",
     "undeliverable_registered_office_address": null
   }
 }
