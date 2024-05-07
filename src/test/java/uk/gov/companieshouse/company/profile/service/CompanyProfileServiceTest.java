@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -65,7 +67,6 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_LINK_TY
 class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
-
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
 
     @Mock
@@ -133,6 +134,10 @@ class CompanyProfileServiceTest {
 
     private static CompanyProfileDocument EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT;
 
+    private static List<CompanyProfileDocument> UK_ESTABLISHMENTS_TEST_INPUT;
+
+    private static List<UkEstablishment> UK_ESTABLISHMENTS_TEST_OUTPUT;
+
     @BeforeAll
     static void setUp() throws IOException {
         TestHelper testHelper = new TestHelper();
@@ -142,6 +147,12 @@ class CompanyProfileServiceTest {
         EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
         COMPANY_PROFILE_WITHOUT_LINKS = testHelper.createCompanyProfileWithoutLinks();
+        UK_ESTABLISHMENTS_TEST_INPUT = Arrays.asList(
+                testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 1),
+                testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 2));
+        UK_ESTABLISHMENTS_TEST_OUTPUT = Arrays.asList(
+                testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 1),
+                testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 2));
     }
 
     @Test
@@ -1760,5 +1771,27 @@ class CompanyProfileServiceTest {
         assertEquals(confirmationStatement.getOverdue(), false);
         assertEquals(nextAccounts.getOverdue(), false);
         assertEquals(annualReturn.getOverdue(), false);
+    }
+
+    @Test
+    @DisplayName("Returns a list of UK establishments for given parent company number")
+    void testGetUKEstablishmentsReturnsCorrectData() {
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
+        // given
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(
+                Optional.of(companyProfileDocument));
+        when(companyProfileRepository.findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER))
+                .thenReturn(UK_ESTABLISHMENTS_TEST_INPUT);
+
+        // when
+        UkEstablishmentsList result = companyProfileService.getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
+
+        // then
+        assertEquals("/company/321033", result.getLinks().getSelf());
+        assertEquals("related-companies", result.getKind());
+        assertEquals(UK_ESTABLISHMENTS_TEST_OUTPUT, result.getItems());
+        verify(companyProfileRepository).findById(MOCK_PARENT_COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
     }
 }

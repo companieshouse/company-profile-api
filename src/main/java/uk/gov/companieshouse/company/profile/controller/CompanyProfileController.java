@@ -19,6 +19,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
@@ -247,6 +248,34 @@ public class CompanyProfileController {
 
         } catch (DataAccessException dataAccessException) {
             logger.error("Error while trying to get company details.", dataAccessException,
+                    DataMapHolder.getLogMap());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+    }
+
+    /**
+     * Retrieve a list of uk establishments for a given parent company number.
+     *
+     * @param parentCompanyNumber the supplied parent company number
+     * @return list of uk establishments
+     */
+    @GetMapping("/company/{company_number}/uk-establishments")
+    public ResponseEntity<UkEstablishmentsList> getUkEstablishments(
+            @PathVariable("company_number") String parentCompanyNumber) {
+        DataMapHolder.get().companyNumber(parentCompanyNumber);
+        logger.info(String.format("Received get request for uk establishments "
+                        + "given parent company number %s",
+                parentCompanyNumber), DataMapHolder.getLogMap());
+        try {
+            UkEstablishmentsList data = companyProfileService
+                    .getUkEstablishments(parentCompanyNumber);
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (ResourceNotFoundException resourceNotFoundException) {
+            logger.error("Unable to locate company profile for company in context.",
+                    resourceNotFoundException, DataMapHolder.getLogMap());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (DataAccessException dataAccessException) {
+            logger.error("Error accessing MongoDB for company in context.", dataAccessException,
                     DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }

@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
@@ -65,6 +67,7 @@ import uk.gov.companieshouse.logging.Logger;
 @Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private static final String MOCK_PARENT_COMPANY_NUMBER = "FR123456";
     private final TestHelper testHelper = new TestHelper();
     private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String COMPANY_DETAILS_URL = String.format("/company/%s/company-detail", MOCK_COMPANY_NUMBER);
@@ -84,6 +87,9 @@ class CompanyProfileControllerTest {
             "/company/{company_number}");
     private static final String DELETE_COMPANY_URL = String.format(
             "/company/{company_number}");
+
+    private static final String GET_UK_ESTABLISHMENTS_URL = String.format(
+            "/company/%s/uk-establishments", MOCK_PARENT_COMPANY_NUMBER);
 
     private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
 
@@ -926,7 +932,6 @@ class CompanyProfileControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
-
     }
 
     @Test
@@ -1082,6 +1087,67 @@ class CompanyProfileControllerTest {
                 .andExpect(status().isServiceUnavailable());
 
         verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Retrieve list of uk establishments for given parent company number")
+    void testGetUkEstablishmentsStatusOK() throws Exception {
+        UkEstablishmentsList ukEstablishmentsList = new UkEstablishmentsList();
+        ResponseEntity<UkEstablishmentsList> expectedResponse = new ResponseEntity<>(ukEstablishmentsList, HttpStatus.OK);
+
+        when(companyProfileService.getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(ukEstablishmentsList);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", "123456")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(companyProfileService).getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Failed to retrieve uk establishments due to incorrect identity type")
+    void testGetUkEstablishmentsStatusUnauthorized() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "web")
+                        .header("x-request-id", "123456")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Failed to retrieve uk establishments due to non existent company")
+    void testGetUkEstablishmentsStatusNotFound() throws Exception {
+        doThrow(ResourceNotFoundException.class).when(companyProfileService)
+                .getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", "123456")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+
+        verify(companyProfileService).getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Failed to retrieve uk establishments due to MongoDB exception")
+    void testGetUkEstablishmentsStatusServiceUnavailable() throws Exception {
+        doThrow(new DataAccessException("..."){}).when(companyProfileService)
+                .getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", "123456")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isServiceUnavailable());
+
+        verify(companyProfileService).getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
     }
 
 }

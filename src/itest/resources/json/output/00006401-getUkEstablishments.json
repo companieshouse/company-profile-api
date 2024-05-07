@@ -1,0 +1,27 @@
+{
+  "etag": "2d6129b3ce3d65484cc103508174dc9fb5cbb8a7",
+  "kind": "related-companies",
+  "links": {
+    "self": "/company/00006401"
+  },
+  "items": [
+    {
+      "company_name": "RENABLE PHARMA LTD",
+      "company_number": "00006404",
+      "company_status": "open",
+      "locality": "Harlow",
+      "links": {
+        "company": "/company/00006404"
+      }
+    },
+    {
+      "company_name": "RENABLE PHARMA LTD",
+      "company_number": "00006405",
+      "company_status": "open",
+      "locality": "Ayrshire",
+      "links": {
+        "company": "/company/00006405"
+      }
+    }
+  ]
+}
