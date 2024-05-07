@@ -374,7 +374,9 @@ public class CompanyProfileService {
                                     UK_ESTABLISHMENTS_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
                     try {
-                        checkForAddLink(ukEstablishmentLinkRequest);
+                        if (companyProfile.getData().getType().equals(UK_ESTABLISHMENTS_TYPE)) {
+                            checkForAddLink(ukEstablishmentLinkRequest);
+                        }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
                         companyProfileRepository.save(
