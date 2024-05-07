@@ -69,11 +69,7 @@ public class CompanyProfileRepositoryTest {
 
     private void insertCompanyProfile(String companyNumber, String parentCompanyNumber) {
         templateDocument.put("_id", companyNumber);
-        Document data = (Document) templateDocument.get("data");
-        Document branchCompanyDetails = (Document) data.get("branch_company_details");
-        branchCompanyDetails.put("parent_company_number", parentCompanyNumber);
-        data.put("branch_company_details", branchCompanyDetails);
-        templateDocument.put("data", data);
+        templateDocument.put("parent_company_number", parentCompanyNumber);
 
         mongoTemplate.insert(templateDocument, "company_profile");
     }

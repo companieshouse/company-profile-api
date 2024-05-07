@@ -348,7 +348,7 @@ public class CompanyProfileSteps {
 
     @And("a Company Profile exists for {string}")
     public void the_company_profile_exists_for(String dataFile) throws IOException {
-        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile));
+        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile), null);
     }
 
     @When("I send a PUT request with payload {string} file for company number {string}")
@@ -591,12 +591,12 @@ public class CompanyProfileSteps {
 
     @And("UK establishments exists for parent company with number {string}")
     public void ukEstablishmentsExistsForParentCompanyWithNumber(String dataFile) throws IOException {
-        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile));
-        saveCompanyToMongo("src/itest/resources/json/input/00006404.json");
-        saveCompanyToMongo("src/itest/resources/json/input/00006405.json");
+        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile), null);
+        saveCompanyToMongo("src/itest/resources/json/input/00006404.json", "00006401");
+        saveCompanyToMongo("src/itest/resources/json/input/00006405.json", "00006401");
     }
 
-    private void saveCompanyToMongo(String filePath) throws IOException {
+    private void saveCompanyToMongo(String filePath, String parentCompanyNumber) throws IOException {
         String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(filePath)));
         CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
 
@@ -607,7 +607,10 @@ public class CompanyProfileSteps {
         CompanyProfileDocument companyProfileDocument =
                 new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
-
+        if (parentCompanyNumber != null) {
+        companyProfileDocument.setParentCompanyNumber(
+                companyProfile.getData().getBranchCompanyDetails().getParentCompanyNumber());
+        }
         mongoTemplate.save(companyProfileDocument);
     }
 

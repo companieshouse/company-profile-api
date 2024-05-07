@@ -6,6 +6,6 @@ import org.springframework.data.mongodb.repository.Query;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 
 public interface CompanyProfileRepository extends MongoRepository<CompanyProfileDocument, String> {
-    @Query("{'data.branch_company_details.parent_company_number' : '?0'}")
+    @Query("{'parent_company_number' : '?0'}")
     List<CompanyProfileDocument> findAllByParentCompanyNumber(String parentCompanyNumber);
 }
