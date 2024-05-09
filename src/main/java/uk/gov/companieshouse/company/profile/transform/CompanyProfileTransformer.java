@@ -39,6 +39,9 @@ public class CompanyProfileTransformer {
             companyProfileDocument.setDeltaAt(LocalDateTime.parse(
                     companyProfile.getDeltaAt(), dateTimeFormatter));
         }
+        if (companyProfile.getParentCompanyNumber() != null) {
+            companyProfileDocument.setParentCompanyNumber(companyProfile.getParentCompanyNumber());
+        }
         if (companyProfile.getHasMortgages() != null) {
             companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
         }
