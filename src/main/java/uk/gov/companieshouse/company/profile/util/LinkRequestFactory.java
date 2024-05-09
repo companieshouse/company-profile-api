@@ -31,7 +31,7 @@ public class LinkRequestFactory {
             new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET),
             LinkRequest.FILING_HISTORY_LINK_TYPE,
             new LinkTypeData(FILING_HISTORY_DELTA_TYPE, FILING_HISTORY_GET),
-            LinkRequest.UK_ESTABLISHMENTS_TYPE,
+            LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE,
             new LinkTypeData(UK_ESTABLISHMENTS_DELTA_TYPE, UK_ESTABLISHMENTS_GET));
 
     /**
