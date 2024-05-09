@@ -28,7 +28,7 @@ public class LinkRequest {
     public static final Function<Links, String> FILING_HISTORY_GET =
             Links::getFilingHistory;
 
-    public static final String UK_ESTABLISHMENTS_TYPE = "uk-establishments";
+    public static final String UK_ESTABLISHMENTS_LINK_TYPE = "uk-establishments";
 
     public static final String UK_ESTABLISHMENTS_DELTA_TYPE = "uk_establishment_delta";
 

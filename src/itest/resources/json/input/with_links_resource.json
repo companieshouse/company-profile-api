@@ -28,7 +28,7 @@
         "overdue" : true
       }
     },
-    "type" : "private-limited-shares-section-30-exemption",
+    "type" : "uk-establishment",
     "jurisdiction" : "england-wales",
     "undeliverable_registered_office_address" : false,
     "has_been_liquidated" : false,

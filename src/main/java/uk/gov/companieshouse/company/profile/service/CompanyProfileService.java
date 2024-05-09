@@ -1,7 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
@@ -376,10 +376,10 @@ public class CompanyProfileService {
                 .ifPresent(parentCompanyNumber -> {
                     LinkRequest ukEstablishmentLinkRequest =
                             new LinkRequest(contextId, parentCompanyNumber,
-                                    UK_ESTABLISHMENTS_TYPE,
+                                    UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
                     try {
-                        if (companyProfile.getData().getType().equals(UK_ESTABLISHMENTS_TYPE)) {
+                        if (companyProfile.getData().getType().equals("uk-establishment")) {
                             checkForAddLink(ukEstablishmentLinkRequest);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
