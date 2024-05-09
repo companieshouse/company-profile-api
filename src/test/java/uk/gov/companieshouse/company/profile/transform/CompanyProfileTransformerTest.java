@@ -105,6 +105,7 @@ public class CompanyProfileTransformerTest {
         Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
                 .ofPattern("yyyyMMddHHmmssSSSSSS")));
         Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getHasMortgages(), document.isHasMortgages());
+        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getParentCompanyNumber(), document.getParentCompanyNumber());
         Assertions.assertNull(document.getCompanyProfile().getLinks());
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)

@@ -38,6 +38,7 @@ public class TestHelper {
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+
         companyProfileDocument.setUpdated(new Updated()
                 .setAt(LocalDateTime.now()));
         return companyProfileDocument;
@@ -65,6 +66,7 @@ public class TestHelper {
         companyProfileWithOutLinks.setData(data);
         companyProfileWithOutLinks.setDeltaAt("20210102030405123456");
         companyProfileWithOutLinks.setHasMortgages(true);
+        companyProfileWithOutLinks.setParentCompanyNumber("FC123456");
         return companyProfileWithOutLinks;
     }
 
