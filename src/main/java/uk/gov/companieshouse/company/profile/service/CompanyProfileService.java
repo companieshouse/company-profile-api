@@ -216,8 +216,8 @@ public class CompanyProfileService {
                         DataMapHolder.getLogMap());
                 return;
             }
-            logger.infoContext(contextId, String.format("Company: %s only has zero or one uk establishment, "
-                            + "link to be deleted.", companyNumber),
+            logger.infoContext(contextId, String.format("Company: %s only has zero or "
+                            + "one uk establishment, link to be deleted.", companyNumber),
                     DataMapHolder.getLogMap());
         }
 
@@ -522,7 +522,8 @@ public class CompanyProfileService {
                     ukEstablishment.setCompanyNumber(company.getId());
                     ukEstablishment.setCompanyStatus(company.getCompanyProfile()
                             .getCompanyStatus());
-                    ukEstablishment.setLocality(company.getCompanyProfile().getRegisteredOfficeAddress().getLocality());
+                    ukEstablishment.setLocality(company.getCompanyProfile().getRegisteredOfficeAddress()
+                            .getLocality());
                     SelfLink companySelfLink = new SelfLink();
                     companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
                     ukEstablishment.setLinks(companySelfLink);
