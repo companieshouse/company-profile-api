@@ -24,7 +24,9 @@ import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoC
 
 public class UkEstablishmentLinkSteps {
 
+    private String contextId;
     private static final String UK_ESTABLISHMENTS_LINK = "/company/%s/uk-establishments";
+    private static final String DELETE_UK_ESTABLISHMENTS_LINK = "/company/%s/links/uk-establishments/delete";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -71,5 +73,38 @@ public class UkEstablishmentLinkSteps {
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
     }
 
+    @When("a PATCH request is sent to the delete UK establishments link endpoint for {string}")
+    public void sendDeleteUkEstablishmentLinkPatchRequest(String parentCompanyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                String.format(DELETE_UK_ESTABLISHMENTS_LINK, parentCompanyNumber), HttpMethod.PATCH, request, Void.class, parentCompanyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a PATCH request is sent to the delete UK establishments endpoint for {string} without ERIC headers")
+    public void deleteUKEstablishmentLinkWithoutAuthenticationOrAuthorisation(String parentCompanyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                String.format(DELETE_UK_ESTABLISHMENTS_LINK, parentCompanyNumber), HttpMethod.PATCH, request, Void.class, parentCompanyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
 }

@@ -103,7 +103,8 @@
       "officers" : "/company/00006400/officers",
       "persons_with_significant_control" : "/company/00006400/persons-with-significant-control",
       "persons_with_significant_control_statements" : "/company/00006400/persons-with-significant-control-statements",
-      "exemptions" : "/company/00006400/exemptions"
+      "exemptions" : "/company/00006400/exemptions",
+      "uk_establishments" : "/company/00006400/uk-establishments"
     },
     "registered_office_is_in_dispute" : false,
     "annual_return" : {

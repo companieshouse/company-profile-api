@@ -207,6 +207,20 @@ public class CompanyProfileService {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
+
+        if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkType)) {
+            int ukEstablishmentsCount = retrieveUkEstablishments(companyNumber).getItems().size();
+            if (ukEstablishmentsCount > 1) {
+                logger.infoContext(contextId, String.format("Link not deleted, "
+                                + "UK establishments still exists for: %s", companyNumber),
+                        DataMapHolder.getLogMap());
+                return;
+            }
+            logger.infoContext(contextId, String.format("Company: %s only has zero or one uk establishment, "
+                            + "link to be deleted.", companyNumber),
+                    DataMapHolder.getLogMap());
+        }
+
         try {
             Update update = new Update();
             update.unset(String.format("data.links.%s", convertToDBformat(linkType)));
@@ -495,18 +509,20 @@ public class CompanyProfileService {
      */
     public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber)
             throws ResourceNotFoundException {
-        CompanyProfileDocument retrievedDocument = getCompanyProfileDocument(parentCompanyNumber);
+        String numberFound = getCompanyProfileDocument(parentCompanyNumber).getId();
+        return retrieveUkEstablishments(numberFound);
+    }
 
+    private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
         List<UkEstablishment> ukEstablishments = companyProfileRepository
-                .findAllByParentCompanyNumber(retrievedDocument.getId())
+                .findAllByParentCompanyNumber(companyNumber)
                 .stream().map(company -> {
                     UkEstablishment ukEstablishment = new UkEstablishment();
                     ukEstablishment.setCompanyName(company.getCompanyProfile().getCompanyName());
                     ukEstablishment.setCompanyNumber(company.getId());
                     ukEstablishment.setCompanyStatus(company.getCompanyProfile()
                             .getCompanyStatus());
-                    ukEstablishment.setLocality(company.getCompanyProfile()
-                            .getRegisteredOfficeAddress().getLocality());
+                    ukEstablishment.setLocality(company.getCompanyProfile().getRegisteredOfficeAddress().getLocality());
                     SelfLink companySelfLink = new SelfLink();
                     companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
                     ukEstablishment.setLinks(companySelfLink);
@@ -518,7 +534,7 @@ public class CompanyProfileService {
         ukEstablishmentsList.setKind(RELATED_COMPANIES_KIND);
         ukEstablishmentsList.setEtag(GenerateEtagUtil.generateEtag());
         Links parentCompanyLink = new Links();
-        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, retrievedDocument.getId()));
+        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, companyNumber));
         ukEstablishmentsList.setLinks(parentCompanyLink);
 
         return ukEstablishmentsList;

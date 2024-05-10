@@ -80,6 +80,9 @@ class CompanyProfileControllerTest {
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
     private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
+    private static final String UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments", MOCK_COMPANY_NUMBER);
+    private static final String DELETE_UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments", MOCK_COMPANY_NUMBER);
+
     private static final String PUT_COMPANY_PROFILE_URL = String.format(
             "/company/%s", MOCK_COMPANY_NUMBER);
 
@@ -814,6 +817,160 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", "key")
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isInternalServerError());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Add uk establishments link")
+    void addUkEstablishmentsLink() throws Exception {
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .header("x-request-id", "123456"))
+                .andExpect(status().isOk());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Add uk establishments link request returns 404 not found when document not found exception is thrown")
+    void addUkEstablishmentLinkNotFound() throws Exception {
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isNotFound());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Add uk establishments link request returns 409 not found when resource state conflict exception is thrown")
+    void addUkEstablishmentsLinkConflict() throws Exception {
+        doThrow(new ResourceStateConflictException("Conflict in resource state"))
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isConflict());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test()
+    @DisplayName("Add uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void addUkEstablishmentsLinkServiceUnavailable() throws Exception {
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isServiceUnavailable());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test()
+    @DisplayName("Add uk establishments link request returns 500 internal server error when a runtime exception is thrown")
+    void addUkEstablishmentsLinkInternalServerError() throws Exception {
+        doThrow(new RuntimeException()).when(companyProfileService)
+                .processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isInternalServerError());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Delete uk establishments link")
+    void deleteUkEstablishmentsLink() throws Exception {
+        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isOk());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Delete uk establishments link request returns 404 not found when document not found exception is thrown")
+    void deleteUkEstablishmentsLinkNotFound() throws Exception {
+        doThrow(new DocumentNotFoundException("Not Found"))
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isNotFound());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Delete uk establishments link request returns 409 not found when resource state conflict exception is thrown")
+    void deleteUkEstablishmentsLinkConflict() throws Exception {
+        doThrow(new ResourceStateConflictException("Conflict in resource state"))
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isConflict());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test()
+    @DisplayName("Delete uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
+    void deleteUkEstablishmentsLinkServiceUnavailable() throws Exception {
+        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .andExpect(status().isServiceUnavailable());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test()
+    @DisplayName("Delete uk establishments link request returns 500 internal server error when a runtime exception is thrown")
+    void deleteUkEstablishmentsLinkInternalServerError() throws Exception {
+        doThrow(new RuntimeException())
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+
+        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity-Type", "key")
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());

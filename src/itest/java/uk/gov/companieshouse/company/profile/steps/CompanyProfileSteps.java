@@ -590,10 +590,10 @@ public class CompanyProfileSteps {
     }
 
     @And("UK establishments exists for parent company with number {string}")
-    public void ukEstablishmentsExistsForParentCompanyWithNumber(String dataFile) throws IOException {
-        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile), null);
-        saveCompanyToMongo("src/itest/resources/json/input/00006404.json", "00006401");
-        saveCompanyToMongo("src/itest/resources/json/input/00006405.json", "00006401");
+    public void ukEstablishmentsExistsForParentCompanyWithNumber(String companyNumber) throws IOException {
+        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", companyNumber), null);
+        saveCompanyToMongo("src/itest/resources/json/input/00006404.json", companyNumber);
+        saveCompanyToMongo("src/itest/resources/json/input/00006405.json", companyNumber);
     }
 
     private void saveCompanyToMongo(String filePath, String parentCompanyNumber) throws IOException {
