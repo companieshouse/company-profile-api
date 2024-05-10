@@ -522,8 +522,8 @@ public class CompanyProfileService {
                     ukEstablishment.setCompanyNumber(company.getId());
                     ukEstablishment.setCompanyStatus(company.getCompanyProfile()
                             .getCompanyStatus());
-                    ukEstablishment.setLocality(company.getCompanyProfile().getRegisteredOfficeAddress()
-                            .getLocality());
+                    ukEstablishment.setLocality(company.getCompanyProfile()
+                            .getRegisteredOfficeAddress().getLocality());
                     SelfLink companySelfLink = new SelfLink();
                     companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
                     ukEstablishment.setLinks(companySelfLink);
