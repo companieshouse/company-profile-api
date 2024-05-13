@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -70,6 +71,7 @@ class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
+    private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -119,7 +121,7 @@ class CompanyProfileServiceTest {
     @Mock
     private CompanyProfileTransformer companyProfileTransformer;
 
-    @InjectMocks
+    @InjectMocks @Spy
     CompanyProfileService companyProfileService;
 
     private Gson gson = new Gson();
@@ -140,6 +142,10 @@ class CompanyProfileServiceTest {
 
     private static List<UkEstablishment> UK_ESTABLISHMENTS_TEST_OUTPUT;
 
+    private static CompanyProfileDocument EXISTING_UK_ESTABLISHMENT_COMPANY;
+
+    private static CompanyProfileDocument EXISTING_PARENT_COMPANY;
+
     @BeforeAll
     static void setUp() throws IOException {
         TestHelper testHelper = new TestHelper();
@@ -155,6 +161,8 @@ class CompanyProfileServiceTest {
         UK_ESTABLISHMENTS_TEST_OUTPUT = Arrays.asList(
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 1),
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 2));
+        EXISTING_UK_ESTABLISHMENT_COMPANY = testHelper.createCompanyProfileTypeUkEstablishment(MOCK_COMPANY_NUMBER);
+        EXISTING_PARENT_COMPANY = testHelper.createParentCompanyProfile(ANOTHER_PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -1562,6 +1570,22 @@ class CompanyProfileServiceTest {
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileService, times((0))).checkForDeleteLink(any());
+    }
+
+    @Test
+    @DisplayName("Check delete link should be called when deleting Uk establishments")
+    public void testDeleteCompanyProfileUkEstablishments() {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).
+                thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
+        when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
+                .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+
+        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
+        verify(companyProfileService, times(1)).checkForDeleteLink(any());
     }
 
     @Test
@@ -1575,6 +1599,7 @@ class CompanyProfileServiceTest {
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(0)).delete(any());
+        verify(companyProfileService, times((0))).checkForDeleteLink(any());
     }
 
     @Test

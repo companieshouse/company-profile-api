@@ -472,6 +472,16 @@ public class CompanyProfileService {
                                      String companyNumber) throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
+        String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
+        if (parentCompanyNumber != null) {
+            if (companyProfile.getType().equals("uk-establishment")) {
+                LinkRequest ukEstablishmentLinkRequest =
+                        new LinkRequest(contextId, parentCompanyNumber,
+                                UK_ESTABLISHMENTS_LINK_TYPE,
+                                UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+                checkForDeleteLink(ukEstablishmentLinkRequest);
+            }
+        }
 
         companyProfileRepository.delete(companyProfileDocument);
         companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,

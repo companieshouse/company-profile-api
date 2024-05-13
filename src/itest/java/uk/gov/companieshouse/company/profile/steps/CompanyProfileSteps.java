@@ -596,6 +596,12 @@ public class CompanyProfileSteps {
         saveCompanyToMongo("src/itest/resources/json/input/00006405.json", companyNumber);
     }
 
+    @And("a single UK establishment exist for parent company with number {string}")
+    public void singleUkEstablishmentExistsForParentCompanyWithNumber(String companyNumber) throws IOException {
+        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", companyNumber), null);
+        saveCompanyToMongo("src/itest/resources/json/input/00006404.json", companyNumber);
+    }
+
     private void saveCompanyToMongo(String filePath, String parentCompanyNumber) throws IOException {
         String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(filePath)));
         CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
