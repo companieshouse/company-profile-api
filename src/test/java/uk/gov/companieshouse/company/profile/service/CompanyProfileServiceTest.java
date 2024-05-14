@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -62,12 +63,15 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEME
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
+    private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -117,7 +121,7 @@ class CompanyProfileServiceTest {
     @Mock
     private CompanyProfileTransformer companyProfileTransformer;
 
-    @InjectMocks
+    @InjectMocks @Spy
     CompanyProfileService companyProfileService;
 
     private Gson gson = new Gson();
@@ -138,6 +142,10 @@ class CompanyProfileServiceTest {
 
     private static List<UkEstablishment> UK_ESTABLISHMENTS_TEST_OUTPUT;
 
+    private static CompanyProfileDocument EXISTING_UK_ESTABLISHMENT_COMPANY;
+
+    private static CompanyProfileDocument EXISTING_PARENT_COMPANY;
+
     @BeforeAll
     static void setUp() throws IOException {
         TestHelper testHelper = new TestHelper();
@@ -153,6 +161,8 @@ class CompanyProfileServiceTest {
         UK_ESTABLISHMENTS_TEST_OUTPUT = Arrays.asList(
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 1),
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 2));
+        EXISTING_UK_ESTABLISHMENT_COMPANY = testHelper.createCompanyProfileTypeUkEstablishment(MOCK_COMPANY_NUMBER);
+        EXISTING_PARENT_COMPANY = testHelper.createParentCompanyProfile(ANOTHER_PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -1560,6 +1570,22 @@ class CompanyProfileServiceTest {
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileService, times((0))).checkForDeleteLink(any());
+    }
+
+    @Test
+    @DisplayName("Check delete link should be called when deleting Uk establishments")
+    public void testDeleteCompanyProfileUkEstablishments() {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).
+                thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
+        when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
+                .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+
+        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
+        verify(companyProfileService, times(1)).checkForDeleteLink(any());
     }
 
     @Test
@@ -1573,6 +1599,7 @@ class CompanyProfileServiceTest {
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(0)).delete(any());
+        verify(companyProfileService, times((0))).checkForDeleteLink(any());
     }
 
     @Test
@@ -1740,6 +1767,177 @@ class CompanyProfileServiceTest {
             companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                     COMPANY_PROFILE);
         });
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishment link successfully updates MongoDB and calls chs-kafka-api")
+    void deleteUkEstablishmentLink() throws ApiErrorResponseException {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getUkEstablishments()).thenReturn(String.format(
+                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
+
+        // when
+        companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+                MOCK_CONTEXT_ID, true);
+
+        // then
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Don't delete the uk establishment link due to establishments existing")
+    void deleteUkEstablishmentLinkEstablishmentsExists() throws ApiErrorResponseException {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getUkEstablishments()).thenReturn(String.format(
+                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
+        when(companyProfileRepository.findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER))
+                .thenReturn(UK_ESTABLISHMENTS_TEST_INPUT);
+
+        // when
+        companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+                MOCK_CONTEXT_ID, true);
+
+        // then
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishment link throws document not found exception")
+    void deleteUkEstablishmentLinkNotFound() {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+
+        // then
+        Exception exception = assertThrows(DocumentNotFoundException.class, executable);
+        assertEquals(String.format("No company profile with company number %s found",
+                MOCK_COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishment throws resource state conflict exception")
+    void deleteUkEstablishmentConflict() throws ApiErrorResponseException {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+
+        // when
+        Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+
+        // then
+        Exception exception = assertThrows(ResourceStateConflictException.class, executable);
+        assertEquals("Resource state conflict; uk-establishments link already does not exist",
+                exception.getMessage());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishment throws service unavailable exception when illegal argument exception caught")
+    void deleteUkEstablishmentIllegalArgument() throws ApiErrorResponseException {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getUkEstablishments()).thenReturn(String.format(
+                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
+        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishment throws service unavailable exception when data access exception thrown during findById")
+    void deleteUkEstablishmentDataAccessExceptionFindById() throws ApiErrorResponseException {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(mongoTemplate);
+    }
+
+    @Test
+    @DisplayName("Delete uk establishment throws service unavailable exception when data access exception thrown during update")
+    void deleteUkEstablishmentDataAccessExceptionUpdate() throws ApiErrorResponseException {
+        // given
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+                UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+        when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
+        when(document.getCompanyProfile()).thenReturn(data);
+        when(data.getLinks()).thenReturn(links);
+        when(links.getUkEstablishments()).thenReturn(String.format(
+                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
+        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+
+        // when
+        Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+
+        // then
+        assertThrows(ServiceUnavailableException.class, executable);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 

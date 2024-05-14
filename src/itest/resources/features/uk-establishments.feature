@@ -10,7 +10,7 @@ Feature: Process uk establishments
 
     Examples:
     | companyNumber | result                       |
-    | 00006401      | 00006401-getUkEstablishments |
+    | 00006406      | 00006406-getUkEstablishments |
 
 
   Scenario Outline: Sending UK establishments GET request without ERIC headers
@@ -22,7 +22,7 @@ Feature: Process uk establishments
 
   Examples:
   | companyNumber |
-  | 00006401      |
+  | 00006406     |
 
 
   Scenario Outline: Sending UK establishments GET request fails due to non existent company
@@ -33,7 +33,7 @@ Feature: Process uk establishments
 
   Examples:
   | company_number |
-  | 00006401       |
+  | 00006406       |
 
 
   Scenario Outline: Sending UK establishments GET request fails due MongoDB being unavailable
@@ -45,4 +45,4 @@ Feature: Process uk establishments
 
   Examples:
   | company_number |
-  | 00006401       |
+  | 00006406       |

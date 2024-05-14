@@ -207,6 +207,20 @@ public class CompanyProfileService {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
+
+        if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkType)) {
+            int ukEstablishmentsCount = retrieveUkEstablishments(companyNumber).getItems().size();
+            if (ukEstablishmentsCount > 1) {
+                logger.infoContext(contextId, String.format("Link not deleted, "
+                                + "UK establishments still exists for: %s", companyNumber),
+                        DataMapHolder.getLogMap());
+                return;
+            }
+            logger.infoContext(contextId, String.format("Company: %s only has zero or "
+                            + "one uk establishment, link to be deleted.", companyNumber),
+                    DataMapHolder.getLogMap());
+        }
+
         try {
             Update update = new Update();
             update.unset(String.format("data.links.%s", convertToDBformat(linkType)));
@@ -458,6 +472,16 @@ public class CompanyProfileService {
                                      String companyNumber) throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
+        String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
+        if (parentCompanyNumber != null) {
+            if (companyProfile.getType().equals("uk-establishment")) {
+                LinkRequest ukEstablishmentLinkRequest =
+                        new LinkRequest(contextId, parentCompanyNumber,
+                                UK_ESTABLISHMENTS_LINK_TYPE,
+                                UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+                checkForDeleteLink(ukEstablishmentLinkRequest);
+            }
+        }
 
         companyProfileRepository.delete(companyProfileDocument);
         companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
@@ -495,10 +519,13 @@ public class CompanyProfileService {
      */
     public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber)
             throws ResourceNotFoundException {
-        CompanyProfileDocument retrievedDocument = getCompanyProfileDocument(parentCompanyNumber);
+        String numberFound = getCompanyProfileDocument(parentCompanyNumber).getId();
+        return retrieveUkEstablishments(numberFound);
+    }
 
+    private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
         List<UkEstablishment> ukEstablishments = companyProfileRepository
-                .findAllByParentCompanyNumber(retrievedDocument.getId())
+                .findAllByParentCompanyNumber(companyNumber)
                 .stream().map(company -> {
                     UkEstablishment ukEstablishment = new UkEstablishment();
                     ukEstablishment.setCompanyName(company.getCompanyProfile().getCompanyName());
@@ -518,7 +545,7 @@ public class CompanyProfileService {
         ukEstablishmentsList.setKind(RELATED_COMPANIES_KIND);
         ukEstablishmentsList.setEtag(GenerateEtagUtil.generateEtag());
         Links parentCompanyLink = new Links();
-        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, retrievedDocument.getId()));
+        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, companyNumber));
         ukEstablishmentsList.setLinks(parentCompanyLink);
 
         return ukEstablishmentsList;

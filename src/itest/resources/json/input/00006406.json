@@ -13,17 +13,17 @@
         "type": "total-exemption-full"
       },
       "next_accounts": {
-        "due_on": "2022-09-30",
-        "period_end_on": "2021-12-31",
-        "period_start_on": "2021-01-01"
+        "due_on": "",
+        "period_end_on": "",
+        "period_start_on": ""
       },
       "next_due": "2022-09-30",
       "next_made_up_to": "2021-12-31"
     },
     "can_file": true,
     "company_name": "RENABLE PHARMA LTD",
-    "company_number": "00006404",
-    "company_status": "open",
+    "company_number": "00006406",
+    "company_status": "liquidation",
     "confirmation_statement": {
       "last_made_up_to": "2021-03-04",
       "next_due": "2022-03-18",
@@ -35,22 +35,19 @@
     "jurisdiction": "england-wales",
     "last_full_members_list_date": "2016-03-04",
     "links": {
-      "filing_history": "/company/00006404/filing-history",
-      "officers": "/company/00006404/officers",
-      "persons_with_significant_control": "/company/00006404/persons-with-significant-control",
-      "self": "/company/00006404",
-      "insolvency" : "insolvency"
-    },
-    "branch_company_details" : {
-      "parent_company_number" : "00006406",
-      "parent_company_name" : "RENABLE PHARMA LTD",
-      "business_activity" : "liquidation"
+      "filing_history": "/company/00006406/filing-history",
+      "officers": "/company/00006406/officers",
+      "persons_with_significant_control": "/company/00006406/persons-with-significant-control",
+      "self": "/company/00006406",
+      "insolvency" : "insolvency",
+      "uk_establishments" : "/company/00006406/uk-establishments"
     },
     "registered_office_address": {
-      "locality" : "Harlow",
-      "postal_code" : "CM17 9JA",
-      "region" : "Newhall",
-      "address_line_1" : "52 The Chase"
+      "address_line_1": "Ground Floor Marlow International",
+      "address_line_2": "Parkway",
+      "country": "England",
+      "locality": "Marlow",
+      "postal_code": "SL7 1YL"
     },
     "sic_codes": [
       "72110"
