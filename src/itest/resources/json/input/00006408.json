@@ -32,6 +32,8 @@
     "date_of_creation": "2015-03-04",
     "etag": "5a3c51b439584d98d420143d6a22996571646302",
     "has_insolvency_history": true,
+    "has_charges" : true,
+    "has_been_liquidated" : true,
     "jurisdiction": "england-wales",
     "last_full_members_list_date": "2016-03-04",
     "links": {
