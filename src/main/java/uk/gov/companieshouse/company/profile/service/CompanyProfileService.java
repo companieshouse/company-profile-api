@@ -408,20 +408,20 @@ public class CompanyProfileService {
                 });
 
         if (companyProfile.getData() != null) {
-            if(companyProfile.getData().getHasCharges() == null) {
+            if (companyProfile.getData().getHasCharges() == null) {
                 existingProfile
                         .map(CompanyProfileDocument::getCompanyProfile)
-                        .map(Data::getHasCharges).ifPresent( hasCharges ->
+                        .map(Data::getHasCharges).ifPresent(hasCharges ->
                                 companyProfile.getData().setHasCharges(hasCharges)
-                        );
+                    );
             }
 
-            if(companyProfile.getData().getHasBeenLiquidated() == null) {
+            if (companyProfile.getData().getHasBeenLiquidated() == null) {
                 existingProfile
                         .map(CompanyProfileDocument::getCompanyProfile)
-                        .map(Data::getHasBeenLiquidated).ifPresent( hasBeenLiquidated ->
+                        .map(Data::getHasBeenLiquidated).ifPresent(hasBeenLiquidated ->
                                 companyProfile.getData().setHasBeenLiquidated(hasBeenLiquidated)
-                        );
+                    );
             }
         }
 

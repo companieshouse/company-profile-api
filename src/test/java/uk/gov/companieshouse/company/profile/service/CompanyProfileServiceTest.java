@@ -2455,9 +2455,11 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("Put company profile")
+    @DisplayName("Should not remove fields on update")
     void updateCompanyProfileShouldNotRemoveHasChargesField() throws IOException {
-        CompanyProfileDocument existingDoc = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        CompanyProfileDocument existingDoc = new CompanyProfileDocument();
+        existingDoc.setCompanyProfile(new Data());
+        existingDoc.setId("6146287");
         existingDoc.getCompanyProfile().setHasBeenLiquidated(true);
         existingDoc.getCompanyProfile().setHasCharges(true);
         existingDoc.getCompanyProfile().setLinks(null);
