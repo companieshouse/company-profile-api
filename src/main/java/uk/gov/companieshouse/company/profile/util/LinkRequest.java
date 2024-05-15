@@ -5,9 +5,17 @@ import uk.gov.companieshouse.api.company.Links;
 
 public class LinkRequest {
 
+    public static final String CHARGES_LINK_TYPE = "charges";
+    public static final String CHARGES_DELTA_TYPE = "charges_delta";
+    public static final Function<Links, String> CHARGES_GET = Links::getCharges;
+
     public static final String EXEMPTIONS_LINK_TYPE = "exemptions";
     public static final String EXEMPTIONS_DELTA_TYPE = "exemption_delta";
     public static final Function<Links, String> EXEMPTIONS_GET = Links::getExemptions;
+
+    public static final String INSOLVENCY_LINK_TYPE = "insolvency";
+    public static final String INSOLVENCY_DELTA_TYPE = "insolvency_delta";
+    public static final Function<Links, String> INSOLVENCY_GET = Links::getInsolvency;
 
     public static final String OFFICERS_LINK_TYPE = "officers";
     public static final String OFFICERS_DELTA_TYPE = "officer_delta";
@@ -16,7 +24,7 @@ public class LinkRequest {
     public static final String PSC_LINK_TYPE = "persons-with-significant-control";
     public static final String PSC_DELTA_TYPE = "psc_delta";
     public static final Function<Links, String> PSC_GET = Links::getPersonsWithSignificantControl;
-    
+
     public static final String PSC_STATEMENTS_LINK_TYPE =
             "persons-with-significant-control-statements";
     public static final String PSC_STATEMENTS_DELTA_TYPE = "psc_statement_delta";
@@ -29,9 +37,7 @@ public class LinkRequest {
             Links::getFilingHistory;
 
     public static final String UK_ESTABLISHMENTS_LINK_TYPE = "uk-establishments";
-
     public static final String UK_ESTABLISHMENTS_DELTA_TYPE = "uk_establishment_delta";
-
     public static final Function<Links, String> UK_ESTABLISHMENTS_GET =
             Links::getUkEstablishments;
 
