@@ -1794,4 +1794,31 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(MOCK_PARENT_COMPANY_NUMBER);
         verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
     }
+
+    @Test
+    @DisplayName("Put company profile")
+    void updateCompanyProfileShouldNotRemoveHasChargesField() throws IOException {
+        CompanyProfileDocument existingDoc = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        existingDoc.getCompanyProfile().setHasBeenLiquidated(true);
+        existingDoc.getCompanyProfile().setHasCharges(true);
+        existingDoc.getCompanyProfile().setLinks(null);
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
+        CompanyProfile companyProfile = COMPANY_PROFILE;
+        companyProfile.getData().setHasCharges(null);
+        companyProfile.getData().setHasBeenLiquidated(null);
+        CompanyProfile profileToTransform = COMPANY_PROFILE;
+        profileToTransform.getData().setHasBeenLiquidated(true);
+        profileToTransform.getData().setHasCharges(true);
+        when(companyProfileTransformer.transform(profileToTransform, MOCK_COMPANY_NUMBER, null))
+                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfile);
+
+        Assertions.assertNotNull(COMPANY_PROFILE);
+        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
+
 }
