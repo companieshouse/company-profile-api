@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
@@ -31,6 +32,9 @@ public class CompanyProfileTransformer {
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setId(companyNumber);
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
+        if (companyProfile.getData() != null) {
+            companyProfileDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+        }
 
         transformLinks(companyProfile, existinglinks, companyProfileDocument);
 
@@ -38,6 +42,9 @@ public class CompanyProfileTransformer {
         if (companyProfile.getDeltaAt() != null) {
             companyProfileDocument.setDeltaAt(LocalDateTime.parse(
                     companyProfile.getDeltaAt(), dateTimeFormatter));
+        }
+        if (companyProfile.getParentCompanyNumber() != null) {
+            companyProfileDocument.setParentCompanyNumber(companyProfile.getParentCompanyNumber());
         }
         if (companyProfile.getHasMortgages() != null) {
             companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());

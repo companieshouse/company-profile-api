@@ -38,6 +38,7 @@ public class TestHelper {
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+
         companyProfileDocument.setUpdated(new Updated()
                 .setAt(LocalDateTime.now()));
         return companyProfileDocument;
@@ -65,6 +66,7 @@ public class TestHelper {
         companyProfileWithOutLinks.setData(data);
         companyProfileWithOutLinks.setDeltaAt("20210102030405123456");
         companyProfileWithOutLinks.setHasMortgages(true);
+        companyProfileWithOutLinks.setParentCompanyNumber("FC123456");
         return companyProfileWithOutLinks;
     }
 
@@ -91,5 +93,26 @@ public class TestHelper {
         ukEstablishment.setCompanyNumber(companyNumber);
 
         return ukEstablishment;
+    }
+
+    public CompanyProfileDocument createCompanyProfileTypeUkEstablishment(String companyNumber) {
+        Data companyProfileData = new Data();
+        companyProfileData.setType("uk-establishment");
+        CompanyProfileDocument existingCompanyProfileDocument = new CompanyProfileDocument();
+        existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
+        existingCompanyProfileDocument.setId(companyNumber);
+        existingCompanyProfileDocument.setParentCompanyNumber("FC123456");
+        return existingCompanyProfileDocument;
+    }
+
+    public CompanyProfileDocument createParentCompanyProfile(String companyNumber) {
+        Data companyProfileData = new Data();
+        Links existingLinks = new Links();
+        existingLinks.setUkEstablishments(String.format("/company/%s/uk-establishments", companyNumber));
+        companyProfileData.setLinks(existingLinks);
+        CompanyProfileDocument existingCompanyProfileDocument = new CompanyProfileDocument();
+        existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
+        existingCompanyProfileDocument.setId(companyNumber);
+        return existingCompanyProfileDocument;
     }
 }

@@ -5,10 +5,10 @@ Feature: Add uk-establishments link to company profile
     Given the CHS Kafka API is reachable
     And the company profile resource "<company_number>" exists for "<company_number>"
     And the company profile resource "<parent_company_number>" exists for "<parent_company_number>"
-    And the uk-establishment link does not exist for "<parent_company_number>"
+    And a UK establishment link does not exist for "<parent_company_number>"
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
     Then the response code should be 200
-    And the uk-establishment link exists for "<parent_company_number>"
+    And a UK establishment link should be added for "<parent_company_number>"
 
     Examples:
       | company_number | parent_company_number |
@@ -20,10 +20,10 @@ Feature: Add uk-establishments link to company profile
     Given the CHS Kafka API is reachable
     And the company profile resource "<company_number>" exists for "<company_number>"
     And the company profile resource "<parent_company_number>" exists for "<parent_company_number>"
-    And the uk-establishment link does exist for "<parent_company_number>"
+    And a UK establishment link does exist for "<parent_company_number>"
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
     Then the response code should be 200
-    And the uk-establishment link exists for "<parent_company_number>"
+    And the UK establishment link should still exist for "<parent_company_number>"
 
     Examples:
       | company_number | parent_company_number |
@@ -36,7 +36,7 @@ Feature: Add uk-establishments link to company profile
     And the company profile resource "<company_number>" exists for "<company_number>"
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
     Then the response code should be 200
-    And the uk-establishment link exists for "<parent_company_number>"
+    And the UK establishment link should still exist for "<parent_company_number>"
 
     Examples:
       | company_number | parent_company_number |
