@@ -101,6 +101,7 @@
       "self" : "/company/00006400",
       "charges" : "/company/00006400/charges",
       "filing_history" : "/company/00006400/filing-history",
+      "insolvency" : "/company/00006400/insolvency",
       "officers" : "/company/00006400/officers",
       "persons_with_significant_control" : "/company/00006400/persons-with-significant-control",
       "persons_with_significant_control_statements" : "/company/00006400/persons-with-significant-control-statements",
