@@ -99,6 +99,7 @@
     },
     "links" : {
       "self" : "/company/00006400",
+      "charges" : "/company/00006400/charges",
       "filing_history" : "/company/00006400/filing-history",
       "officers" : "/company/00006400/officers",
       "persons_with_significant_control" : "/company/00006400/persons-with-significant-control",
