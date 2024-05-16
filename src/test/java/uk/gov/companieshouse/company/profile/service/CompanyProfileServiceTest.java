@@ -2462,21 +2462,26 @@ class CompanyProfileServiceTest {
         existingDoc.setId("6146287");
         existingDoc.getCompanyProfile().setHasBeenLiquidated(true);
         existingDoc.getCompanyProfile().setHasCharges(true);
-        existingDoc.getCompanyProfile().setLinks(null);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
-        CompanyProfile companyProfile = COMPANY_PROFILE;
-        companyProfile.getData().setHasCharges(null);
-        companyProfile.getData().setHasBeenLiquidated(null);
-        CompanyProfile profileToTransform = COMPANY_PROFILE;
+
+        CompanyProfile profileToTransform = new CompanyProfile();
+        profileToTransform.setData(new Data());
         profileToTransform.getData().setHasBeenLiquidated(true);
         profileToTransform.getData().setHasCharges(true);
+        profileToTransform.getData().setCompanyNumber("6146287");
         when(companyProfileTransformer.transform(profileToTransform, MOCK_COMPANY_NUMBER, null))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
 
+        CompanyProfile companyProfile = new CompanyProfile();
+        companyProfile.setData(new Data());
+        companyProfile.getData().setHasCharges(null);
+        companyProfile.getData().setHasBeenLiquidated(null);
+        companyProfile.getData().setCompanyNumber("6146287");
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfile);
+        verify(companyProfileTransformer).transform(profileToTransform, MOCK_COMPANY_NUMBER, null);
 
-        Assertions.assertNotNull(COMPANY_PROFILE);
+
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
