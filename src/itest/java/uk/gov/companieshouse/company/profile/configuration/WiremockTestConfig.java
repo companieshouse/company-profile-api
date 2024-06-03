@@ -1,15 +1,15 @@
 package uk.gov.companieshouse.company.profile.configuration;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 public class WiremockTestConfig {
 
@@ -29,7 +29,7 @@ public class WiremockTestConfig {
 
     public static void stubKafkaApi(Integer responseCode) {
         stubFor(
-                post(urlPathMatching("/resource-changed"))
+                post(urlPathMatching("/private/resource-changed"))
                         .willReturn(aResponse()
                                 .withStatus(responseCode)
                                 .withHeader("Content-Type", "application/json"))

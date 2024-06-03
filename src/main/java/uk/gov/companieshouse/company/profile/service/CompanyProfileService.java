@@ -1,9 +1,9 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -34,16 +34,15 @@ import uk.gov.companieshouse.api.company.PreviousCompanyNames;
 import uk.gov.companieshouse.api.company.SelfLink;
 import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
@@ -117,8 +116,7 @@ public class CompanyProfileService {
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
-                                     final CompanyProfile companyProfileRequest)
-            throws ApiErrorResponseException {
+                                     final CompanyProfile companyProfileRequest) {
 
         try {
 
@@ -336,7 +334,7 @@ public class CompanyProfileService {
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
-        if (!StringUtils.isBlank(linkData)) {
+        if (!isBlank(linkData)) {
             logger.error(linkRequest.getLinkType() + " link for company profile already exists",
                     DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
@@ -455,7 +453,7 @@ public class CompanyProfileService {
 
     /** Retrieve company profile. */
     public Data retrieveCompanyNumber(String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
@@ -491,15 +489,14 @@ public class CompanyProfileService {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
-        if (parentCompanyNumber != null) {
-            if (companyProfile.getType().equals("uk-establishment")) {
-                LinkRequest ukEstablishmentLinkRequest =
-                        new LinkRequest(contextId, parentCompanyNumber,
-                                UK_ESTABLISHMENTS_LINK_TYPE,
-                                UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-                checkForDeleteLink(ukEstablishmentLinkRequest);
-            }
+        if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
+            LinkRequest ukEstablishmentLinkRequest =
+                    new LinkRequest(contextId, parentCompanyNumber,
+                            UK_ESTABLISHMENTS_LINK_TYPE,
+                            UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+            checkForDeleteLink(ukEstablishmentLinkRequest);
         }
+
 
         companyProfileRepository.delete(companyProfileDocument);
         companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
@@ -511,8 +508,7 @@ public class CompanyProfileService {
     }
 
     /** Get company details. */
-    public Optional<CompanyDetails> getCompanyDetails(String companyNumber)
-            throws JsonProcessingException {
+    public Optional<CompanyDetails> getCompanyDetails(String companyNumber) {
         try {
             Data companyProfile = retrieveCompanyNumber(companyNumber);
             CompanyDetails companyDetails = new CompanyDetails();
@@ -607,25 +603,19 @@ public class CompanyProfileService {
 
             Optional.ofNullable(companyProfile.getConfirmationStatement())
                     .map(ConfirmationStatement::getNextDue)
-                    .ifPresent(nextDue -> {
-                        companyProfile.getConfirmationStatement()
-                            .setOverdue(nextDue.isBefore(currentDate));
-                    });
+                    .ifPresent(nextDue -> companyProfile.getConfirmationStatement()
+                        .setOverdue(nextDue.isBefore(currentDate)));
 
             Optional.ofNullable(companyProfile.getAccounts())
                     .map(Accounts::getNextAccounts)
                     .map(NextAccounts::getDueOn)
-                    .ifPresent(nextDue -> {
-                        companyProfile.getAccounts().getNextAccounts()
-                                .setOverdue(nextDue.isBefore(currentDate));
-                    });
+                    .ifPresent(nextDue -> companyProfile.getAccounts().getNextAccounts()
+                            .setOverdue(nextDue.isBefore(currentDate)));
 
             Optional.ofNullable(companyProfile.getAnnualReturn())
                     .map(AnnualReturn::getNextDue)
-                    .ifPresent(nextDue -> {
-                        companyProfile.getAnnualReturn()
-                                .setOverdue(nextDue.isBefore(currentDate));
-                    });
+                    .ifPresent(nextDue -> companyProfile.getAnnualReturn()
+                            .setOverdue(nextDue.isBefore(currentDate)));
         } catch (Exception exception) {
             logger.error("Error determining overdue status " + exception.getMessage());
         }
