@@ -460,19 +460,21 @@ public class CompanyProfileService {
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
 
+        Data profileData = companyProfileDocument.getCompanyProfile();
         //SuperSecureManagingOfficerCount should not be returned on a Get request
-        if (companyProfileDocument.getCompanyProfile() != null) {
-            companyProfileDocument.getCompanyProfile().setSuperSecureManagingOfficerCount(null);
-
-            List<PreviousCompanyNames> previousCompanyNames =
-                    companyProfileDocument.getCompanyProfile().getPreviousCompanyNames();
-
+        if (profileData != null) {
+            profileData.setSuperSecureManagingOfficerCount(null);
+            List<PreviousCompanyNames> previousCompanyNames = profileData.getPreviousCompanyNames();
             if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
-                companyProfileDocument.getCompanyProfile().setPreviousCompanyNames(null);
+                profileData.setPreviousCompanyNames(null);
+            }
+            LocalDate dissolutionDate = profileData.getDateOfDissolution();
+            if (dissolutionDate != null) {
+                profileData.setDateOfCessation(dissolutionDate);
+                profileData.setDateOfDissolution(null);
             }
         }
-
-        return companyProfileDocument.getCompanyProfile();
+        return profileData;
     }
 
     private CompanyProfileDocument getCompanyProfileDocument(String companyNumber)
