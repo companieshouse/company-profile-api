@@ -412,8 +412,15 @@ public class CompanyProfileService {
                 existingProfile
                         .map(CompanyProfileDocument::getCompanyProfile)
                         .map(Data::getHasCharges).ifPresent(hasCharges ->
-                                companyProfile.getData().setHasCharges(hasCharges)
-                    );
+                                companyProfile.getData().setHasCharges(hasCharges));
+
+                if (companyProfile.getData().getLinks() != null) {
+                    if (companyProfile.getData().getLinks().getCharges() != null) {
+                        companyProfile.getData().setHasCharges(true);
+                    } else {
+                        companyProfile.getData().setHasCharges(false);
+                    }
+                }
             }
 
             if (companyProfile.getData().getHasBeenLiquidated() == null) {
