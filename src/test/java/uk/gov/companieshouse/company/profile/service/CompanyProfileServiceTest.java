@@ -2111,6 +2111,23 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("Retrieve date of cessation on a company number with dissolution date")
+    public void testRetrieveCompanyNumberCessationDate() throws ResourceNotFoundException, JsonProcessingException {
+        CompanyProfileDocument profileDocument = new CompanyProfileDocument();
+        Data profileData = new Data();
+        profileData.setDateOfDissolution(LocalDate.of(2019, 1, 1));
+        profileDocument.setCompanyProfile(profileData);
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(profileDocument));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertEquals(LocalDate.of(2019, 1, 1), result.getDateOfCessation());
+        assertNull(result.getDateOfDissolution());
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
     @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
     public void testRetrieveCompanyNumberResourceNotFoundException(){
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());

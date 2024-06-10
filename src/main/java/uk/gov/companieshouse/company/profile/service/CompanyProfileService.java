@@ -475,20 +475,22 @@ public class CompanyProfileService {
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
 
-        if (companyProfileDocument.getCompanyProfile() != null) {
+        Data profileData = companyProfileDocument.getCompanyProfile();
+        if (profileData != null) {
             //SuperSecureManagingOfficerCount should not be returned on a Get request
-            companyProfileDocument.getCompanyProfile().setSuperSecureManagingOfficerCount(null);
-
-            List<PreviousCompanyNames> previousCompanyNames =
-                    companyProfileDocument.getCompanyProfile().getPreviousCompanyNames();
-
+            profileData.setSuperSecureManagingOfficerCount(null);
+            List<PreviousCompanyNames> previousCompanyNames = profileData.getPreviousCompanyNames();
             if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
-                companyProfileDocument.getCompanyProfile().setPreviousCompanyNames(null);
+                profileData.setPreviousCompanyNames(null);
+            }
+            LocalDate dissolutionDate = profileData.getDateOfDissolution();
+            if (dissolutionDate != null) {
+                profileData.setDateOfCessation(dissolutionDate);
+                profileData.setDateOfDissolution(null);
             }
 
             //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
-            RegisteredOfficeAddress roa = companyProfileDocument.getCompanyProfile()
-                    .getRegisteredOfficeAddress();
+            RegisteredOfficeAddress roa = profileData.getRegisteredOfficeAddress();
             if (roa != null) {
                 if (roa.getCareOf() == null) {
                     roa.setCareOf(roa.getCareOfName());
@@ -496,8 +498,7 @@ public class CompanyProfileService {
                 roa.setCareOfName(null);
             }
         }
-
-        return companyProfileDocument.getCompanyProfile();
+        return profileData;
     }
 
     private CompanyProfileDocument getCompanyProfileDocument(String companyNumber)

@@ -183,11 +183,11 @@ public class CompanyProfileController {
             logger.info("Forbidden request");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error("Error while trying to delete company profile: "
+            logger.error("Error while trying to retrieve company profile: "
                     + resourceNotFoundException.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to delete company profile: "
+            logger.error("Error while trying to retrieve company profile: "
                     + dataAccessException.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
