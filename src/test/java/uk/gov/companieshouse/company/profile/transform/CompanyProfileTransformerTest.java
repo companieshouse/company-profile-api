@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
@@ -112,4 +113,36 @@ public class CompanyProfileTransformerTest {
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
     }
 
+    @Test
+    void shouldTransformCompanyProfileWithCareOfName(){
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOfName("careOfName");
+        roa.setCareOf("careOf");
+        COMPANY_PROFILE_WITHOUT_LINKS.getData().setRegisteredOfficeAddress(roa);
+
+        EXISTING_LINKS = null;
+        CompanyProfileDocument document = transformer.transform(COMPANY_PROFILE_WITHOUT_LINKS, COMPANY_PROFILE_WITHOUT_LINKS.getData().getCompanyNumber(), EXISTING_LINKS);
+
+        Assertions.assertEquals("careOfName", document.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
+        Assertions.assertNull(document.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
+
+        Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
+                - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
+    }
+
+    @Test
+    void shouldTransformCompanyProfileWithOnlyCareOf(){
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOf("careOf");
+        COMPANY_PROFILE_WITHOUT_LINKS.getData().setRegisteredOfficeAddress(roa);
+
+        EXISTING_LINKS = null;
+        CompanyProfileDocument document = transformer.transform(COMPANY_PROFILE_WITHOUT_LINKS, COMPANY_PROFILE_WITHOUT_LINKS.getData().getCompanyNumber(), EXISTING_LINKS);
+
+        Assertions.assertEquals("careOf", document.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
+        Assertions.assertNull(document.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
+
+        Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
+                - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
+    }
 }

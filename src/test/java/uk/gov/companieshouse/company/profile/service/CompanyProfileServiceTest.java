@@ -155,6 +155,59 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("When company profile is retrieved successfully with CareOf then it is returned")
+    void getCompanyProfileWithCareOf() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setType("ltd");
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOf("careOf");
+        roa.setCareOfName("careOfName");
+        companyData.setRegisteredOfficeAddress(roa);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
+
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
+
+        Optional<CompanyProfileDocument> companyProfileActual =
+                companyProfileService.get(MOCK_COMPANY_NUMBER);
+
+        assertThat(companyProfileActual).containsSame(mockCompanyProfileDocument);
+        assertEquals("careOf", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
+        assertNull(companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
+        verify(logger, times(2)).trace(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("When company profile is retrieved successfully with only CareOfName then it is returned with CareOf")
+    void getCompanyProfileWithCareOfName() {
+        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setType("ltd");
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOfName("careOfName");
+        companyData.setRegisteredOfficeAddress(roa);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Updated updated = mock(Updated.class);
+        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
+        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
+
+        when(companyProfileRepository.findById(anyString()))
+                .thenReturn(Optional.of(mockCompanyProfileDocument));
+
+        Optional<CompanyProfileDocument> companyProfileActual =
+                companyProfileService.get(MOCK_COMPANY_NUMBER);
+
+        assertThat(companyProfileActual).containsSame(mockCompanyProfileDocument);
+        assertEquals("careOfName", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
+        assertNull(companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
+        verify(logger, times(2)).trace(anyString(), any());
+    }
+
+    @Test
     @DisplayName("When company details is retrieved successfully then it is returned")
     void getCompanyDetails() throws JsonProcessingException {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
@@ -2013,6 +2066,47 @@ class CompanyProfileServiceTest {
         Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
         assertEquals(document.getCompanyProfile(), result);
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("When retrieving company profile then it is returned with careOf")
+    public void testRetrieveCompanyNumberCareOf() throws ResourceNotFoundException {
+        CompanyProfileDocument doc = new CompanyProfileDocument();
+        Data data = new Data();
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOf("careOf");
+        roa.setCareOfName("careOfName");
+        data.setRegisteredOfficeAddress(roa);
+        doc.setCompanyProfile(data);
+
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertEquals(doc.getCompanyProfile(), result);
+        assertEquals("careOf", result.getRegisteredOfficeAddress().getCareOf());
+        assertNull(result.getRegisteredOfficeAddress().getCareOfName());
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("When retrieving company profile without careOf then it is returned with careOf populated by careOfName")
+    public void testRetrieveCompanyNumberCareOfName() throws ResourceNotFoundException {
+        CompanyProfileDocument doc = new CompanyProfileDocument();
+        Data data = new Data();
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOfName("careOfName");
+        data.setRegisteredOfficeAddress(roa);
+        doc.setCompanyProfile(data);
+
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertEquals(doc.getCompanyProfile(), result);
+        assertEquals("careOfName", result.getRegisteredOfficeAddress().getCareOf());
+        assertNull(result.getRegisteredOfficeAddress().getCareOfName());
         verify(companyProfileRepository, times(1)).findById(anyString());
     }
 
