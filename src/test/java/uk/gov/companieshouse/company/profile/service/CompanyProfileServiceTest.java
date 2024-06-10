@@ -2478,8 +2478,7 @@ class CompanyProfileServiceTest {
         existingDoc.setCompanyProfile(new Data());
         existingDoc.setId("6146287");
         existingDoc.getCompanyProfile().setHasBeenLiquidated(true);
-        existingDoc.getCompanyProfile().setHasCharges(false);
-
+        existingDoc.getCompanyProfile().setHasCharges(true);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
 
         CompanyProfile profileToTransform = new CompanyProfile();

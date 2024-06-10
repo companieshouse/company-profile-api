@@ -415,11 +415,8 @@ public class CompanyProfileService {
                                 companyProfile.getData().setHasCharges(hasCharges));
 
                 if (companyProfile.getData().getLinks() != null) {
-                    if (companyProfile.getData().getLinks().getCharges() != null) {
-                        companyProfile.getData().setHasCharges(true);
-                    } else {
-                        companyProfile.getData().setHasCharges(false);
-                    }
+                    boolean hasCharges = companyProfile.getData().getLinks().getCharges() != null;
+                    companyProfile.getData().setHasCharges(hasCharges);
                 }
             }
 
