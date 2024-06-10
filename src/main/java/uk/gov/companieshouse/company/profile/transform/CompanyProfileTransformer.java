@@ -33,18 +33,18 @@ public class CompanyProfileTransformer {
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setId(companyNumber);
 
-        //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
-        RegisteredOfficeAddress roa = companyProfile.getData().getRegisteredOfficeAddress();
-        if (roa != null && roa.getCareOf() != null) {
-            if (roa.getCareOfName() == null) {
-                roa.setCareOfName(roa.getCareOf());
-            }
-            roa.setCareOf(null);
-        }
-
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         if (companyProfile.getData() != null) {
             companyProfileDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+
+            //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+            RegisteredOfficeAddress roa = companyProfile.getData().getRegisteredOfficeAddress();
+            if (roa != null && roa.getCareOf() != null) {
+                if (roa.getCareOfName() == null) {
+                    roa.setCareOfName(roa.getCareOf());
+                }
+                roa.setCareOf(null);
+            }
         }
 
         transformLinks(companyProfile, existinglinks, companyProfileDocument);
