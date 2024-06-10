@@ -2484,14 +2484,14 @@ class CompanyProfileServiceTest {
         CompanyProfile profileToTransform = new CompanyProfile();
         profileToTransform.setData(new Data());
         profileToTransform.getData().setHasBeenLiquidated(true);
-        profileToTransform.getData().setHasCharges(false);
+        profileToTransform.getData().setHasCharges(true);
         profileToTransform.getData().setCompanyNumber("6146287");
         when(companyProfileTransformer.transform(profileToTransform, MOCK_COMPANY_NUMBER, null))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
 
         CompanyProfile companyProfile = new CompanyProfile();
         companyProfile.setData(new Data());
-        companyProfile.getData().setHasCharges(false);
+        companyProfile.getData().setHasCharges(null);
         companyProfile.getData().setHasBeenLiquidated(null);
         companyProfile.getData().setCompanyNumber("6146287");
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
