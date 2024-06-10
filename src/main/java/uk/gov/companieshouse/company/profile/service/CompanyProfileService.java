@@ -31,6 +31,7 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.NextAccounts;
 import uk.gov.companieshouse.api.company.PreviousCompanyNames;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.company.SelfLink;
 import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
@@ -106,6 +107,20 @@ public class CompanyProfileService {
                         String.format("No company profile with company number %s found",
                                 companyNumber), DataMapHolder.getLogMap())
         );
+
+        //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+        if (companyProfileDocument.isPresent()) {
+            CompanyProfileDocument document = companyProfileDocument.get();
+            RegisteredOfficeAddress roa = document.getCompanyProfile().getRegisteredOfficeAddress();
+            if (roa != null) {
+                if (roa.getCareOf() == null) {
+                    roa.setCareOf(roa.getCareOfName());
+                }
+                roa.setCareOfName(null);
+                companyProfileDocument = Optional.of(document);
+            }
+        }
+
         return companyProfileDocument;
     }
 
