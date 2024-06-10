@@ -470,13 +470,13 @@ public class CompanyProfileService {
 
     /** Retrieve company profile. */
     public Data retrieveCompanyNumber(String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
 
-        //SuperSecureManagingOfficerCount should not be returned on a Get request
         if (companyProfileDocument.getCompanyProfile() != null) {
+            //SuperSecureManagingOfficerCount should not be returned on a Get request
             companyProfileDocument.getCompanyProfile().setSuperSecureManagingOfficerCount(null);
 
             List<PreviousCompanyNames> previousCompanyNames =
@@ -484,6 +484,16 @@ public class CompanyProfileService {
 
             if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
                 companyProfileDocument.getCompanyProfile().setPreviousCompanyNames(null);
+            }
+
+            //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+            RegisteredOfficeAddress roa = companyProfileDocument.getCompanyProfile()
+                    .getRegisteredOfficeAddress();
+            if (roa != null) {
+                if (roa.getCareOf() == null) {
+                    roa.setCareOf(roa.getCareOfName());
+                }
+                roa.setCareOfName(null);
             }
         }
 

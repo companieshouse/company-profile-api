@@ -2070,6 +2070,47 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("When retrieving company profile then it is returned with careOf")
+    public void testRetrieveCompanyNumberCareOf() throws ResourceNotFoundException {
+        CompanyProfileDocument doc = new CompanyProfileDocument();
+        Data data = new Data();
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOf("careOf");
+        roa.setCareOfName("careOfName");
+        data.setRegisteredOfficeAddress(roa);
+        doc.setCompanyProfile(data);
+
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertEquals(doc.getCompanyProfile(), result);
+        assertEquals("careOf", result.getRegisteredOfficeAddress().getCareOf());
+        assertNull(result.getRegisteredOfficeAddress().getCareOfName());
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("When retrieving company profile without careOf then it is returned with careOf populated by careOfName")
+    public void testRetrieveCompanyNumberCareOfName() throws ResourceNotFoundException {
+        CompanyProfileDocument doc = new CompanyProfileDocument();
+        Data data = new Data();
+        RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
+        roa.setCareOfName("careOfName");
+        data.setRegisteredOfficeAddress(roa);
+        doc.setCompanyProfile(data);
+
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertEquals(doc.getCompanyProfile(), result);
+        assertEquals("careOfName", result.getRegisteredOfficeAddress().getCareOf());
+        assertNull(result.getRegisteredOfficeAddress().getCareOfName());
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
     @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
     public void testRetrieveCompanyNumberResourceNotFoundException(){
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
