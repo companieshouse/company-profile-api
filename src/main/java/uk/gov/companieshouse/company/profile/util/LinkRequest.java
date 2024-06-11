@@ -21,6 +21,10 @@ public class LinkRequest {
     public static final String OFFICERS_DELTA_TYPE = "officer_delta";
     public static final Function<Links, String> OFFICERS_GET = Links::getOfficers;
 
+    public static final String OVERSEAS_LINK_TYPE = "overseas";
+    public static final String OVERSEAS_DELTA_TYPE = "overseas_delta";
+    public static final Function<Links, String> OVERSEAS_GET = Links::getOverseas;
+
     public static final String PSC_LINK_TYPE = "persons-with-significant-control";
     public static final String PSC_DELTA_TYPE = "psc_delta";
     public static final Function<Links, String> PSC_GET = Links::getPersonsWithSignificantControl;

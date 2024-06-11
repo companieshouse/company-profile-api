@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
@@ -392,9 +394,14 @@ public class CompanyProfileService {
                             new LinkRequest(contextId, parentCompanyNumber,
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+
+                    LinkRequest overseasLinkRequest =
+                            new LinkRequest(contextId, companyNumber,
+                                    OVERSEAS_LINK_TYPE, OVERSEAS_DELTA_TYPE, Links::getOverseas);
                     try {
                         if (companyProfile.getData().getType().equals("uk-establishment")) {
                             checkForAddLink(ukEstablishmentLinkRequest);
+                            checkForAddLink(overseasLinkRequest);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
@@ -405,6 +412,7 @@ public class CompanyProfileService {
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         logger.info("Parent company link already exists");
                     }
+
                 });
 
         if (companyProfile.getData() != null) {
