@@ -37,6 +37,16 @@ variable "max_task_count" {
   description = "The maximum number of tasks for this service."
   default     = 3
 }
+variable "desired_task_count_links" {
+  type        = number
+  description = "The desired ECS task count for this service"
+  default     = 1 # defaulted low for dev environments, override for production if required
+}
+variable "max_task_count_links" {
+  type        = number
+  description = "The maximum number of tasks for this service."
+  default     = 3
+}
 variable "required_cpus" {
   type        = number
   description = "The required cpu resource for this service. 1024 here is 1 vCPU"

@@ -2,14 +2,18 @@
 locals {
   stack_name                 = "public-data" # this must match the stack name the service deploys into
   name_prefix                = "${local.stack_name}-${var.environment}"
+  name_prefix_links          = "${local.stack_name}-${var.environment}-links"
   global_prefix              = "global-${var.environment}"
   service_name               = "company-profile-api"
+  service_name_links         = "company-profile-api-links"
   container_port             = "8080"
   eric_port                  = "10000"
   docker_repo                = "company-profile-api"
   kms_alias                  = "alias/${var.aws_profile}/environment-services-kms"
-  lb_listener_rule_priority  = 60
-  lb_listener_paths          = ["/company/*/links","/company/*/links/*","/company/*/links/*/delete","/company/*/company-detail","/company/*/uk-establishments","/company-profile-api/healthcheck"]
+  lb_listener_rule_priority_links = 60
+  lb_listener_paths_links         = ["/company/*/links","/company/*/links/*","/company/*/links/*/delete"]
+  lb_listener_rule_priority  = 83
+  lb_listener_paths          = ["/company/*/company-detail","/company/*/uk-establishments","/company-profile-api/healthcheck"]
   healthcheck_path           = "/company-profile/healthcheck" ##healthcheck path for company profile api
   healthcheck_matcher        = "200"
   s3_config_bucket           = data.vault_generic_secret.shared_s3.data["config_bucket_name"]
