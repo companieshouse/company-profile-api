@@ -93,8 +93,8 @@ public class CompanyProfileApiService {
                     exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (RuntimeException exception) {
-            logger.errorContext(contextId, String.format(
-                    "Error occurred while calling %s endpoint", CHANGED_RESOURCE_URI),
+            logger.errorContext(contextId,
+                    String.format("Error occurred while calling %s endpoint", CHANGED_RESOURCE_URI),
                     exception, DataMapHolder.getLogMap());
             throw exception;
         }
