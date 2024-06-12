@@ -89,12 +89,13 @@ public class CompanyProfileApiService {
             return post.execute();
         } catch (ApiErrorResponseException exception) {
             logger.errorContext(contextId,
-                    "Unsuccessful call to /private/resource-changed endpoint",
+                    String.format("Unsuccessful call to %s endpoint", CHANGED_RESOURCE_URI),
                     exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (RuntimeException exception) {
-            logger.errorContext(contextId, "Error occurred while calling /private/resource-changed"
-                    + " endpoint", exception, DataMapHolder.getLogMap());
+            logger.errorContext(contextId, String.format(
+                    "Error occurred while calling %s endpoint", CHANGED_RESOURCE_URI),
+                    exception, DataMapHolder.getLogMap());
             throw exception;
         }
     }
