@@ -1,8 +1,10 @@
 package uk.gov.companieshouse.company.profile.steps;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -14,8 +16,15 @@ import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoC
 
 public class OverseasLinkSteps {
 
+    private String contextId;
+
     private static final String OVERSEAS_LINK = "/company/%s";
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
     @Autowired
     private CompanyProfileRepository companyProfileRepository;
 

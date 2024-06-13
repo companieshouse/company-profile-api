@@ -2233,7 +2233,7 @@ class CompanyProfileServiceTest {
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfile);
 
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
     }
 
     @Test

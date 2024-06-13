@@ -20,10 +20,10 @@ Feature: Add overseas link to company profile
     Given the CHS Kafka API is reachable
     And the company profile resource "<company_number>" exists for "<company_number>"
     And the company profile resource "<parent_company_number>" exists for "<parent_company_number>"
-    And an Overseas link does exist for "<company_number>"
+    And an Overseas link to "<parent_company_number>" does exist for "<company_number>"
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
     Then the response code should be 200
-    And the Overseas link should still exist for "<company_number>"
+    And the Overseas link to "<parent_company_number>" should still exist for "<company_number>"
 
     Examples:
       | company_number | parent_company_number |
@@ -36,7 +36,7 @@ Feature: Add overseas link to company profile
     And the company profile resource "<company_number>" exists for "<company_number>"
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
     Then the response code should be 200
-    And the Overseas link should still exist for "<company_number>"
+    And an Overseas link does not exist for "<company_number>"
 
     Examples:
       | company_number | parent_company_number |

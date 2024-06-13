@@ -205,6 +205,44 @@ public class CompanyProfileService {
         }
     }
 
+    private void addOverseasLink(LinkRequest linkRequest, String parentCompanyNumber) {
+        String companyNumber = linkRequest.getCompanyNumber();
+        String contextId = linkRequest.getContextId();
+        String linkType = linkRequest.getLinkType();
+
+        try {
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
+            Update update = Update.update(
+                    String.format("data.links.%s", convertToDBformat(linkType)),
+                    String.format("/company/%s", parentCompanyNumber));
+            update.set("data.etag", GenerateEtagUtil.generateEtag());
+            update.set("updated", new Updated()
+                    .setAt(LocalDateTime.now())
+                    .setType(linkRequest.getDeltaType())
+                    .setBy(contextId));
+
+            mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+            logger.infoContext(contextId, String.format("Company %s link inserted "
+                            + "in Company Profile with company number: %s",
+                            linkType, companyNumber),
+                    DataMapHolder.getLogMap());
+
+            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
+                            + "successfully for company number: %s", companyNumber),
+                    DataMapHolder.getLogMap());
+
+        } catch (IllegalArgumentException exception) {
+            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
+                    DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        } catch (DataAccessException exception) {
+            logger.errorContext(contextId, "Error accessing MongoDB", exception,
+                    DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
     private void deleteLink(LinkRequest linkRequest) {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
@@ -344,7 +382,15 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
-            addLink(linkRequest);
+            if (linkRequest.getLinkType().equals("overseas")) {
+                if (data.getBranchCompanyDetails() != null) {
+                    String parentCompanyNumber = data.getBranchCompanyDetails()
+                            .getParentCompanyNumber();
+                    addOverseasLink(linkRequest, parentCompanyNumber);
+                }
+            } else {
+                addLink(linkRequest);
+            }
         }
     }
 
