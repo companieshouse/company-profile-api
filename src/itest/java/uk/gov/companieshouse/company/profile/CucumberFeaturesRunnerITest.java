@@ -10,7 +10,8 @@ import uk.gov.companieshouse.company.profile.configuration.AbstractIntegrationTe
 @RunWith(Cucumber.class)
 @CucumberOptions(
         features = "src/itest/resources/features",
-        plugin = {"pretty", "json:target/cucumber-report.json"})
+        plugin = {"pretty", "json:target/cucumber-report.json"},
+        tags = "not @Ignored")
 @CucumberContextConfiguration
 @TestPropertySource(properties = {"mongodb.transactional = true"})
 public class CucumberFeaturesRunnerITest extends AbstractIntegrationTest {

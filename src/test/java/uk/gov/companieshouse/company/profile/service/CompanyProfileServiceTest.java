@@ -25,16 +25,26 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import uk.gov.companieshouse.api.company.*;
+import uk.gov.companieshouse.api.company.Accounts;
+import uk.gov.companieshouse.api.company.AnnualReturn;
+import uk.gov.companieshouse.api.company.BranchCompanyDetails;
+import uk.gov.companieshouse.api.company.CompanyDetails;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.ConfirmationStatement;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.NextAccounts;
+import uk.gov.companieshouse.api.company.UkEstablishment;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
@@ -42,7 +52,10 @@ import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -2175,9 +2188,9 @@ class CompanyProfileServiceTest {
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
-        assertEquals(confirmationStatement.getOverdue(), false);
-        assertEquals(nextAccounts.getOverdue(), false);
-        assertEquals(annualReturn.getOverdue(), false);
+        assertEquals(false, confirmationStatement.getOverdue());
+        assertEquals(false, nextAccounts.getOverdue());
+        assertEquals(false, annualReturn.getOverdue());
     }
 
     @Test
@@ -2187,9 +2200,9 @@ class CompanyProfileServiceTest {
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
-        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getConfirmationStatement().getOverdue(), true);
-        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAccounts().getNextAccounts().getOverdue(), true);
-        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue(), true);
+        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getConfirmationStatement().getOverdue());
+        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAccounts().getNextAccounts().getOverdue());
+        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue());
     }
 
     @Test
@@ -2209,9 +2222,9 @@ class CompanyProfileServiceTest {
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
-        assertEquals(confirmationStatement.getOverdue(), false);
-        assertEquals(nextAccounts.getOverdue(), false);
-        assertEquals(annualReturn.getOverdue(), false);
+        assertEquals(false, confirmationStatement.getOverdue());
+        assertEquals(false, nextAccounts.getOverdue());
+        assertEquals(false, annualReturn.getOverdue());
     }
 
 

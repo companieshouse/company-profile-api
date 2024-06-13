@@ -5,19 +5,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import java.time.LocalDate;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.converter.EnumWriteConverter;
@@ -30,10 +30,10 @@ import uk.gov.companieshouse.environment.EnvironmentReader;
 import uk.gov.companieshouse.environment.impl.EnvironmentReaderImpl;
 import uk.gov.companieshouse.logging.Logger;
 
-
 @Configuration
 @EnableWebSecurity
-public class ApplicationConfig extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity
+public class ApplicationConfig {
 
     @Autowired
     private Logger logger;
@@ -46,29 +46,25 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
     /**
      * Configure Http Security.
      */
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.httpBasic().disable()
-                //REST APIs not enabled for cross site script headers
-                .csrf().disable() //NOSONAR
-                .formLogin().disable()
-                .logout().disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, Logger logger) throws Exception {
+        http.httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterAt(new EricTokenAuthenticationFilter(logger),
                         BasicAuthenticationFilter.class)
-                .authorizeRequests()
-                .anyRequest().permitAll();
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
     }
 
     /**
      * Configure Web Security.
      */
-    @Override
-    public void configure(WebSecurity web) throws  Exception {
-        // Excluding healthcheck endpoint from security filter
-        web.ignoring().antMatchers("/company-profile-api/healthcheck");
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers("/company-profile-api/healthcheck");
     }
 
     /**
@@ -84,12 +80,12 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
                 new CompanyProfileDataReadConverter(objectMapper, Data.class),
                 new EnumWriteConverter()));
     }
-
     /**
      * Mongo DB Object Mapper.
      *
      * @return ObjectMapper.
      */
+
     private ObjectMapper mongoDbObjectMapper() {
         var objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -102,5 +98,4 @@ public class ApplicationConfig extends WebSecurityConfigurerAdapter {
 
         return objectMapper;
     }
-
 }

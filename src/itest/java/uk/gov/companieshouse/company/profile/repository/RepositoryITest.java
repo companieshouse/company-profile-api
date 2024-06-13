@@ -2,7 +2,6 @@ package uk.gov.companieshouse.company.profile.repository;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.companieshouse.api.company.Data;
@@ -13,7 +12,7 @@ import uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig;
 import java.time.LocalDateTime;
 
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
+@DataMongoTest
 class RepositoryITest extends AbstractMongoConfig {
 
     private static final String MOCK_COMPANY_NUMBER = "6146287";
