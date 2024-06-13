@@ -2504,4 +2504,47 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
+    @Test
+    void updateCompanyProfileWhenHasChargesIsFalse() {
+        CompanyProfile companyProfile = new CompanyProfile();
+        Links links = new Links();
+        companyProfile.setData(new Data());
+        companyProfile.getData().setLinks(links);
+        companyProfile.getData().setHasCharges(false);
+        companyProfile.getData().setHasBeenLiquidated(false);
+        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfile);
+
+        assertFalse(companyProfile.getData().getHasCharges());
+    }
+
+    @Test
+    void updateCompanyProfileWhenHasChargesIsNull() {
+        CompanyProfile companyProfile = new CompanyProfile();
+        Links links = new Links();
+        companyProfile.setData(new Data());
+        companyProfile.getData().setLinks(links);
+        companyProfile.getData().setHasCharges(null);
+        companyProfile.getData().setHasBeenLiquidated(false);
+        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfile);
+
+        assertFalse(companyProfile.getData().getHasCharges());
+
+    }
+
+
+
 }
