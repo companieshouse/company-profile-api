@@ -357,9 +357,9 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
-            addLink(linkRequest);
+                addLink(linkRequest);
+            }
         }
-    }
 
     /**
      * Checks if link for given type does not exist in document and
@@ -407,9 +407,13 @@ public class CompanyProfileService {
                             new LinkRequest(contextId, parentCompanyNumber,
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+
                     try {
                         if (companyProfile.getData().getType().equals("uk-establishment")) {
                             checkForAddLink(ukEstablishmentLinkRequest);
+                            Links links = companyProfile.getData().getLinks();
+                            links.setOverseas(String.format("/company/%s", parentCompanyNumber));
+                            companyProfile.getData().setLinks(links);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
@@ -420,6 +424,7 @@ public class CompanyProfileService {
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         logger.info("Parent company link already exists");
                     }
+
                 });
 
         if (companyProfile.getData() != null) {

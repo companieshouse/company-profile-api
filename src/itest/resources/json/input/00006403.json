@@ -39,7 +39,8 @@
       "officers": "/company/00006403/officers",
       "persons_with_significant_control": "/company/00006403/persons-with-significant-control",
       "self": "/company/00006403",
-      "insolvency" : "insolvency"
+      "insolvency" : "insolvency",
+      "overseas": "/company/00006402"
     },
     "branch_company_details" : {
       "parent_company_number" : "00006402",
