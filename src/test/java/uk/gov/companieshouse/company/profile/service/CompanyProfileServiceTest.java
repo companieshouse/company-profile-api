@@ -1977,6 +1977,7 @@ class CompanyProfileServiceTest {
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNull(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().getOverseas());
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
@@ -2218,6 +2219,8 @@ class CompanyProfileServiceTest {
                 companyProfile);
 
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+        Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+
     }
 
 
@@ -2486,5 +2489,30 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
+
+    @Test
+    @DisplayName("Put company profile with existing links")
+    void putUkEstablishmentSuccessfully() {
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
+                .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS))
+                .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                COMPANY_PROFILE);
+
+        Assertions.assertNotNull(COMPANY_PROFILE);
+        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(EXISTING_LINKS);
+        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+        verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
+
+
 
 }

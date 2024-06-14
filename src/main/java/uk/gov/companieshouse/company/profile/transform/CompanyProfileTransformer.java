@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.logging.Logger;
@@ -37,6 +38,14 @@ public class CompanyProfileTransformer {
         }
 
         transformLinks(companyProfile, existinglinks, companyProfileDocument);
+
+//        RegisteredOfficeAddress roa = companyProfile.getData().getRegisteredOfficeAddress();
+//        if (roa != null && roa.getCareOf() != null) {
+//            if (roa.getCareOfName() == null) {
+//                roa.setCareOfName(roa.getCareOf());
+//            }
+//            roa.setCareOf(null);
+//        }
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
         if (companyProfile.getDeltaAt() != null) {
