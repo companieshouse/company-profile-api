@@ -53,8 +53,7 @@
       "self": "/company/00019993",
       "charges": "/company/00019993/charges",
       "officers": "/company/00019993/officers",
-      "filing_history": "/company/00019993/filing-history",
-      "overseas": "/company/321033"
+      "filing_history": "/company/00019993/filing-history"
     },
     "has_insolvency_history": false,
     "date_of_creation": "1884-06-30",

@@ -23,6 +23,7 @@ public class UkEstablishmentLinkSteps {
     private String contextId;
     private static final String UK_ESTABLISHMENTS_LINK = "/company/%s/uk-establishments";
     private static final String DELETE_UK_ESTABLISHMENTS_LINK = "/company/%s/links/uk-establishments/delete";
+    private static final String OVERSEAS_LINK = "/company/%s";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -47,6 +48,10 @@ public class UkEstablishmentLinkSteps {
     public void verifyUkEstablishmentsLinkExists(String companyNumber) {
         getUkEstablishmentLink(companyNumber);
     }
+    @And("an Overseas link should be added in {string} to {string}")
+    public void verifyOverseasLinkExists(String companyNumber, String parentCompanyNumber) {
+        getOverseasLink(companyNumber, parentCompanyNumber);
+    }
     @And("a UK establishment link does exist for {string}")
     public void theUkEstablishmentLinkDoesExistFor(String parentCompanyNumber) {
         getUkEstablishmentLink(parentCompanyNumber);
@@ -61,6 +66,13 @@ public class UkEstablishmentLinkSteps {
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
+    }
+
+    private void getOverseasLink(String companyNumber, String parentCompanyNumber) {
+        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        assertThat(document).isPresent();
+        System.out.println(document.get().getCompanyProfile().getLinks());
+        assertThat(document.get().getCompanyProfile().getLinks().getOverseas()).isEqualTo(String.format(OVERSEAS_LINK, parentCompanyNumber));
     }
 
     @And("a UK establishment link does not exist for {string}")

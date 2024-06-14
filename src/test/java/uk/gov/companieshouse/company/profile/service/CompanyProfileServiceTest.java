@@ -1977,8 +1977,9 @@ class CompanyProfileServiceTest {
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNull(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().getOverseas());
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository, times(2)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -2000,7 +2001,7 @@ class CompanyProfileServiceTest {
         Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_LINKS);
         verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository, times(2)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -2215,41 +2216,6 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("Add new overseas links successfully")
-    void addNewOverseasLinkSuccessfully() {
-        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().setCompanyNumber(MOCK_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().getLinks().setOverseas(null);
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
-
-        BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
-        branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
-        CompanyProfile companyProfile = COMPANY_PROFILE;
-        companyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
-
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                companyProfile);
-
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-    }
-
-    @Test
-    @DisplayName("Add new overseas links unsuccessfully and throw 503")
-    void addNewOverseasLinkUnsuccessfullyAndThrow503() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
-
-        assertThrows(ServiceUnavailableException.class, () -> {
-            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                    COMPANY_PROFILE);
-        });
-        verifyNoInteractions(companyProfileApiService);
-    }
-
-
-    @Test
     @DisplayName("Add new uk establishments links successfully")
     void addNewUkEstablishmentsLinkSuccessfully() {
         CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
@@ -2269,8 +2235,31 @@ class CompanyProfileServiceTest {
                 companyProfile);
 
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+        Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
     }
 
+    @Test
+    @DisplayName("Put company profile with existing links")
+    void putUkEstablishmentAndOverseasSuccessfully() {
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
+                .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS))
+                .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                COMPANY_PROFILE);
+
+        Assertions.assertNotNull(COMPANY_PROFILE);
+        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(EXISTING_LINKS);
+        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+        verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
 
     @Test
     @DisplayName("Add new uk establishments links unsuccessfully and throw 503")
@@ -2537,5 +2526,4 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
-
 }
