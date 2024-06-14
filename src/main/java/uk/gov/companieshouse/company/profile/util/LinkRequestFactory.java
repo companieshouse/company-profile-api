@@ -15,9 +15,6 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.INSOLVENCY_
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_GET;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_LINK_TYPE;
@@ -45,8 +42,6 @@ public class LinkRequestFactory {
             new LinkTypeData(INSOLVENCY_DELTA_TYPE, INSOLVENCY_GET),
             OFFICERS_LINK_TYPE,
             new LinkTypeData(OFFICERS_DELTA_TYPE, OFFICERS_GET),
-            OVERSEAS_LINK_TYPE,
-            new LinkTypeData(OVERSEAS_DELTA_TYPE, OVERSEAS_GET),
             PSC_LINK_TYPE,
             new LinkTypeData(PSC_DELTA_TYPE, PSC_GET),
             PSC_STATEMENTS_LINK_TYPE,

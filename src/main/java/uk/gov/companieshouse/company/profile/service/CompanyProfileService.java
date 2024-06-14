@@ -1,7 +1,5 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_DELTA_TYPE;
-import static uk.gov.companieshouse.company.profile.util.LinkRequest.OVERSEAS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
