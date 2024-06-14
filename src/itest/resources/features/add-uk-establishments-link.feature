@@ -9,6 +9,7 @@ Feature: Add uk-establishments link to company profile
     When I send a PUT request with payload "<company_number>" file for company number "<company_number>"
     Then the response code should be 200
     And a UK establishment link should be added for "<parent_company_number>"
+    And an Overseas link should be added in "<company_number>" to "<parent_company_number>"
 
     Examples:
       | company_number | parent_company_number |

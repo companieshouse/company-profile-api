@@ -49,6 +49,14 @@ public class CompanyProfileTransformer {
 
         transformLinks(companyProfile, existinglinks, companyProfileDocument);
 
+//        RegisteredOfficeAddress roa = companyProfile.getData().getRegisteredOfficeAddress();
+//        if (roa != null && roa.getCareOf() != null) {
+//            if (roa.getCareOfName() == null) {
+//                roa.setCareOfName(roa.getCareOf());
+//            }
+//            roa.setCareOf(null);
+//        }
+
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
         if (companyProfile.getDeltaAt() != null) {
             companyProfileDocument.setDeltaAt(LocalDateTime.parse(

@@ -37,6 +37,8 @@ public class LinkRequest {
             Links::getFilingHistory;
 
     public static final String UK_ESTABLISHMENTS_LINK_TYPE = "uk-establishments";
+
+    public static final String OVERSEAS_LINK_TYPE = "uk-establishments";
     public static final String UK_ESTABLISHMENTS_DELTA_TYPE = "uk_establishment_delta";
     public static final Function<Links, String> UK_ESTABLISHMENTS_GET =
             Links::getUkEstablishments;
