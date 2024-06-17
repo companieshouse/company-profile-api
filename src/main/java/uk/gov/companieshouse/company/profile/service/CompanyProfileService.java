@@ -395,10 +395,10 @@ public class CompanyProfileService {
 
                     try {
                         if (companyProfile.getData().getType().equals("uk-establishment")) {
-                            checkForAddLink(ukEstablishmentLinkRequest);
                             Links links = companyProfile.getData().getLinks();
                             links.setOverseas(String.format("/company/%s", parentCompanyNumber));
                             companyProfile.getData().setLinks(links);
+                            checkForAddLink(ukEstablishmentLinkRequest);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
