@@ -35,7 +35,8 @@
       "self": "/company/00006400",
       "filing_history": null,
       "insolvency": "insolvency",
-      "officers": "/company/00006400/officers"
+      "officers": "/company/00006400/officers",
+      "overseas": "/company/00006401"
     },
     "previous_company_names": null,
     "registered_office_address": null,

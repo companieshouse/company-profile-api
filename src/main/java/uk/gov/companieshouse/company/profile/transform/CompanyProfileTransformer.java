@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.logging.Logger;
@@ -31,9 +32,19 @@ public class CompanyProfileTransformer {
                                             String companyNumber, @Nullable Links existinglinks) {
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setId(companyNumber);
+
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         if (companyProfile.getData() != null) {
             companyProfileDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+
+            //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+            RegisteredOfficeAddress roa = companyProfile.getData().getRegisteredOfficeAddress();
+            if (roa != null && roa.getCareOf() != null) {
+                if (roa.getCareOfName() == null) {
+                    roa.setCareOfName(roa.getCareOf());
+                }
+                roa.setCareOf(null);
+            }
         }
 
         transformLinks(companyProfile, existinglinks, companyProfileDocument);

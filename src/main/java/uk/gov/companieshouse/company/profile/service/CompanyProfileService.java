@@ -32,6 +32,7 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.NextAccounts;
 import uk.gov.companieshouse.api.company.PreviousCompanyNames;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.company.SelfLink;
 import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
@@ -107,6 +108,20 @@ public class CompanyProfileService {
                         String.format("No company profile with company number %s found",
                                 companyNumber), DataMapHolder.getLogMap())
         );
+
+        //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+        if (companyProfileDocument.isPresent()) {
+            CompanyProfileDocument document = companyProfileDocument.get();
+            RegisteredOfficeAddress roa = document.getCompanyProfile().getRegisteredOfficeAddress();
+            if (roa != null) {
+                if (roa.getCareOf() == null) {
+                    roa.setCareOf(roa.getCareOfName());
+                }
+                roa.setCareOfName(null);
+                companyProfileDocument = Optional.of(document);
+            }
+        }
+
         return companyProfileDocument;
     }
 
@@ -397,9 +412,13 @@ public class CompanyProfileService {
                             new LinkRequest(contextId, parentCompanyNumber,
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+
                     try {
                         if (companyProfile.getData().getType().equals("uk-establishment")) {
                             checkForAddLink(ukEstablishmentLinkRequest);
+                            Links links = companyProfile.getData().getLinks();
+                            links.setOverseas(String.format("/company/%s", parentCompanyNumber));
+                            companyProfile.getData().setLinks(links);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
@@ -410,6 +429,7 @@ public class CompanyProfileService {
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         logger.info("Parent company link already exists");
                     }
+
                 });
 
         if (companyProfile.getData() != null) {
@@ -464,14 +484,14 @@ public class CompanyProfileService {
 
     /** Retrieve company profile. */
     public Data retrieveCompanyNumber(String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
 
         Data profileData = companyProfileDocument.getCompanyProfile();
-        //SuperSecureManagingOfficerCount should not be returned on a Get request
         if (profileData != null) {
+            //SuperSecureManagingOfficerCount should not be returned on a Get request
             profileData.setSuperSecureManagingOfficerCount(null);
             List<PreviousCompanyNames> previousCompanyNames = profileData.getPreviousCompanyNames();
             if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
@@ -481,6 +501,15 @@ public class CompanyProfileService {
             if (dissolutionDate != null) {
                 profileData.setDateOfCessation(dissolutionDate);
                 profileData.setDateOfDissolution(null);
+            }
+
+            //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+            RegisteredOfficeAddress roa = profileData.getRegisteredOfficeAddress();
+            if (roa != null) {
+                if (roa.getCareOf() == null) {
+                    roa.setCareOf(roa.getCareOfName());
+                }
+                roa.setCareOfName(null);
             }
         }
         return profileData;
