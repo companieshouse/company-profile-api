@@ -342,9 +342,9 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
-                addLink(linkRequest);
-            }
+            addLink(linkRequest);
         }
+    }
 
     /**
      * Checks if link for given type does not exist in document and
