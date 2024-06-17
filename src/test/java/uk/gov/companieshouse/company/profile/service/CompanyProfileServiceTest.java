@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Supplier;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -25,6 +27,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import uk.gov.companieshouse.api.company.*;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -582,6 +585,28 @@ class CompanyProfileServiceTest {
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
+    }
+
+    @Test
+    @DisplayName("update has_charges field successfully")
+    void checkHasChargesFieldIsTrue() {
+        // given
+        when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
+                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+        document.setId(MOCK_COMPANY_NUMBER);
+        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        when(document.getCompanyProfile()).thenReturn(data);
+        document.getCompanyProfile().setLinks(links);
+        when(data.getLinks()).thenReturn(links);
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
+
+        // when
+        companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+                MOCK_CONTEXT_ID, false);
+        Optional<CompanyProfileDocument> updatedDoc = companyProfileRepository.findById(MOCK_COMPANY_NUMBER);
+
+        // then
+        assertTrue(updatedDoc.get().getCompanyProfile().getHasCharges());
     }
 
     @Test

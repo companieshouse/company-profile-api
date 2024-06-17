@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
@@ -183,6 +184,10 @@ public class CompanyProfileService {
                     .setType(linkRequest.getDeltaType())
                     .setBy(contextId));
 
+            if (Objects.equals(linkRequest.getLinkType(), "charges")) {
+                update.set("data.has_charges", true);
+            }
+
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.infoContext(contextId, String.format("Company %s link inserted "
                     + "in Company Profile with company number: %s", linkType, companyNumber),
@@ -329,7 +334,7 @@ public class CompanyProfileService {
      */
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
-                    .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+		.map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                     "no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
