@@ -26,7 +26,6 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLIS
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
 import java.util.Map;
-
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 
