@@ -657,14 +657,6 @@ public class CompanyProfileSteps {
         assertThat(companyProfile.getData().getHasCharges()).isFalse();
     }
 
-    @And("the has_charges field is true")
-    public void theHas_chargesFieldIsTrue() {
-        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
-                .map(doc -> new CompanyProfile().data(doc.companyProfile))
-                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
-        assertThat(companyProfile.getData().getHasCharges()).isTrue();
-    }
-
     @And("the has_charges field is true for {string}")
     public void theHas_chargesFieldIsTrueFor(String companyNumber) {
         CompanyProfile companyProfile = companyProfileService.get(companyNumber)
