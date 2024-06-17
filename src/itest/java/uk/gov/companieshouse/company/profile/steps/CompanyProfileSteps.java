@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.cucumber.java.Before;
@@ -39,6 +40,7 @@ import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -46,6 +48,7 @@ import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 
 public class CompanyProfileSteps {
 
@@ -73,6 +76,9 @@ public class CompanyProfileSteps {
 
     @Autowired
     private CompanyProfileService companyProfileService;
+
+    @Autowired
+    private CompanyProfileTransformer companyProfileTransformer;
 
     @Before
     public void dbCleanUp() {
@@ -260,7 +266,6 @@ public class CompanyProfileSteps {
         Data expected = objectMapper.readValue(data, Data.class);
 
         Data actual = CucumberContext.CONTEXT.get("getResponseBody");
-
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -642,5 +647,45 @@ public class CompanyProfileSteps {
                 .isEqualTo(expected.getItems().get(0).getLinks());
         assertThat(actual.getItems().get(1).getLinks())
                 .isEqualTo(expected.getItems().get(1).getLinks());
+    }
+
+    @And("has_charges is false for {string}")
+    public void has_chargesIsTrueFor(String companyNumber) {
+        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
+                .map(doc -> new CompanyProfile().data(doc.companyProfile))
+                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
+        assertThat(companyProfile.getData().getHasCharges()).isFalse();
+    }
+
+    @And("the has_charges field is true for {string}")
+    public void theHas_chargesFieldIsTrueFor(String companyNumber) {
+        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
+                .map(doc -> new CompanyProfile().data(doc.companyProfile))
+                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
+        assertThat(companyProfile.getData().getHasCharges()).isTrue();
+    }
+
+    @When("I send PATCH request with payload {string} and company number {string} for charges")
+    public void iSendPATCHRequestWithPayloadAndCompanyNumberForCharges(String dataFile, String companyNumber) throws IOException {
+        WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
+
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        this.contextId = "5234234234";
+        this.companyNumber = companyNumber;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "5234234234");
+        headers.set("ERIC-Identity", "SOME_IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+        HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
+        String uri = "/company/{company_number}/links/charges";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
 }

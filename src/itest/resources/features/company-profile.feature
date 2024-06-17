@@ -57,6 +57,20 @@ Feature: Process company profile
       | companyNumber     |
       | 00006402          |
 
+  Scenario Outline: Processing company profile information successfully when has_charges is null
+
+    Given Company profile api service is running
+    And the CHS Kafka API is reachable
+    When I send a PUT request with payload "<companyNumber>" file for company number "<companyNumber>"
+    Then I should receive 200 status code
+    And a company profile exists with id "<companyNumber>"
+    And has_charges is false for "<companyNumber>"
+    And the CHS Kafka API is invoked successfully
+
+    Examples:
+      | companyNumber     |
+      | 00006402          |
+
   Scenario Outline: Processing company profile information with bad payload
 
     Given Company profile api service is running

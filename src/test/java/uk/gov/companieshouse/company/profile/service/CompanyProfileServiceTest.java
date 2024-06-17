@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Supplier;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -25,6 +27,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import uk.gov.companieshouse.api.company.*;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -2619,5 +2622,46 @@ class CompanyProfileServiceTest {
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    void updateCompanyProfileWhenHasChargesIsFalse() {
+        CompanyProfile companyProfile = new CompanyProfile();
+        Links links = new Links();
+        companyProfile.setData(new Data());
+        companyProfile.getData().setLinks(links);
+        companyProfile.getData().setHasCharges(false);
+        companyProfile.getData().setHasBeenLiquidated(false);
+        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfile);
+
+        assertFalse(companyProfile.getData().getHasCharges());
+    }
+
+    @Test
+    void updateCompanyProfileWhenHasChargesIsNull() {
+        CompanyProfile companyProfile = new CompanyProfile();
+        Links links = new Links();
+        companyProfile.setData(new Data());
+        companyProfile.getData().setLinks(links);
+        companyProfile.getData().setHasCharges(null);
+        companyProfile.getData().setHasBeenLiquidated(false);
+        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
+
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                companyProfile);
+
+        assertFalse(companyProfile.getData().getHasCharges());
+
     }
 }
