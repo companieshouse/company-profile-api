@@ -656,4 +656,44 @@ public class CompanyProfileSteps {
                 .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
         assertThat(companyProfile.getData().getHasCharges()).isFalse();
     }
+
+    @And("the has_charges field is true")
+    public void theHas_chargesFieldIsTrue() {
+        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
+                .map(doc -> new CompanyProfile().data(doc.companyProfile))
+                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
+        assertThat(companyProfile.getData().getHasCharges()).isTrue();
+    }
+
+    @And("the has_charges field is true for {string}")
+    public void theHas_chargesFieldIsTrueFor(String companyNumber) {
+        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
+                .map(doc -> new CompanyProfile().data(doc.companyProfile))
+                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
+        assertThat(companyProfile.getData().getHasCharges()).isTrue();
+    }
+
+    @When("I send PATCH request with payload {string} and company number {string} for charges")
+    public void iSendPATCHRequestWithPayloadAndCompanyNumberForCharges(String dataFile, String companyNumber) throws IOException {
+        WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
+
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        this.contextId = "5234234234";
+        this.companyNumber = companyNumber;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "5234234234");
+        headers.set("ERIC-Identity", "SOME_IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+        HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
+        String uri = "/company/{company_number}/links/charges";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
 }

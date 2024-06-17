@@ -641,28 +641,6 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("update has_charges field successfully")
-    void checkHasChargesFieldIsTrue() {
-        // given
-        when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
-        document.setId(MOCK_COMPANY_NUMBER);
-        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
-        when(document.getCompanyProfile()).thenReturn(data);
-        document.getCompanyProfile().setLinks(links);
-        when(data.getLinks()).thenReturn(links);
-        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
-
-        // when
-        companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
-        Optional<CompanyProfileDocument> updatedDoc = companyProfileRepository.findById(MOCK_COMPANY_NUMBER);
-
-        // then
-        assertTrue(updatedDoc.get().getCompanyProfile().getHasCharges());
-    }
-
-    @Test
     @DisplayName("Add charges link successfully updates MongoDB and calls chs-kafka-api")
     void addChargesLink() {
         // given
