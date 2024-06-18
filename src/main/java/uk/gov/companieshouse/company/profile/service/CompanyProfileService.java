@@ -189,7 +189,6 @@ public class CompanyProfileService {
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
         try {
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update(
                     String.format("data.links.%s", convertToDBformat(linkType)),
                     String.format("/company/%s/%s", companyNumber, linkType));
@@ -202,6 +201,8 @@ public class CompanyProfileService {
             if (Objects.equals(linkRequest.getLinkType(), "charges")) {
                 update.set("data.has_charges", true);
             }
+
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.infoContext(contextId, String.format("Company %s link inserted "
@@ -349,7 +350,7 @@ public class CompanyProfileService {
      */
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
-		.map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+                .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                     "no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
