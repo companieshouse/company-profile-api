@@ -659,6 +659,7 @@ public class CompanyProfileService {
                     .ifPresent(nextDue -> {
                         companyProfile.getAccounts().getNextAccounts()
                                 .setOverdue(nextDue.isBefore(currentDate));
+                        companyProfile.getAccounts().setOverdue(nextDue.isBefore(currentDate));
                     });
 
             Optional.ofNullable(companyProfile.getAnnualReturn())
