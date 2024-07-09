@@ -20,6 +20,9 @@
       "next_due": "2022-09-30",
       "next_made_up_to": "2021-12-31"
     },
+    "annual_return" : {
+      "last_made_up_to" : "2015-06-30"
+    },
     "can_file": true,
     "company_name": "RENABLE PHARMA LTD",
     "company_number": "00006408",

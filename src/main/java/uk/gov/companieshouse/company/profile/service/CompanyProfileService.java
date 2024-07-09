@@ -662,12 +662,17 @@ public class CompanyProfileService {
                         companyProfile.getAccounts().setOverdue(nextDue.isBefore(currentDate));
                     });
 
+            /* any annual return filed on or after 30th of July 2015 will no longer be overdue as
+               the next due will be exactly one year later which is when the confirmation
+               statement supersedes the annual return. Hence, the date is being hard coded */
             Optional.ofNullable(companyProfile.getAnnualReturn())
-                    .map(AnnualReturn::getNextDue)
-                    .ifPresent(nextDue -> {
+                    .map(AnnualReturn::getLastMadeUpTo)
+                    .ifPresent(lastMadeUpTo -> {
                         companyProfile.getAnnualReturn()
-                                .setOverdue(nextDue.isBefore(currentDate));
+                                .setOverdue(lastMadeUpTo.isBefore(LocalDate.of(2015,6,30)));
                     });
+
+
         } catch (Exception exception) {
             logger.error("Error determining overdue status " + exception.getMessage());
         }

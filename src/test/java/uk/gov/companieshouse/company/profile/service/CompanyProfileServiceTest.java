@@ -2266,7 +2266,7 @@ class CompanyProfileServiceTest {
         when(accounts.getNextAccounts()).thenReturn(nextAccounts);
         when(nextAccounts.getDueOn()).thenReturn(LocalDate.of(2050, 1, 1));
         when(confirmationStatement.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
-        when(annualReturn.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
+        when(annualReturn.getLastMadeUpTo()).thenReturn(LocalDate.of(2015, 6, 30));
 
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
@@ -2300,7 +2300,7 @@ class CompanyProfileServiceTest {
         when(accounts.getNextAccounts()).thenReturn(nextAccounts);
         when(nextAccounts.getDueOn()).thenReturn(null);
         when(confirmationStatement.getNextDue()).thenReturn(null);
-        when(annualReturn.getNextDue()).thenReturn(null);
+        when(annualReturn.getLastMadeUpTo()).thenReturn(null);
 
         CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
