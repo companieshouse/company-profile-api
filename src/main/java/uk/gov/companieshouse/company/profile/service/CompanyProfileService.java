@@ -189,7 +189,7 @@ public class CompanyProfileService {
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
         try {
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
+            final Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update(
                     String.format("data.links.%s", convertToDBformat(linkType)),
                     String.format("/company/%s/%s", companyNumber, linkType));
@@ -298,6 +298,10 @@ public class CompanyProfileService {
                 companyProfileDocument.getCompanyProfile().getLinks() != null
                         ? companyProfileDocument.getCompanyProfile().getLinks().getCharges()
                         : null);
+        setUpdateIfNotNullOtherwiseRemove(update, "data.links.registers",
+                companyProfileDocument.getCompanyProfile().getLinks() != null
+                        ? companyProfileDocument.getCompanyProfile().getLinks().getRegisters()
+                        : null);
         setUpdateIfNotNullOtherwiseRemove(update, "data.has_insolvency_history",
                 companyProfileDocument.getCompanyProfile().getHasInsolvencyHistory());
         setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
@@ -349,7 +353,7 @@ public class CompanyProfileService {
      */
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
-		.map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+                .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                     "no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
