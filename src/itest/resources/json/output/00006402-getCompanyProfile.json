@@ -17,7 +17,8 @@
       "overdue": true
     },
     "next_due": "2022-09-30",
-    "next_made_up_to": "2021-12-31"
+    "next_made_up_to": "2021-12-31",
+    "overdue": true
   },
   "can_file": true,
   "company_name": "RENABLE PHARMA LTD",
