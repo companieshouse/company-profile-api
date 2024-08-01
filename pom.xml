@@ -31,6 +31,7 @@
         <data-sync-api-sdk-java.version>1.0.5</data-sync-api-sdk-java.version>
         <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>1.4.5</api-helper-java-library.version>
+        <api-security-java.version>0.4.6</api-security-java.version>
 
         <!-- tests -->
         <test-containers.version>1.16.3</test-containers.version>
@@ -75,6 +76,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -85,6 +92,11 @@
                     <artifactId>log4j-to-slf4j</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>api-security-java</artifactId>
+            <version>${api-security-java.version}</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>

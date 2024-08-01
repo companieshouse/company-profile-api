@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -13,9 +14,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +36,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +73,8 @@ class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "FR123456";
     private final TestHelper testHelper = new TestHelper();
-    private static final String COMPANY_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
+    private static final String COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
+    private static final String COMPANY_LINKS_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String COMPANY_DETAILS_URL = String.format("/company/%s/company-detail", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
     private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
@@ -81,20 +86,15 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
     private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
     private static final String UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments", MOCK_COMPANY_NUMBER);
-    private static final String DELETE_UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments", MOCK_COMPANY_NUMBER);
-
-    private static final String PUT_COMPANY_PROFILE_URL = String.format(
-            "/company/%s", MOCK_COMPANY_NUMBER);
-
-    private static final String GET_COMPANY_URL = String.format(
-            "/company/{company_number}");
-    private static final String DELETE_COMPANY_URL = String.format(
-            "/company/{company_number}");
 
     private static final String GET_UK_ESTABLISHMENTS_URL = String.format(
             "/company/%s/uk-establishments", MOCK_PARENT_COMPANY_NUMBER);
 
     private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
+
+    private static final String X_REQUEST_ID = "123456";
+    private static final String ERIC_IDENTITY = "Test-Identity";
+    private static final String ERIC_IDENTITY_TYPE = "key";
 
     @MockBean
     private Logger logger;
@@ -127,7 +127,7 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        mockMvc.perform(get(COMPANY_URL).header("ERIC-Identity", "SOME_IDENTITY").header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_LINKS_URL).header("ERIC-Identity", ERIC_IDENTITY).header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
     }
@@ -145,7 +145,7 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        mockMvc.perform(get(COMPANY_URL))
+        mockMvc.perform(get(COMPANY_LINKS_URL))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -155,9 +155,9 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(any()))
                 .thenThrow(HttpClientErrorException.Forbidden.class);
 
-        mockMvc.perform(get(COMPANY_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_LINKS_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isForbidden());
     }
 
@@ -173,8 +173,8 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyDetails));
 
-        mockMvc.perform(get(COMPANY_DETAILS_URL).header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_DETAILS_URL).header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyDetailsOP)))
                 .andExpect(status().isOk());
 
@@ -186,9 +186,9 @@ class CompanyProfileControllerTest {
     void getCompanyProfileNotFound() throws Exception {
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(COMPANY_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_LINKS_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
     }
@@ -200,8 +200,8 @@ class CompanyProfileControllerTest {
         when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(COMPANY_DETAILS_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(""));
     }
@@ -211,9 +211,9 @@ class CompanyProfileControllerTest {
     void getCompanyProfileInternalServerError() throws Exception {
         when(companyProfileService.get(any())).thenThrow(RuntimeException.class);
 
-        mockMvc.perform(get(COMPANY_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_LINKS_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -223,8 +223,8 @@ class CompanyProfileControllerTest {
         when(companyProfileService.getCompanyDetails(any())).thenThrow(RuntimeException.class);
 
         mockMvc.perform(get(COMPANY_DETAILS_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -234,9 +234,9 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(any()))
                 .thenThrow(new BadRequestException("Bad request - data in wrong format"));
 
-        mockMvc.perform(get(COMPANY_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_LINKS_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isBadRequest());
     }
 
@@ -246,9 +246,9 @@ class CompanyProfileControllerTest {
         when(companyProfileService.get(any()))
                 .thenThrow(new ServiceUnavailableException("Service unavailable - connection issue"));
 
-        mockMvc.perform(get(COMPANY_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key"))
+        mockMvc.perform(get(COMPANY_LINKS_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isServiceUnavailable());
     }
 
@@ -261,11 +261,11 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).updateInsolvencyLink(anyString(), anyString(),
                 isA(CompanyProfile.class));
 
-        mockMvc.perform(patch(COMPANY_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(patch(COMPANY_LINKS_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(request)))
                 .andExpect(status().isOk());
@@ -277,11 +277,11 @@ class CompanyProfileControllerTest {
         doThrow(new DocumentNotFoundException("Not Found"))
                 .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL)
+        mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isNotFound());
@@ -293,11 +293,11 @@ class CompanyProfileControllerTest {
         doThrow(new BadRequestException("Bad request - data in wrong format"))
                 .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL)
+        mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isBadRequest());
@@ -309,11 +309,11 @@ class CompanyProfileControllerTest {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
                 .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL)
+        mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isServiceUnavailable());
@@ -324,11 +324,11 @@ class CompanyProfileControllerTest {
     void patchCompanyProfileInternalServerError() throws Exception {
         doThrow(new RuntimeException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
 
-        mockMvc.perform(patch(COMPANY_URL)
+        mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(gson.toJson(new CompanyProfile())))
                 .andExpect(status().isInternalServerError());
@@ -340,11 +340,11 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", X_REQUEST_ID))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
     }
@@ -357,9 +357,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -373,9 +373,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -389,9 +389,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -405,9 +405,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -420,10 +420,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -436,10 +436,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -453,9 +453,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -469,9 +469,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -485,9 +485,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -499,10 +499,10 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -516,9 +516,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                 .contentType(APPLICATION_JSON)
-                .header("x-request-id", "123456")
-                .header("ERIC-Identity", "SOME_IDENTITY")
-                .header("ERIC-Identity-Type", "key")
+                .header("x-request-id", X_REQUEST_ID)
+                .header("ERIC-Identity", ERIC_IDENTITY)
+                .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
         ).andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -532,9 +532,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -548,9 +548,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -563,9 +563,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -577,10 +577,10 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -593,10 +593,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -610,9 +610,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -626,9 +626,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -642,9 +642,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -656,10 +656,10 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -669,10 +669,10 @@ class CompanyProfileControllerTest {
     @DisplayName("Add Filing History link")
     void addFilingHistoryLink() throws Exception {
         mockMvc.perform(patch(FILING_HISTORY_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
 
@@ -686,10 +686,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -702,10 +702,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -718,10 +718,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -734,10 +734,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -749,10 +749,10 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -765,10 +765,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -781,10 +781,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -797,10 +797,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -813,10 +813,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -826,11 +826,11 @@ class CompanyProfileControllerTest {
     @DisplayName("Add uk establishments link")
     void addUkEstablishmentsLink() throws Exception {
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                        .header("x-request-id", "123456"))
+                        .header("x-request-id", X_REQUEST_ID))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
     }
@@ -843,9 +843,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -859,9 +859,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -875,9 +875,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -891,9 +891,9 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -902,11 +902,11 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Delete uk establishments link")
     void deleteUkEstablishmentsLink() throws Exception {
-        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -918,11 +918,11 @@ class CompanyProfileControllerTest {
         doThrow(new DocumentNotFoundException("Not Found"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
-        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -934,11 +934,11 @@ class CompanyProfileControllerTest {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
-        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -950,11 +950,11 @@ class CompanyProfileControllerTest {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
-        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -966,11 +966,11 @@ class CompanyProfileControllerTest {
         doThrow(new RuntimeException())
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
 
-        mockMvc.perform(patch(DELETE_UK_ESTABLISHMENTS_LINK_URL)
+        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("x-request-id", X_REQUEST_ID)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
         verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
@@ -982,11 +982,11 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(testHelper.createJsonCompanyProfilePayload()))
                 .andExpect(status().isOk());
@@ -998,11 +998,11 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isBadRequest());
     }
@@ -1013,7 +1013,7 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
                         .content(testHelper.createJsonCompanyProfilePayload()))
                 .andExpect(status().isUnauthorized());
     }
@@ -1024,11 +1024,11 @@ class CompanyProfileControllerTest {
         doThrow(HttpClientErrorException.Forbidden.class).when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(testHelper.createJsonCompanyProfilePayload()))
                 .andExpect(status().isForbidden());
@@ -1041,11 +1041,11 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(testHelper.createJsonCompanyProfilePayload()))
                 .andExpect(status().isConflict());
@@ -1058,11 +1058,11 @@ class CompanyProfileControllerTest {
         doThrow(ServiceUnavailableException.class).when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .content(testHelper.createJsonCompanyProfilePayload()))
                 .andExpect(status().isServiceUnavailable());
@@ -1080,10 +1080,10 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -1101,7 +1101,7 @@ class CompanyProfileControllerTest {
 
         when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER))
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
@@ -1116,10 +1116,10 @@ class CompanyProfileControllerTest {
         doThrow(HttpClientErrorException.Forbidden.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
@@ -1139,10 +1139,10 @@ class CompanyProfileControllerTest {
         doThrow(ResourceNotFoundException.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -1159,10 +1159,10 @@ class CompanyProfileControllerTest {
         doThrow(ServiceUnavailableException.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        mockMvc.perform(MockMvcRequestBuilders.get(GET_COMPANY_URL, MOCK_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isServiceUnavailable());
@@ -1172,7 +1172,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Return 401 when no api key is present")
     void deleteCompanyProfileWhenNoApiKeyPresent() throws Exception {
-        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL).header("x-request-id", "123456")).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL).header("x-request-id", X_REQUEST_ID)).andExpect(status().isUnauthorized());
 
         verify(companyProfileService
                 , times(0)).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
@@ -1185,10 +1185,10 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
 
@@ -1203,10 +1203,10 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isForbidden());
 
@@ -1220,10 +1220,10 @@ class CompanyProfileControllerTest {
         doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
 
@@ -1236,10 +1236,10 @@ class CompanyProfileControllerTest {
         doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
 
@@ -1255,9 +1255,9 @@ class CompanyProfileControllerTest {
         when(companyProfileService.getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(ukEstablishmentsList);
 
         mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
@@ -1268,9 +1268,9 @@ class CompanyProfileControllerTest {
     @DisplayName("Failed to retrieve uk establishments due to incorrect identity type")
     void testGetUkEstablishmentsStatusUnauthorized() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", "web")
-                        .header("x-request-id", "123456")
+                        .header("x-request-id", X_REQUEST_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
@@ -1282,9 +1282,9 @@ class CompanyProfileControllerTest {
                 .getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
 
         mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
 
@@ -1298,13 +1298,71 @@ class CompanyProfileControllerTest {
                 .getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
 
         mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
-                        .header("ERIC-Identity", "SOME_IDENTITY")
-                        .header("ERIC-Identity-Type", "key")
-                        .header("x-request-id", "123456")
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isServiceUnavailable());
 
         verify(companyProfileService).getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
     }
 
+    @Test
+    void optionsCompanyProfileCORS() throws Exception {
+
+        mockMvc.perform(options(COMPANY_PROFILE_URL)
+                        .header("Origin", "")
+                        .contentType(APPLICATION_JSON))
+            .andExpect(status().isNoContent())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_MAX_AGE));
+    }
+
+    @Test
+    void getCompanyProfileCORS() throws Exception {
+
+        mockMvc.perform(get(COMPANY_PROFILE_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID)
+                        )
+            .andExpect(status().isOk())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+    }
+
+    @Test
+    void getCompanyProfileCORSForbidden() throws Exception {
+
+        mockMvc.perform(get(COMPANY_PROFILE_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isForbidden())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+    }
+
+    @Test
+    void putCompanyProfileCORSForbidden() throws Exception {
+
+        mockMvc.perform(put(COMPANY_PROFILE_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isForbidden())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+    }
 }
