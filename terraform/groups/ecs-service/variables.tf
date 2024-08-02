@@ -104,6 +104,16 @@ variable "service_scaleup_schedule" {
   default     = ""
 }
 
+# ------------------------------------------------------------------------------
+# Load balancer configuration
+# ------------------------------------------------------------------------------
+
+variable "enable_listener" {
+  type        = bool
+  default     = true
+  description = "If true, enable listener will create the listener rules.  If false the listener rules will not be created.  This variable can be defined in the service."
+}
+
 # ----------------------------------------------------------------------
 # Cloudwatch alerts
 # ----------------------------------------------------------------------
