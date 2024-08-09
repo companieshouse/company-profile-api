@@ -18,6 +18,16 @@ import java.time.LocalDateTime;
 
 public class TestHelper {
 
+    public final static String notFoundErrorString =
+              "{\n"
+            + "    \"errors\": [\n"
+            + "        {\n"
+            + "            \"type\": \"ch:service\",\n"
+            + "            \"error\": \"company-profile-not-found\"\n"
+            + "        }\n"
+            + "    ]\n"
+            + "}";
+
     public String createJsonCompanyProfilePayload() throws IOException {
         InputStreamReader exampleJsonPayload = new InputStreamReader(
                 ClassLoader.getSystemClassLoader().getResourceAsStream("company-profile-example.json"));
