@@ -1097,8 +1097,6 @@ class CompanyProfileControllerTest {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
-
         when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
         mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL))
@@ -1110,8 +1108,6 @@ class CompanyProfileControllerTest {
     void testSearchCompanyProfileAndThrow403() throws Exception {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
-
-        ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
         doThrow(HttpClientErrorException.Forbidden.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
@@ -1125,7 +1121,6 @@ class CompanyProfileControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
 
         verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
-
     }
 
     @Test
@@ -1133,8 +1128,6 @@ class CompanyProfileControllerTest {
     void testSearchCompanyProfileAndThrow404() throws Exception {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
-
-        ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
         doThrow(ResourceNotFoundException.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
@@ -1145,7 +1138,8 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().string(TestHelper.notFoundErrorString));
     }
 
     @Test
@@ -1153,8 +1147,6 @@ class CompanyProfileControllerTest {
     void testSearchCompanyProfileAndThrow503() throws Exception {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
-
-        ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
         doThrow(ServiceUnavailableException.class)
                 .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
