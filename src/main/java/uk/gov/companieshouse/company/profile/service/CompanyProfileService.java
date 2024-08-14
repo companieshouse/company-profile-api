@@ -471,6 +471,42 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
+
+        existingProfile.ifPresentOrElse(doc -> updateCompanyProfile(companyProfileDocument, doc,
+                        contextId, companyNumber),
+                () -> insertCompanyProfile(companyProfileDocument, contextId, companyNumber));
+
+    }
+
+    /** Insert new company profile. */
+    public void insertCompanyProfile(final CompanyProfileDocument docToInsert,
+                                     String contextId, String companyNumber) {
+        companyProfileRepository.insert(docToInsert);
+        ApiResponse<Void> result = companyProfileApiService.invokeChsKafkaApi(
+                contextId, companyNumber);
+        if (!HttpStatus.valueOf(result.getStatusCode()).is2xxSuccessful()) {
+            companyProfileRepository.deleteById(docToInsert.getId());
+            logger.infoContext(contextId, String.format(companyNumber,
+                    "Deleting previously inserted document"), DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException("Error calling resource changed endpoint");
+        }
+    }
+
+    /** Update company profile. */
+    public void updateCompanyProfile(CompanyProfileDocument docToUpdate,
+                                     CompanyProfileDocument originalDocumentCopy,
+                                     String contextId, String companyNumber) {
+        companyProfileRepository.save(docToUpdate);
+        ApiResponse<Void> result = companyProfileApiService.invokeChsKafkaApi(
+                contextId, companyNumber);
+        if (!HttpStatus.valueOf(result.getStatusCode()).is2xxSuccessful()) {
+
+            companyProfileRepository.save(originalDocumentCopy);
+            logger.infoContext(contextId, String.format(companyNumber,
+                    "Error calling resource changed endpoint, reverting last updated document"),
+                    DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException("Error calling resource changed endpoint");
+        }
     }
 
     private CompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
