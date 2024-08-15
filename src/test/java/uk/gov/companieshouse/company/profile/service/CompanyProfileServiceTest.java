@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Supplier;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -27,10 +25,19 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.http.HttpStatus;
-import uk.gov.companieshouse.api.company.*;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
+import uk.gov.companieshouse.api.company.Accounts;
+import uk.gov.companieshouse.api.company.AnnualReturn;
+import uk.gov.companieshouse.api.company.BranchCompanyDetails;
+import uk.gov.companieshouse.api.company.CompanyDetails;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.ConfirmationStatement;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.NextAccounts;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
+import uk.gov.companieshouse.api.company.UkEstablishment;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
@@ -38,6 +45,7 @@ import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
@@ -2273,9 +2281,9 @@ class CompanyProfileServiceTest {
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
-        assertEquals(confirmationStatement.getOverdue(), false);
-        assertEquals(nextAccounts.getOverdue(), false);
-        assertEquals(annualReturn.getOverdue(), false);
+        assertEquals(false, confirmationStatement.getOverdue());
+        assertEquals(false, nextAccounts.getOverdue());
+        assertEquals(false, annualReturn.getOverdue());
     }
 
     @Test
@@ -2285,9 +2293,9 @@ class CompanyProfileServiceTest {
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
-        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getConfirmationStatement().getOverdue(), true);
-        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAccounts().getNextAccounts().getOverdue(), true);
-        assertEquals(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue(), true);
+        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getConfirmationStatement().getOverdue());
+        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAccounts().getNextAccounts().getOverdue());
+        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue());
     }
 
     @Test
@@ -2307,9 +2315,9 @@ class CompanyProfileServiceTest {
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
-        assertEquals(confirmationStatement.getOverdue(), false);
-        assertEquals(nextAccounts.getOverdue(), false);
-        assertEquals(annualReturn.getOverdue(), false);
+        assertEquals(false, confirmationStatement.getOverdue());
+        assertEquals(false, nextAccounts.getOverdue());
+        assertEquals(false, annualReturn.getOverdue());
     }
 
     @Test
@@ -2618,7 +2626,6 @@ class CompanyProfileServiceTest {
                 companyProfile);
         verify(companyProfileTransformer).transform(profileToTransform, MOCK_COMPANY_NUMBER, null);
 
-
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -2662,6 +2669,5 @@ class CompanyProfileServiceTest {
                 companyProfile);
 
         assertFalse(companyProfile.getData().getHasCharges());
-
     }
 }

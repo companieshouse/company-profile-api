@@ -19,7 +19,7 @@ public class CompanyProfileApiService {
 
     public static final String CHANGED_EVENT_TYPE = "changed";
     public static final String DELETED_EVENT_TYPE = "deleted";
-    private static final String CHANGED_RESOURCE_URI = "/resource-changed";
+    private static final String CHANGED_RESOURCE_URI = "/private/resource-changed";
     private final Logger logger;
     private final ApiClientService apiClientService;
 
@@ -88,11 +88,12 @@ public class CompanyProfileApiService {
         try {
             return post.execute();
         } catch (ApiErrorResponseException exception) {
-            logger.errorContext(contextId, "Unsuccessful call to /resource-changed endpoint",
+            logger.errorContext(contextId,
+                    "Unsuccessful call to /private/resource-changed endpoint",
                     exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (RuntimeException exception) {
-            logger.errorContext(contextId, "Error occurred while calling /resource-changed"
+            logger.errorContext(contextId, "Error occurred while calling /private/resource-changed"
                     + " endpoint", exception, DataMapHolder.getLogMap());
             throw exception;
         }
