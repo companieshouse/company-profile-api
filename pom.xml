@@ -22,7 +22,7 @@
 
         <maven-build-helper-plugin.version>3.2.0</maven-build-helper-plugin.version>
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
-        <jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
+        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
 
         <!-- Internal -->
@@ -423,9 +423,12 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>${jib-maven-plugin.version}</version>
                 <configuration>
-                    <container>
-                        <expandClasspathDependencies>true</expandClasspathDependencies>
-                    </container>
+                    <from>
+                        <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-runtime-21:latest</image>
+                    </from>
+                    <to>
+                        <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/company-profile-api:latest</image>
+                    </to>
                 </configuration>
             </plugin>
             <plugin>
