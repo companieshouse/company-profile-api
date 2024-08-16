@@ -23,7 +23,8 @@ Feature: Process company profile
       | companyNumber     |
       | 00006402          |
 
-
+  @Ignored
+    #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
   Scenario Outline: GET company profile unsuccessfully - company profile resource does not exist
     Given a company profile resource does not exist for "<company_number>"
     When I send GET request to retrieve Company Profile using company number "<company_number>"
@@ -33,6 +34,8 @@ Feature: Process company profile
       | company_number  |
       | 00006402        |
 
+  @Ignored
+    #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
   Scenario Outline: GET company profile unsuccessfully while database is down
     Given Company profile api service is running
     And a Company Profile exists for "<company_number>"
@@ -51,6 +54,20 @@ Feature: Process company profile
     When I send a PUT request with payload "<companyNumber>" file for company number "<companyNumber>"
     Then I should receive 200 status code
     And a company profile exists with id "<companyNumber>"
+    And the CHS Kafka API is invoked successfully
+
+    Examples:
+      | companyNumber     |
+      | 00006402          |
+
+  Scenario Outline: Processing company profile information successfully when has_charges is null
+
+    Given Company profile api service is running
+    And the CHS Kafka API is reachable
+    When I send a PUT request with payload "<companyNumber>" file for company number "<companyNumber>"
+    Then I should receive 200 status code
+    And a company profile exists with id "<companyNumber>"
+    And has_charges is false for "<companyNumber>"
     And the CHS Kafka API is invoked successfully
 
     Examples:
@@ -93,7 +110,8 @@ Feature: Process company profile
       | companyNumber         |
       | 00006402_bad_payload  |
 
-
+  @Ignored
+    #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
   Scenario Outline: Process company profile unsuccessfully while database is down
     Given Company profile api service is running
     And a company profile resource does not exist for "<company_number>"

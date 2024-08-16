@@ -12,6 +12,19 @@ Feature: Process company profile links
       | data     |
       | 11748564 |
 
+  Scenario Outline: Processing company profile links successfully
+
+    Given Company profile api service is running
+    And the company links exists for "<data>"
+    When I send PATCH request with payload "<data>" and company number "<data>" for charges
+    Then the CHS Kafka API is invoked successfully
+    And the has_charges field is true for "<data>"
+    And I should receive 200 status code
+
+    Examples:
+      | data     |
+      | 00006402 |
+
   Scenario Outline: Processing company profile links without setting Eric headers
 
     Given Company profile api service is running

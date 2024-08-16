@@ -1,13 +1,14 @@
 package uk.gov.companieshouse.company.profile.service;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
@@ -31,19 +32,19 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.NextAccounts;
 import uk.gov.companieshouse.api.company.PreviousCompanyNames;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.company.SelfLink;
 import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
@@ -106,6 +107,20 @@ public class CompanyProfileService {
                         String.format("No company profile with company number %s found",
                                 companyNumber), DataMapHolder.getLogMap())
         );
+
+        //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+        if (companyProfileDocument.isPresent()) {
+            CompanyProfileDocument document = companyProfileDocument.get();
+            RegisteredOfficeAddress roa = document.getCompanyProfile().getRegisteredOfficeAddress();
+            if (roa != null) {
+                if (roa.getCareOf() == null) {
+                    roa.setCareOf(roa.getCareOfName());
+                }
+                roa.setCareOfName(null);
+                companyProfileDocument = Optional.of(document);
+            }
+        }
+
         return companyProfileDocument;
     }
 
@@ -117,9 +132,7 @@ public class CompanyProfileService {
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
-                                     final CompanyProfile companyProfileRequest)
-            throws ApiErrorResponseException {
-
+                                     final CompanyProfile companyProfileRequest) {
         try {
 
             Optional<CompanyProfileDocument> cpDocumentOptional =
@@ -173,7 +186,6 @@ public class CompanyProfileService {
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
         try {
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
             Update update = Update.update(
                     String.format("data.links.%s", convertToDBformat(linkType)),
                     String.format("/company/%s/%s", companyNumber, linkType));
@@ -182,6 +194,12 @@ public class CompanyProfileService {
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
                     .setBy(contextId));
+
+            if (Objects.equals(linkRequest.getLinkType(), "charges")) {
+                update.set("data.has_charges", true);
+            }
+
+            Query query = new Query(Criteria.where("_id").is(companyNumber));
 
             mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
             logger.infoContext(contextId, String.format("Company %s link inserted "
@@ -278,6 +296,10 @@ public class CompanyProfileService {
                 companyProfileDocument.getCompanyProfile().getLinks() != null
                         ? companyProfileDocument.getCompanyProfile().getLinks().getCharges()
                         : null);
+        setUpdateIfNotNullOtherwiseRemove(update, "data.links.registers",
+                companyProfileDocument.getCompanyProfile().getLinks() != null
+                        ? companyProfileDocument.getCompanyProfile().getLinks().getRegisters()
+                        : null);
         setUpdateIfNotNullOtherwiseRemove(update, "data.has_insolvency_history",
                 companyProfileDocument.getCompanyProfile().getHasInsolvencyHistory());
         setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
@@ -329,14 +351,14 @@ public class CompanyProfileService {
      */
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
-                    .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+                .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                     "no data for company profile: "
                                     + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
-        if (!StringUtils.isBlank(linkData)) {
+        if (!isBlank(linkData)) {
             logger.error(linkRequest.getLinkType() + " link for company profile already exists",
                     DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
@@ -392,8 +414,12 @@ public class CompanyProfileService {
                             new LinkRequest(contextId, parentCompanyNumber,
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+
                     try {
                         if (companyProfile.getData().getType().equals("uk-establishment")) {
+                            Links links = companyProfile.getData().getLinks();
+                            links.setOverseas(String.format("/company/%s", parentCompanyNumber));
+                            companyProfile.getData().setLinks(links);
                             checkForAddLink(ukEstablishmentLinkRequest);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
@@ -405,6 +431,7 @@ public class CompanyProfileService {
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         logger.info("Parent company link already exists");
                     }
+
                 });
 
         if (companyProfile.getData() != null) {
@@ -412,8 +439,12 @@ public class CompanyProfileService {
                 existingProfile
                         .map(CompanyProfileDocument::getCompanyProfile)
                         .map(Data::getHasCharges).ifPresent(hasCharges ->
-                                companyProfile.getData().setHasCharges(hasCharges)
-                    );
+                                companyProfile.getData().setHasCharges(hasCharges));
+
+                if (companyProfile.getData().getLinks() != null) {
+                    boolean hasCharges = companyProfile.getData().getLinks().getCharges() != null;
+                    companyProfile.getData().setHasCharges(hasCharges);
+                }
             }
 
             if (companyProfile.getData().getHasBeenLiquidated() == null) {
@@ -455,14 +486,14 @@ public class CompanyProfileService {
 
     /** Retrieve company profile. */
     public Data retrieveCompanyNumber(String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
 
         Data profileData = companyProfileDocument.getCompanyProfile();
-        //SuperSecureManagingOfficerCount should not be returned on a Get request
         if (profileData != null) {
+            //SuperSecureManagingOfficerCount should not be returned on a Get request
             profileData.setSuperSecureManagingOfficerCount(null);
             List<PreviousCompanyNames> previousCompanyNames = profileData.getPreviousCompanyNames();
             if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
@@ -472,6 +503,15 @@ public class CompanyProfileService {
             if (dissolutionDate != null) {
                 profileData.setDateOfCessation(dissolutionDate);
                 profileData.setDateOfDissolution(null);
+            }
+
+            //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
+            RegisteredOfficeAddress roa = profileData.getRegisteredOfficeAddress();
+            if (roa != null) {
+                if (roa.getCareOf() == null) {
+                    roa.setCareOf(roa.getCareOfName());
+                }
+                roa.setCareOfName(null);
             }
         }
         return profileData;
@@ -493,14 +533,12 @@ public class CompanyProfileService {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
-        if (parentCompanyNumber != null) {
-            if (companyProfile.getType().equals("uk-establishment")) {
-                LinkRequest ukEstablishmentLinkRequest =
-                        new LinkRequest(contextId, parentCompanyNumber,
-                                UK_ESTABLISHMENTS_LINK_TYPE,
-                                UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-                checkForDeleteLink(ukEstablishmentLinkRequest);
-            }
+        if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
+            LinkRequest ukEstablishmentLinkRequest =
+                    new LinkRequest(contextId, parentCompanyNumber,
+                            UK_ESTABLISHMENTS_LINK_TYPE,
+                            UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+            checkForDeleteLink(ukEstablishmentLinkRequest);
         }
 
         companyProfileRepository.delete(companyProfileDocument);
@@ -513,8 +551,7 @@ public class CompanyProfileService {
     }
 
     /** Get company details. */
-    public Optional<CompanyDetails> getCompanyDetails(String companyNumber)
-            throws JsonProcessingException {
+    public Optional<CompanyDetails> getCompanyDetails(String companyNumber) {
         try {
             Data companyProfile = retrieveCompanyNumber(companyNumber);
             CompanyDetails companyDetails = new CompanyDetails();
@@ -606,7 +643,6 @@ public class CompanyProfileService {
         try {
             LocalDate currentDate = LocalDate.now();
 
-
             Optional.ofNullable(companyProfile.getConfirmationStatement())
                     .map(ConfirmationStatement::getNextDue)
                     .ifPresent(nextDue -> {
@@ -620,6 +656,7 @@ public class CompanyProfileService {
                     .ifPresent(nextDue -> {
                         companyProfile.getAccounts().getNextAccounts()
                                 .setOverdue(nextDue.isBefore(currentDate));
+                        companyProfile.getAccounts().setOverdue(nextDue.isBefore(currentDate));
                     });
 
             Optional.ofNullable(companyProfile.getAnnualReturn())

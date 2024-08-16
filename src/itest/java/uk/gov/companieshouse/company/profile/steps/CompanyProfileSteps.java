@@ -16,7 +16,10 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -39,6 +42,7 @@ import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
+import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -46,15 +50,13 @@ import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 
 public class CompanyProfileSteps {
 
     private String companyNumber;
     private String contextId;
     private ResponseEntity<Data> response;
-
-    private static final String DELETE_COMPANY_PROFILE_URI = "/company/00006400/";
-
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -74,6 +76,9 @@ public class CompanyProfileSteps {
     @Autowired
     private CompanyProfileService companyProfileService;
 
+    @Autowired
+    private CompanyProfileTransformer companyProfileTransformer;
+
     @Before
     public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
@@ -90,6 +95,10 @@ public class CompanyProfileSteps {
         WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
     }
 
+    @Given("CHS kafka API service is unavailable")
+    public void chs_kafka_service_unavailable() {
+        WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
+    }
     @When("I send PATCH request with payload {string} and company number {string}")
     public void i_send_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
         WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
@@ -111,7 +120,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}/links";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @When("I send PATCH request with payload {string} and company number {string} and CHS Kafka API unavailable")
@@ -136,7 +145,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}/links";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @When("I send PATCH request with payload {string} and company number {string} without setting Eric headers")
@@ -156,7 +165,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}/links";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @When("I send PATCH request with raw payload {string} and company number {string}")
@@ -178,7 +187,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}/links";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @Then("I should receive {int} status code")
@@ -189,12 +198,7 @@ public class CompanyProfileSteps {
 
     @Then("the CHS Kafka API is invoked successfully")
     public void chs_kafka_api_invoked() {
-        verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/resource-changed")));
-    }
-
-    @When("CHS kafka API service is unavailable")
-    public void chs_kafka_service_unavailable() {
-        WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
+        verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/private/resource-changed")));
     }
 
     @Then("the expected result should match {string} file with company number {string}")
@@ -213,7 +217,6 @@ public class CompanyProfileSteps {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
         LocalDateTime localDateTime = LocalDateTime.now();
-        //Updated updated = mock(Updated.class);
         Updated updated = new Updated(LocalDateTime.now().minusYears(1),
                 "abc", "company_delta");
         CompanyProfileDocument companyProfileDocument =
@@ -235,7 +238,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -250,7 +253,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -260,13 +263,12 @@ public class CompanyProfileSteps {
         Data expected = objectMapper.readValue(data, Data.class);
 
         Data actual = CucumberContext.CONTEXT.get("getResponseBody");
-
         assertThat(actual).isEqualTo(expected);
     }
 
     @Then("the CHS Kafka API is not invoked")
     public void chs_kafka_api_not_invoked() {
-        verify(0, postRequestedFor(urlEqualTo("/resource-changed")));
+        verify(0, postRequestedFor(urlEqualTo("/private/resource-changed")));
         List<ServeEvent> serverEvents = WiremockTestConfig.getServeEvents();
         assertTrue(serverEvents.isEmpty());
     }
@@ -327,7 +329,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -342,7 +344,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -374,7 +376,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @When("I send a PUT request with payload {string} file for company number {string} without setting Eric headers")
@@ -387,7 +389,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @Then("a company profile exists with id {string}")
@@ -455,7 +457,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
 
     }
@@ -470,7 +472,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -554,7 +556,7 @@ public class CompanyProfileSteps {
         String uri = "/company/{company_number}";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @When("I send a GET request to retrieve UK establishments using company number {string} without Eric headers")
@@ -567,7 +569,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 Data.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -585,7 +587,7 @@ public class CompanyProfileSteps {
                 uri, HttpMethod.GET, new HttpEntity<>(headers),
                 UkEstablishmentsList.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -642,5 +644,45 @@ public class CompanyProfileSteps {
                 .isEqualTo(expected.getItems().get(0).getLinks());
         assertThat(actual.getItems().get(1).getLinks())
                 .isEqualTo(expected.getItems().get(1).getLinks());
+    }
+
+    @And("has_charges is false for {string}")
+    public void has_chargesIsTrueFor(String companyNumber) {
+        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
+                .map(doc -> new CompanyProfile().data(doc.companyProfile))
+                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
+        assertThat(companyProfile.getData().getHasCharges()).isFalse();
+    }
+
+    @And("the has_charges field is true for {string}")
+    public void theHas_chargesFieldIsTrueFor(String companyNumber) {
+        CompanyProfile companyProfile = companyProfileService.get(companyNumber)
+                .map(doc -> new CompanyProfile().data(doc.companyProfile))
+                .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,"profile not found"));
+        assertThat(companyProfile.getData().getHasCharges()).isTrue();
+    }
+
+    @When("I send PATCH request with payload {string} and company number {string} for charges")
+    public void iSendPATCHRequestWithPayloadAndCompanyNumberForCharges(String dataFile, String companyNumber) throws IOException {
+        WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
+
+        File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
+        CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
+
+        this.contextId = "5234234234";
+        this.companyNumber = companyNumber;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("x-request-id", "5234234234");
+        headers.set("ERIC-Identity", "SOME_IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+
+        HttpEntity<CompanyProfile> request = new HttpEntity<>(companyProfile, headers);
+        String uri = "/company/{company_number}/links/charges";
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }

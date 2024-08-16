@@ -33,3 +33,7 @@ hs_err_pid*
 
 # Mac
 .DS_Store
+
+# Vim files
+*.vim
+.*.sw?

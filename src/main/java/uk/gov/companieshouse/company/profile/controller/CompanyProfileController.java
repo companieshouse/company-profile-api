@@ -2,8 +2,8 @@ package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.MongoTimeoutException;
+import jakarta.validation.Valid;
 import java.util.Optional;
-import javax.validation.Valid;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +22,11 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
+import uk.gov.companieshouse.company.profile.util.ErrorResponseBody;
 import uk.gov.companieshouse.logging.Logger;
 
 @RestController
@@ -169,9 +170,9 @@ public class CompanyProfileController {
      * @return data object
      */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<Data> searchCompanyProfile(
+    public ResponseEntity<?> searchCompanyProfile(
             @PathVariable("company_number") String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.info(String.format("Received get request for Company Number %s", companyNumber),
@@ -185,7 +186,9 @@ public class CompanyProfileController {
         } catch (ResourceNotFoundException resourceNotFoundException) {
             logger.error("Error while trying to retrieve company profile: "
                     + resourceNotFoundException.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseBody(
+                            "ch:service", "company-profile-not-found").toString());
         } catch (DataAccessException dataAccessException) {
             logger.error("Error while trying to retrieve company profile: "
                     + dataAccessException.getMessage());
