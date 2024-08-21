@@ -114,10 +114,10 @@ public class CompanyProfileController {
     public ResponseEntity<Void> updateCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
-            @Valid @RequestBody CompanyProfile requestBody) throws ApiErrorResponseException {
+            @Valid @RequestBody CompanyProfile requestBody) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on insolvency PATCH endpoint "
+        logger.infoContext(contextId, String.format("Payload received on PATCH links endpoint "
                 + "for company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -238,7 +238,7 @@ public class CompanyProfileController {
     @GetMapping("/company/{company_number}/company-detail")
     public ResponseEntity<CompanyDetails> getCompanyDetails(
             @PathVariable("company_number") String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.info(String.format("Received get request for company details"
