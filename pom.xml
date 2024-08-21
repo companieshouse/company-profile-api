@@ -23,7 +23,7 @@
 
         <maven-build-helper-plugin.version>3.2.0</maven-build-helper-plugin.version>
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
-        <jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
+        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <apache.httpclient5.version>5.3.1</apache.httpclient5.version>
