@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import javax.print.Doc;
-import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 
@@ -26,7 +25,7 @@ import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 @AutoConfigureMockMvc
 @SpringBootTest(classes = CompanyProfileApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CompanyProfileRepositoryTest {
+class CompanyProfileRepositoryTest {
     private static final String COMPANY_NUMBER = "BR123456";
     private static final String PARENT_COMPANY_NUMBER = "FR123456";
     @Container

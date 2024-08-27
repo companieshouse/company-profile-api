@@ -50,7 +50,7 @@ public class ExemptionsLinkSteps {
     }
 
     @When("a PATCH request is sent to the add exemptions link endpoint for {string}")
-    public void addExemptionsLink(String companyNumber) throws ApiErrorResponseException {
+    public void addExemptionsLink(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -62,7 +62,7 @@ public class ExemptionsLinkSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 ADD_EXEMPTIONS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
@@ -113,7 +113,7 @@ public class ExemptionsLinkSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
 
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 DELETE_EXEMPTIONS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
@@ -129,7 +129,7 @@ public class ExemptionsLinkSteps {
         CucumberContext.CONTEXT.set("contextId", this.contextId);
         headers.set("x-request-id", this.contextId);
 
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
                 DELETE_EXEMPTIONS_LINK_ENDPOINT, HttpMethod.PATCH, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());

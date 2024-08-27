@@ -5,7 +5,7 @@
     <parent>
         <groupId>uk.gov.companieshouse</groupId>
         <artifactId>companies-house-parent</artifactId>
-        <version>1.3.1</version>
+        <version>2.1.5</version>
     </parent>
 
     <artifactId>company-profile-api</artifactId>
@@ -16,35 +16,50 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>11</java.version>
+        <java.version>21</java.version>
+        <spring.boot.version>3.2.6</spring.boot.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
         <maven-build-helper-plugin.version>3.2.0</maven-build-helper-plugin.version>
         <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
-        <jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
+        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <apache.httpclient5.version>5.3.1</apache.httpclient5.version>
+        <commons-io.version>2.16.1</commons-io.version>
 
         <!-- Internal -->
-        <structured-logging.version>1.9.25</structured-logging.version>
-        <private-api-sdk-java.version>2.0.407</private-api-sdk-java.version>
+        <structured-logging.version>3.0.7</structured-logging.version>
+        <private-api-sdk-java.version>4.0.186</private-api-sdk-java.version>
         <data-sync-api-sdk-java.version>1.0.5</data-sync-api-sdk-java.version>
-        <api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
-        <api-helper-java-library.version>1.4.5</api-helper-java-library.version>
+        <api-sdk-manager-java-library.version>3.0.5</api-sdk-manager-java-library.version>
+        <api-helper-java-library.version>3.0.1</api-helper-java-library.version>
         <api-security-java.version>0.4.6</api-security-java.version>
 
         <!-- tests -->
-        <test-containers.version>1.16.3</test-containers.version>
-        <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-        <cucumber-java.version>7.2.3</cucumber-java.version>
-        <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
+        <test-containers.version>1.19.7</test-containers.version>
+        <cucumber-java.version>7.18.0</cucumber-java.version>
+        <wiremock.version>3.5.2</wiremock.version>
+        <docker-java-api.version>3.3.6</docker-java-api.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
-        <wiremock.version>2.32.0</wiremock.version>
 
-        <maven-resources-plugin.version>2.5</maven-resources-plugin.version>
+        <!--Plugin-->
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+        <maven-build-helper-plugin.version>3.6.0</maven-build-helper-plugin.version>
+        <apache-maven-checkstyle-plugin.version>2.17</apache-maven-checkstyle-plugin.version>
+        <puppycrawl.checkstyle.version>7.5.1</puppycrawl.checkstyle.version>
+        <ch-java-checkstyle-config.version>1.1</ch-java-checkstyle-config.version>
+        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+
         <!--sonar configuration-->
-        <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
+        <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.projectKey>uk.gov.companieshouse:company-profile-api</sonar.projectKey>
         <sonar.sources>src/main</sonar.sources>
@@ -54,12 +69,30 @@
             ${project.basedir}/target/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.jacoco.reports>${project.basedir}/target/site</sonar.jacoco.reports>
-        <spring.boot.version>2.7.9</spring.boot.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${test-containers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!--Spring dependencies-->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -85,6 +118,21 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
             <exclusions>
                 <exclusion>
@@ -94,6 +142,18 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${apache.httpclient5.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+
+        <!--CH Libraries-->
+        <dependency>
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>api-security-java</artifactId>
             <version>${api-security-java.version}</version>
@@ -102,6 +162,12 @@
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>structured-logging</artifactId>
             <version>${structured-logging.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
@@ -119,6 +185,12 @@
             <version>${api-sdk-manager-java-library.version}</version>
         </dependency>
         <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>api-helper-java</artifactId>
+            <version>${api-helper-java-library.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
@@ -126,24 +198,29 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
+
+        <!--Test Dependencies-->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.5.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <exclusions>
+                <!--excluded to remove vulnerability-->
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -152,46 +229,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-test</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
-
-
-        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
-            <version>${wiremock.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.conscrypt</groupId>
-                    <artifactId>conscrypt-openjdk-uber</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.javacrumbs.json-unit</groupId>
-                    <artifactId>json-unit-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.github.jknack</groupId>
-                    <artifactId>handlebars</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.github.jknack</groupId>
-                    <artifactId>handlebars-helpers</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-core</artifactId>
@@ -216,30 +256,12 @@
             <version>${cucumber-java.version}</version>
         </dependency>
         <dependency>
-            <groupId>uk.gov.companieshouse</groupId>
-            <artifactId>api-helper-java</artifactId>
-            <version>${api-helper-java-library.version}</version>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-api</artifactId>
+            <version>${docker-java-api.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${test-containers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <pluginManagement>
@@ -247,12 +269,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>2.17</version>
+                    <version>${maven-checkstyle-plugin.version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>7.5.1</version>
+                            <version>${puppycrawl.checkstyle.version}</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -405,7 +427,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
+                <version>${apache-maven-checkstyle-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>process-sources</phase>
@@ -425,7 +447,7 @@
                     <dependency>
                         <groupId>uk.gov.companieshouse</groupId>
                         <artifactId>java-checkstyle-config</artifactId>
-                        <version>1.1</version>
+                        <version>${ch-java-checkstyle-config.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -435,6 +457,13 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>${jib-maven-plugin.version}</version>
                 <configuration>
+                    <from>
+                        <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-build-21:latest</image>
+                    </from>
+                    <to>
+                        //Once the pipeline is moved to shared services need to update this to image reference from shared services
+                        <image>169942020521.dkr.ecr.eu-west-1.amazonaws.com/company-profile-api:latest</image>
+                    </to>
                     <container>
                         <expandClasspathDependencies>true</expandClasspathDependencies>
                     </container>

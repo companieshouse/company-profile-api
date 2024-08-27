@@ -2,8 +2,8 @@ package uk.gov.companieshouse.company.profile.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.MongoTimeoutException;
+import jakarta.validation.Valid;
 import java.util.Optional;
-import javax.validation.Valid;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +22,8 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.ErrorResponseBody;
@@ -114,10 +114,10 @@ public class CompanyProfileController {
     public ResponseEntity<Void> updateCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
-            @Valid @RequestBody CompanyProfile requestBody) throws ApiErrorResponseException {
+            @Valid @RequestBody CompanyProfile requestBody) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on insolvency PATCH endpoint "
+        logger.infoContext(contextId, String.format("Payload received on PATCH links endpoint "
                 + "for company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -238,7 +238,7 @@ public class CompanyProfileController {
     @GetMapping("/company/{company_number}/company-detail")
     public ResponseEntity<CompanyDetails> getCompanyDetails(
             @PathVariable("company_number") String companyNumber)
-            throws JsonProcessingException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.info(String.format("Received get request for company details"
