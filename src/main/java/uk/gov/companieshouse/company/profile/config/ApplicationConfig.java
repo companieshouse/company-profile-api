@@ -21,8 +21,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.converter.EnumWriteConverter;
+import uk.gov.companieshouse.api.filter.CustomCorsFilter;
 import uk.gov.companieshouse.company.profile.auth.EricTokenAuthenticationFilter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataReadConverter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataWriteConverter;
@@ -52,6 +54,8 @@ public class ApplicationConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, Logger logger) throws Exception {
         http.httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+                .addFilterBefore(new CustomCorsFilter(externalMethods()), CsrfFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
