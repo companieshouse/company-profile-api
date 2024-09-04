@@ -52,7 +52,6 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
@@ -60,6 +59,7 @@ import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
@@ -95,6 +95,8 @@ class CompanyProfileControllerTest {
     private static final String X_REQUEST_ID = "123456";
     private static final String ERIC_IDENTITY = "Test-Identity";
     private static final String ERIC_IDENTITY_TYPE = "key";
+    private static final String ERIC_PRIVILEGES = "*";
+    private static final String ERIC_AUTH = "internal-app";
 
     @MockBean
     private Logger logger;
@@ -1302,9 +1304,10 @@ class CompanyProfileControllerTest {
     @Test
     void optionsCompanyProfileCORS() throws Exception {
 
-        mockMvc.perform(options(COMPANY_PROFILE_URL)
+        mockMvc.perform(MockMvcRequestBuilders
+                        .options(COMPANY_PROFILE_URL)
                         .header("Origin", "")
-                        .contentType(APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent())
             .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
             .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
@@ -1315,14 +1318,16 @@ class CompanyProfileControllerTest {
     @Test
     void getCompanyProfileCORS() throws Exception {
 
-        mockMvc.perform(get(COMPANY_PROFILE_URL)
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(COMPANY_PROFILE_URL)
                         .header("Origin", "")
                         .header("ERIC-Allowed-Origin", "some-origin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("x-request-id", X_REQUEST_ID)
-                        )
+                        .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
+                        .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
+                        .header("x-request-id", X_REQUEST_ID))
             .andExpect(status().isOk())
             .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));

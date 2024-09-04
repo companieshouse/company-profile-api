@@ -35,7 +35,7 @@
         <data-sync-api-sdk-java.version>1.0.5</data-sync-api-sdk-java.version>
         <api-sdk-manager-java-library.version>3.0.5</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>3.0.1</api-helper-java-library.version>
-        <api-security-java.version>0.4.6</api-security-java.version>
+        <api-security-java.version>2.0.6</api-security-java.version>
 
         <!-- tests -->
         <test-containers.version>1.19.7</test-containers.version>
