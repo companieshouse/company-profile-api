@@ -12,8 +12,8 @@ locals {
   kms_alias                       = "alias/${var.aws_profile}/environment-services-kms"
   lb_listener_rule_priority_links = 60
   lb_listener_paths_links         = ["/company/*/links","/company/*/links/*","/company/*/links/*/delete"]
-  lb_listener_rule_priority       = 83
-  lb_listener_paths               = ["/company/*/company-detail","/company/*/uk-establishments"]
+  lb_listener_rule_priority       = 250
+  lb_listener_paths               = ["/company/*","/company/*/company-detail","/company/*/uk-establishments"]
   healthcheck_path                = "/company-profile-api/healthcheck" ##healthcheck path for company profile api
   healthcheck_matcher             = "200"
   s3_config_bucket                = data.vault_generic_secret.shared_s3.data["config_bucket_name"]
