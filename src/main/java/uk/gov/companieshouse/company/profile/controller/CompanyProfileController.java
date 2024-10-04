@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.MongoTimeoutException;
 import jakarta.validation.Valid;
 import java.util.Optional;
@@ -14,13 +13,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
@@ -132,6 +131,8 @@ public class CompanyProfileController {
      */
     @PatchMapping("/company/{company_number}/links/{link_type}")
     public ResponseEntity<Void> addLink(
+            @RequestParam(required = false, name = "send_to_stream",
+                    defaultValue = "true") Boolean sendToStream,
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType) {
@@ -139,7 +140,9 @@ public class CompanyProfileController {
                 .companyNumber(companyNumber);
         logger.infoContext(contextId, String.format("Payload received for the PATCH links endpoint "
                 + "with company number %s", companyNumber), DataMapHolder.getLogMap());
-        companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
+        if (sendToStream) {
+            companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
+        }
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
