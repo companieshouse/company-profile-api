@@ -181,7 +181,7 @@ public class CompanyProfileService {
         }
     }
 
-    private void addLink(LinkRequest linkRequest) {
+    private void addLink(LinkRequest linkRequest, Boolean sendToStream) {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
@@ -206,7 +206,9 @@ public class CompanyProfileService {
                     + "in Company Profile with company number: %s", linkType, companyNumber),
                     DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            if (sendToStream) {
+                companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            }
             logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
                     + "successfully for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
@@ -221,7 +223,7 @@ public class CompanyProfileService {
         }
     }
 
-    private void deleteLink(LinkRequest linkRequest) {
+    private void deleteLink(LinkRequest linkRequest, Boolean sendToStream) {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
@@ -254,7 +256,9 @@ public class CompanyProfileService {
                     + "in Company Profile with company number: %s",
                     linkType, companyNumber), DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            if (sendToStream) {
+                companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            }
             logger.infoContext(contextId, String.format("chs-kafka-api DELETED invoked "
                     + "successfully for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
@@ -334,14 +338,14 @@ public class CompanyProfileService {
      * and calls checkAdd or checkDelete.
      */
     public void processLinkRequest(String linkType, String companyNumber, String contextId,
-                                   boolean delete) {
+                                   boolean delete, boolean sendToStream) {
         LinkRequest linkRequest =
                 linkRequestFactory.createLinkRequest(linkType, contextId, companyNumber);
 
         if (delete) {
-            checkForDeleteLink(linkRequest);
+            checkForDeleteLink(linkRequest, sendToStream);
         } else {
-            checkForAddLink(linkRequest);
+            checkForAddLink(linkRequest, sendToStream);
         }
     }
 
@@ -349,7 +353,7 @@ public class CompanyProfileService {
      * Checks if link for given type exists in document and
      * call addLink if this is false.
      */
-    public void checkForAddLink(LinkRequest linkRequest) {
+    public void checkForAddLink(LinkRequest linkRequest, Boolean sendToStream) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
@@ -364,7 +368,7 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
-            addLink(linkRequest);
+            addLink(linkRequest, sendToStream);
         }
     }
 
@@ -372,7 +376,7 @@ public class CompanyProfileService {
      * Checks if link for given type does not exist in document and
      * call deleteLink if this is false.
      */
-    public void checkForDeleteLink(LinkRequest linkRequest) {
+    public void checkForDeleteLink(LinkRequest linkRequest, Boolean sendToStream) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
@@ -388,7 +392,7 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already does not exist");
         } else {
-            deleteLink(linkRequest);
+            deleteLink(linkRequest, sendToStream);
         }
     }
 
@@ -398,7 +402,7 @@ public class CompanyProfileService {
      */
     @Transactional
     public void processCompanyProfile(String contextId, String companyNumber,
-                                      CompanyProfile companyProfile)
+                                      CompanyProfile companyProfile, Boolean sendToStream)
             throws ServiceUnavailableException, BadRequestException {
 
         Optional<CompanyProfileDocument> existingProfile =
@@ -420,7 +424,7 @@ public class CompanyProfileService {
                             Links links = companyProfile.getData().getLinks();
                             links.setOverseas(String.format("/company/%s", parentCompanyNumber));
                             companyProfile.getData().setLinks(links);
-                            checkForAddLink(ukEstablishmentLinkRequest);
+                            checkForAddLink(ukEstablishmentLinkRequest, sendToStream);
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
@@ -529,7 +533,8 @@ public class CompanyProfileService {
     /** Delete company profile. */
     @Transactional
     public void deleteCompanyProfile(String contextId,
-                                     String companyNumber) throws ResourceNotFoundException {
+                                     String companyNumber,
+                                     Boolean sendToStream) throws ResourceNotFoundException {
         CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
@@ -538,7 +543,7 @@ public class CompanyProfileService {
                     new LinkRequest(contextId, parentCompanyNumber,
                             UK_ESTABLISHMENTS_LINK_TYPE,
                             UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-            checkForDeleteLink(ukEstablishmentLinkRequest);
+            checkForDeleteLink(ukEstablishmentLinkRequest, sendToStream);
         }
 
         companyProfileRepository.delete(companyProfileDocument);

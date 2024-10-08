@@ -54,9 +54,7 @@ import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -390,7 +388,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -409,7 +407,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -434,7 +432,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -459,7 +457,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -479,7 +477,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -503,7 +501,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -526,7 +524,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -545,7 +543,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -569,7 +567,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -595,7 +593,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -615,7 +613,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -640,7 +638,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -660,7 +658,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -677,7 +675,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -700,7 +698,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -723,7 +721,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -741,7 +739,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -763,7 +761,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -784,7 +782,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -801,7 +799,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -823,7 +821,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -847,7 +845,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -865,7 +863,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -888,7 +886,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -908,7 +906,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -925,7 +923,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -948,7 +946,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -971,7 +969,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -989,7 +987,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1011,7 +1009,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1032,7 +1030,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -1049,7 +1047,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1071,7 +1069,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1095,7 +1093,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1113,7 +1111,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1136,7 +1134,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1158,7 +1156,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -1177,7 +1175,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1202,7 +1200,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1227,7 +1225,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1247,7 +1245,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1271,7 +1269,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1295,7 +1293,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -1314,7 +1312,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1338,7 +1336,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1364,7 +1362,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1384,7 +1382,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1409,7 +1407,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1432,7 +1430,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -1452,7 +1450,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1479,7 +1477,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
 
         // then
@@ -1507,7 +1505,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1528,7 +1526,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1553,7 +1551,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1578,7 +1576,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
@@ -1597,7 +1595,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1622,7 +1620,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1651,7 +1649,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1672,7 +1670,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1699,7 +1697,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1752,7 +1750,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -1772,7 +1770,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1799,7 +1797,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
 
         // then
@@ -1827,7 +1825,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1848,7 +1846,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1873,7 +1871,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                MOCK_CONTEXT_ID, false, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1898,7 +1896,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
@@ -1917,7 +1915,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1942,7 +1940,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1971,7 +1969,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1992,7 +1990,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2019,7 +2017,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2037,7 +2035,7 @@ class CompanyProfileServiceTest {
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                COMPANY_PROFILE, true);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
@@ -2058,7 +2056,7 @@ class CompanyProfileServiceTest {
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                COMPANY_PROFILE, true);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
@@ -2152,11 +2150,11 @@ class CompanyProfileServiceTest {
     @DisplayName("When company number is provided delete company profile")
     public void testDeleteCompanyProfile() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, true);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileService, times((0))).checkForDeleteLink(any());
+        verify(companyProfileService, times((0))).checkForDeleteLink(any(), anyBoolean());
     }
 
     @Test
@@ -2166,12 +2164,12 @@ class CompanyProfileServiceTest {
                 thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, true);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
-        verify(companyProfileService, times(1)).checkForDeleteLink(any());
+        verify(companyProfileService, times(1)).checkForDeleteLink(any(), anyBoolean());
     }
 
     @Test
@@ -2180,12 +2178,12 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+            companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, true);
         });
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(0)).delete(any());
-        verify(companyProfileService, times((0))).checkForDeleteLink(any());
+        verify(companyProfileService, times((0))).checkForDeleteLink(any(), anyBoolean());
     }
 
     @Test
@@ -2201,7 +2199,7 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, false);
+        companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, false, true);
 
         // then
         verify(linkRequestFactory).createLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER);
@@ -2337,7 +2335,7 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                companyProfile);
+                companyProfile, true);
 
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
         Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
@@ -2355,7 +2353,7 @@ class CompanyProfileServiceTest {
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                COMPANY_PROFILE, true);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
@@ -2373,7 +2371,7 @@ class CompanyProfileServiceTest {
 
         assertThrows(ServiceUnavailableException.class, () -> {
             companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                    COMPANY_PROFILE);
+                    COMPANY_PROFILE, true);
         });
         verifyNoInteractions(companyProfileApiService);
     }
@@ -2394,7 +2392,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -2420,7 +2418,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                MOCK_CONTEXT_ID, true, true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -2440,7 +2438,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -2465,7 +2463,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -2493,7 +2491,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2514,7 +2512,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2540,7 +2538,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2555,7 +2553,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                COMPANY_PROFILE, true);
 
         verify(companyProfileRepository, times(2)).save(any());
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
@@ -2623,7 +2621,7 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setHasBeenLiquidated(null);
         companyProfile.getData().setCompanyNumber("6146287");
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                companyProfile);
+                companyProfile, true);
         verify(companyProfileTransformer).transform(profileToTransform, MOCK_COMPANY_NUMBER, null);
 
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
@@ -2646,7 +2644,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                companyProfile);
+                companyProfile, true);
 
         assertFalse(companyProfile.getData().getHasCharges());
     }
@@ -2666,7 +2664,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
-                companyProfile);
+                companyProfile, true);
 
         assertFalse(companyProfile.getData().getHasCharges());
     }
