@@ -31,7 +31,7 @@
 
         <!-- Internal -->
         <structured-logging.version>3.0.7</structured-logging.version>
-        <private-api-sdk-java.version>4.0.186</private-api-sdk-java.version>
+        <private-api-sdk-java.version>4.0.221</private-api-sdk-java.version>
         <data-sync-api-sdk-java.version>1.0.5</data-sync-api-sdk-java.version>
         <api-sdk-manager-java-library.version>3.0.5</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>3.0.1</api-helper-java-library.version>

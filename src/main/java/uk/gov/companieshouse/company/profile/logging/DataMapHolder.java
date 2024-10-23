@@ -36,4 +36,5 @@ public class DataMapHolder {
     public static String getRequestId() {
         return (String) getLogMap().get("request_id");
     }
+
 }
