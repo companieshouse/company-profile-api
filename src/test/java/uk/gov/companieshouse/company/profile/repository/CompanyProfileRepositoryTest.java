@@ -20,6 +20,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -58,7 +59,7 @@ class CompanyProfileRepositoryTest {
         insertCompanyProfile(COMPANY_NUMBER + 3, PARENT_COMPANY_NUMBER + 1);
 
         // when
-        List<CompanyProfileDocument> result = repository.findAllByParentCompanyNumber(PARENT_COMPANY_NUMBER);
+        List<VersionedCompanyProfileDocument> result = repository.findAllByParentCompanyNumber(PARENT_COMPANY_NUMBER);
 
         // then
         assertEquals(COMPANY_NUMBER + 1, result.get(0).getId());

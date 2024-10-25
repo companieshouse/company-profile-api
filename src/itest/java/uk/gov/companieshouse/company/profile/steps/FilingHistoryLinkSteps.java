@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 public class FilingHistoryLinkSteps {
@@ -44,7 +45,7 @@ public class FilingHistoryLinkSteps {
 
     @And("the filing history link does not exist for {string}")
     public void checkFilingHistoryLinkIsNotPresent(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getFilingHistory()).isNullOrEmpty();
@@ -77,7 +78,7 @@ public class FilingHistoryLinkSteps {
 
     @And("the filing history link exists for {string}")
     public void verifyFilingHistoryLinkExists(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getFilingHistory()).isEqualTo(FILING_HISTORY_LINK);

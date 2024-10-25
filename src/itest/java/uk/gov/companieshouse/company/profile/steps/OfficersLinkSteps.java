@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 
@@ -51,7 +52,7 @@ public class OfficersLinkSteps {
 
     @And("the officers link does not exist for {string}")
     public void checkOfficersLinkIsNotPresent(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getOfficers()).isNullOrEmpty();
@@ -103,7 +104,7 @@ public class OfficersLinkSteps {
 
     @And("the officers link exists for {string}")
     public void verifyOfficersLinkExists(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getOfficers()).isEqualTo(OFFICERS_LINK);

@@ -10,6 +10,7 @@ import org.springframework.http.*;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 import java.util.Collections;
@@ -62,14 +63,14 @@ public class UkEstablishmentLinkSteps {
     }
 
     private void getUkEstablishmentLink(String parentCompanyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(parentCompanyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(parentCompanyNumber);
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
     }
 
     private void getOverseasLink(String companyNumber, String parentCompanyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
         assertThat(document.get().getCompanyProfile().getLinks().getOverseas()).isEqualTo(String.format(OVERSEAS_LINK, parentCompanyNumber));
@@ -86,7 +87,7 @@ public class UkEstablishmentLinkSteps {
     }
 
     private void ukEstablishmentLinkShouldNotExist(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isNullOrEmpty();
     }

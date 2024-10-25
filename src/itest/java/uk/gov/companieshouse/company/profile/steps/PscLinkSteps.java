@@ -20,6 +20,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 
@@ -53,7 +54,7 @@ public class PscLinkSteps {
 
     @And("the psc link does not exist for {string}")
     public void checkPscLinkIsNotPresent(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getPersonsWithSignificantControl())
@@ -100,7 +101,7 @@ public class PscLinkSteps {
 
     @And("the psc link exists for {string}")
     public void verifyPscLinkExists(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getPersonsWithSignificantControl())

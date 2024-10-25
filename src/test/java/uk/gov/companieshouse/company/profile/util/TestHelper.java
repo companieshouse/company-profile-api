@@ -9,9 +9,8 @@ import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.company.SelfLink;
 import uk.gov.companieshouse.api.company.UkEstablishment;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
-
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
@@ -42,12 +41,13 @@ public class TestHelper {
                 .readValue(this.createJsonCompanyProfilePayload(), CompanyProfile.class);
     }
 
-    public CompanyProfileDocument createCompanyProfileDocument() throws IOException {
+    public VersionedCompanyProfileDocument createCompanyProfileDocument() throws IOException {
         CompanyProfile companyProfile = this.createCompanyProfileObject();
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+        companyProfileDocument.version(1L);
 
         companyProfileDocument.setUpdated(new Updated()
                 .setAt(LocalDateTime.now()));
@@ -61,11 +61,12 @@ public class TestHelper {
         return existingLinks;
     }
 
-    public CompanyProfileDocument createExistingCompanyProfile()  {
+    public VersionedCompanyProfileDocument createExistingCompanyProfile()  {
         Data companyProfileData = new Data();
         companyProfileData.setLinks(this.createExistingLinks());
-        CompanyProfileDocument existingCompanyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument existingCompanyProfileDocument = new VersionedCompanyProfileDocument();
         existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
+        existingCompanyProfileDocument.version(1L);
         return existingCompanyProfileDocument;
     }
 
@@ -80,8 +81,8 @@ public class TestHelper {
         return companyProfileWithOutLinks;
     }
 
-    public CompanyProfileDocument createUkEstablishmentTestInput(String companyNumber) {
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+    public VersionedCompanyProfileDocument createUkEstablishmentTestInput(String companyNumber) {
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setId(companyNumber);
         Data data = new Data();
         data.setCompanyStatus("active");
@@ -90,6 +91,7 @@ public class TestHelper {
         registeredOfficeAddress.setLocality("Wales");
         data.setRegisteredOfficeAddress(registeredOfficeAddress);
         companyProfileDocument.setCompanyProfile(data);
+        companyProfileDocument.version(1L);
         return companyProfileDocument;
     }
 
@@ -105,24 +107,26 @@ public class TestHelper {
         return ukEstablishment;
     }
 
-    public CompanyProfileDocument createCompanyProfileTypeUkEstablishment(String companyNumber) {
+    public VersionedCompanyProfileDocument createCompanyProfileTypeUkEstablishment(String companyNumber) {
         Data companyProfileData = new Data();
         companyProfileData.setType("uk-establishment");
-        CompanyProfileDocument existingCompanyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument existingCompanyProfileDocument = new VersionedCompanyProfileDocument();
         existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
         existingCompanyProfileDocument.setId(companyNumber);
         existingCompanyProfileDocument.setParentCompanyNumber("FC123456");
+        existingCompanyProfileDocument.version(1L);
         return existingCompanyProfileDocument;
     }
 
-    public CompanyProfileDocument createParentCompanyProfile(String companyNumber) {
+    public VersionedCompanyProfileDocument createParentCompanyProfile(String companyNumber) {
         Data companyProfileData = new Data();
         Links existingLinks = new Links();
         existingLinks.setUkEstablishments(String.format("/company/%s/uk-establishments", companyNumber));
         companyProfileData.setLinks(existingLinks);
-        CompanyProfileDocument existingCompanyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument existingCompanyProfileDocument = new VersionedCompanyProfileDocument();
         existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
         existingCompanyProfileDocument.setId(companyNumber);
+        existingCompanyProfileDocument.version(0L);
         return existingCompanyProfileDocument;
     }
 }

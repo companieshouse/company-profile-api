@@ -60,6 +60,7 @@ import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
@@ -125,7 +126,7 @@ class CompanyProfileControllerTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 
@@ -143,7 +144,7 @@ class CompanyProfileControllerTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        CompanyProfileDocument mockCompanyProfileDocument = new CompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
 

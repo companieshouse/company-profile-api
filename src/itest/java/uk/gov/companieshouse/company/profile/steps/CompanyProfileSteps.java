@@ -48,6 +48,7 @@ import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
@@ -206,7 +207,7 @@ public class CompanyProfileSteps {
         File file = new ClassPathResource("/json/output/" + data + ".json").getFile();
         CompanyProfileDocument expected = objectMapper.readValue(file, CompanyProfileDocument.class);
 
-        Optional<CompanyProfileDocument> actual = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(companyNumber);
 
         assertThat(actual).isPresent();
         assertThat(actual.get().getCompanyProfile()).isEqualTo(expected.getCompanyProfile());
@@ -275,13 +276,13 @@ public class CompanyProfileSteps {
 
     @Then("nothing is persisted in the database")
     public void nothing_persisted_database() {
-        List<CompanyProfileDocument> insolvencyDocuments = companyProfileRepository.findAll();
+        List<VersionedCompanyProfileDocument> insolvencyDocuments = companyProfileRepository.findAll();
         assertTrue(insolvencyDocuments.isEmpty());
     }
 
     @Then("save operation is not invoked")
     public void save_operation_is_not_invoked() {
-        Optional<CompanyProfileDocument> actual = companyProfileRepository.findById(this.companyNumber);
+        Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(this.companyNumber);
         LocalDateTime at = actual.get().getUpdated().getAt();
 
         /*
@@ -307,7 +308,7 @@ public class CompanyProfileSteps {
 
         Data companyProfileData = objectMapper.readValue(source, CompanyProfile.class).getData();
 
-        CompanyProfileDocument companyProfile = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfile = new VersionedCompanyProfileDocument();
         companyProfile.setCompanyProfile(companyProfileData).setId(companyNumber);
 
         companyProfileRepository.save(companyProfile);

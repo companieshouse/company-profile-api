@@ -15,6 +15,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 import java.util.Collections;
@@ -70,7 +71,7 @@ public class ExemptionsLinkSteps {
 
     @And("the exemptions link does not exist for {string}")
     public void checkExemptionsLinkIsNotPresent(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getExemptions()).isNullOrEmpty();
@@ -78,7 +79,7 @@ public class ExemptionsLinkSteps {
 
     @And("the exemptions link exists for {string}")
     public void verifyExemptionsLinkExists(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
 
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getExemptions()).isEqualTo(EXEMPTIONS_LINK);

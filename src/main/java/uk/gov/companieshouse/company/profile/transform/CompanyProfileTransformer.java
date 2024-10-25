@@ -13,6 +13,7 @@ import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.logging.Logger;
 
 @Component
@@ -28,10 +29,13 @@ public class CompanyProfileTransformer {
     /**
      * transforms links in accordance with existing links in db.
      */
-    public CompanyProfileDocument transform(CompanyProfile companyProfile,
-                                            String companyNumber, @Nullable Links existinglinks) {
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+    public VersionedCompanyProfileDocument transform(CompanyProfile companyProfile,
+                                                     String companyNumber,
+                                                     @Nullable Links existinglinks,
+                                                     Long currentVersion) {
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setId(companyNumber);
+        companyProfileDocument.version(currentVersion);
 
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         if (companyProfile.getData() != null) {
