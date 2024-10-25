@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
@@ -29,13 +30,9 @@ public class CompanyProfileTransformer {
     /**
      * transforms links in accordance with existing links in db.
      */
-    public VersionedCompanyProfileDocument transform(CompanyProfile companyProfile,
-                                                     String companyNumber,
-                                                     @Nullable Links existinglinks,
-                                                     Long currentVersion) {
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setId(companyNumber);
-        companyProfileDocument.version(currentVersion);
+    public VersionedCompanyProfileDocument transform(VersionedCompanyProfileDocument companyProfileDocument,
+                                            CompanyProfile companyProfile,
+                                            @Nullable Links existinglinks) {
 
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         if (companyProfile.getData() != null) {

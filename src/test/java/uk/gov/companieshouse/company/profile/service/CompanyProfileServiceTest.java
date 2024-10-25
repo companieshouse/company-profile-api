@@ -66,6 +66,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.*;
+import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingCompanyProfile;
+import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingLinks;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
@@ -133,9 +135,9 @@ class CompanyProfileServiceTest {
         TestHelper testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
-        EXISTING_LINKS = testHelper.createExistingLinks();
-        EXISTING_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT = testHelper.createExistingCompanyProfile();
+        EXISTING_LINKS = createExistingLinks();
+        EXISTING_COMPANY_PROFILE_DOCUMENT = createExistingCompanyProfile();
+        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT = createExistingCompanyProfile();
         UK_ESTABLISHMENTS_TEST_INPUT = Arrays.asList(
                 testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 1),
                 testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 2));
@@ -2018,7 +2020,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, null, 0L))
+        when(companyProfileTransformer.transform(COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, null)) //Something with the company_profile_document here.
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
@@ -2039,7 +2041,7 @@ class CompanyProfileServiceTest {
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
 
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS, 1L))
+        when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
@@ -2356,7 +2358,7 @@ class CompanyProfileServiceTest {
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
 
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileTransformer.transform(COMPANY_PROFILE, MOCK_COMPANY_NUMBER, EXISTING_LINKS, EXISTING_COMPANY_PROFILE_DOCUMENT.getVersion()))
+        when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
@@ -2559,10 +2561,12 @@ class CompanyProfileServiceTest {
     void createParentCompanyForUkEstablishment() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
+
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
-        verify(companyProfileRepository, times(2)).save(any());
+        verify(companyProfileRepository, times(1)).save(any());
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
     }
@@ -2620,7 +2624,7 @@ class CompanyProfileServiceTest {
         profileToTransform.getData().setHasBeenLiquidated(true);
         profileToTransform.getData().setHasCharges(true);
         profileToTransform.getData().setCompanyNumber("6146287");
-        when(companyProfileTransformer.transform(profileToTransform, MOCK_COMPANY_NUMBER, null, existingDoc.getVersion()))
+        when(companyProfileTransformer.transform(existingDoc, profileToTransform, null))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
 
         CompanyProfile companyProfile = new CompanyProfile();
@@ -2630,7 +2634,7 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setCompanyNumber("6146287");
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfile);
-        verify(companyProfileTransformer).transform(profileToTransform, MOCK_COMPANY_NUMBER, null, existingDoc.getVersion());
+        verify(companyProfileTransformer).transform(existingDoc, profileToTransform, null);
 
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
@@ -2647,9 +2651,8 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setHasBeenLiquidated(false);
         companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-
-        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfile);
@@ -2667,9 +2670,9 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setHasBeenLiquidated(false);
         companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
-        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(companyProfileDocument));
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 companyProfile);

@@ -463,7 +463,7 @@ public class CompanyProfileService {
         }
 
         VersionedCompanyProfileDocument transformedDocument = companyProfileTransformer
-                .transform(companyProfile, companyNumber, existingLinks.orElse(null), companyProfileDocument.getVersion());
+                .transform(companyProfileDocument, companyProfile, existingLinks.orElse(null));
 
         try {
             if (companyProfileDocument.getId() == null) { // A new document

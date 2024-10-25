@@ -54,16 +54,16 @@ public class TestHelper {
         return companyProfileDocument;
     }
 
-    public Links createExistingLinks() {
+    public static Links createExistingLinks() {
         Links existingLinks = new Links();
         existingLinks.setInsolvency("/company/00010001/insolvency");
         existingLinks.setCharges("/company/00010001/charges");
         return existingLinks;
     }
 
-    public VersionedCompanyProfileDocument createExistingCompanyProfile()  {
+    public static VersionedCompanyProfileDocument createExistingCompanyProfile()  {
         Data companyProfileData = new Data();
-        companyProfileData.setLinks(this.createExistingLinks());
+        companyProfileData.setLinks(createExistingLinks());
         VersionedCompanyProfileDocument existingCompanyProfileDocument = new VersionedCompanyProfileDocument();
         existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
         existingCompanyProfileDocument.version(1L);
