@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,9 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +50,6 @@ import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
@@ -64,6 +59,9 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import uk.gov.companieshouse.logging.Logger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
 @ExtendWith(SpringExtension.class)

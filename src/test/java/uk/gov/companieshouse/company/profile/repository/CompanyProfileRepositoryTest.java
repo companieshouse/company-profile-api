@@ -2,9 +2,6 @@ package uk.gov.companieshouse.company.profile.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +15,11 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Testcontainers
 @AutoConfigureMockMvc

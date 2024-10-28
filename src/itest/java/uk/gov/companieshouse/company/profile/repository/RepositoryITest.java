@@ -1,15 +1,17 @@
 package uk.gov.companieshouse.company.profile.repository;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
-
 import java.time.LocalDateTime;
 
 @Testcontainers

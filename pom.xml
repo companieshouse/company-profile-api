@@ -38,7 +38,7 @@
         <api-security-java.version>2.0.6</api-security-java.version>
 
         <!-- tests -->
-        <test-containers.version>1.19.7</test-containers.version>
+        <test-containers.version>1.20.3</test-containers.version>
         <cucumber-java.version>7.18.0</cucumber-java.version>
         <wiremock.version>3.5.2</wiremock.version>
         <docker-java-api.version>3.3.6</docker-java-api.version>
@@ -50,11 +50,7 @@
         <!--Plugin-->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <maven-build-helper-plugin.version>3.6.0</maven-build-helper-plugin.version>
-        <apache-maven-checkstyle-plugin.version>2.17</apache-maven-checkstyle-plugin.version>
-        <puppycrawl.checkstyle.version>7.5.1</puppycrawl.checkstyle.version>
-        <ch-java-checkstyle-config.version>1.1</ch-java-checkstyle-config.version>
         <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 
@@ -264,22 +260,6 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${maven-checkstyle-plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.puppycrawl.tools</groupId>
-                            <artifactId>checkstyle</artifactId>
-                            <version>${puppycrawl.checkstyle.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-            </plugins>
-        </pluginManagement>
 
         <plugins>
             <plugin>
@@ -422,34 +402,6 @@
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${apache-maven-checkstyle-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <violationSeverity>warning</violationSeverity>
-                    <logViolationsToConsole>true</logViolationsToConsole>
-                    <failsOnError>true</failsOnError>
-                    <failOnViolation>true</failOnViolation>
-                    <configLocation>companieshouse_checks.xml</configLocation>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>uk.gov.companieshouse</groupId>
-                        <artifactId>java-checkstyle-config</artifactId>
-                        <version>${ch-java-checkstyle-config.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
 
             <plugin>

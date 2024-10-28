@@ -1,21 +1,20 @@
 package uk.gov.companieshouse.company.profile.transform;
 
 import jakarta.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
-import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.logging.Logger;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 public class CompanyProfileTransformer {
