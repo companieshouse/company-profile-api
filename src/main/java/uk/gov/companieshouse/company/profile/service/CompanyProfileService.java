@@ -22,7 +22,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
-import uk.gov.companieshouse.api.company.*;
+import uk.gov.companieshouse.api.company.Accounts;
+import uk.gov.companieshouse.api.company.AnnualReturn;
+import uk.gov.companieshouse.api.company.BranchCompanyDetails;
+import uk.gov.companieshouse.api.company.CompanyDetails;
+import uk.gov.companieshouse.api.company.CompanyProfile;
+import uk.gov.companieshouse.api.company.ConfirmationStatement;
+import uk.gov.companieshouse.api.company.CorporateAnnotation;
+import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.company.Links;
+import uk.gov.companieshouse.api.company.NextAccounts;
+import uk.gov.companieshouse.api.company.PreviousCompanyNames;
+import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
+import uk.gov.companieshouse.api.company.SelfLink;
+import uk.gov.companieshouse.api.company.UkEstablishment;
+import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
@@ -487,7 +501,7 @@ public class CompanyProfileService {
                 profileData.setPreviousCompanyNames(null);
             }
             List<CorporateAnnotation> corporateAnnotations = profileData.getCorporateAnnotation();
-            if(corporateAnnotations != null && corporateAnnotations.isEmpty()) {
+            if (corporateAnnotations != null && corporateAnnotations.isEmpty()) {
                 profileData.setCorporateAnnotation(null);
             }
             LocalDate dissolutionDate = profileData.getDateOfDissolution();
