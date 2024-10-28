@@ -375,14 +375,7 @@ public class CompanyProfileSteps {
 
         HttpEntity<?> request = new HttpEntity<>(data, headers);
         String uri = "/company/{company_number}";
-        List<VersionedCompanyProfileDocument> versionedCompanyProfileDocuments = companyProfileRepository.findAll();
-        Long numberOfDocuments = companyProfileRepository.count();
-
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
-
-        List<VersionedCompanyProfileDocument> versionedCompanyProfileDocuments1 = companyProfileRepository.findAll();
-        Long numberOfDocuments1 = companyProfileRepository.count();
-
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 

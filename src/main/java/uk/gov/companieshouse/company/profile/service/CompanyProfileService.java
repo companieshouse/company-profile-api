@@ -399,7 +399,6 @@ public class CompanyProfileService {
      * Finds existing company profile from db if any and
      * updates or saves new record into db.
      */
-    @Transactional
     public void processCompanyProfile(String contextId, String companyNumber,
                                       CompanyProfile companyProfile)
             throws ServiceUnavailableException, BadRequestException {
@@ -430,7 +429,7 @@ public class CompanyProfileService {
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
-                        companyProfileRepository.save(
+                        companyProfileRepository.insert(
                                 createParentCompanyDocument(parentCompanyNumber));
                         companyProfileApiService.invokeChsKafkaApi(
                                 contextId, parentCompanyNumber);

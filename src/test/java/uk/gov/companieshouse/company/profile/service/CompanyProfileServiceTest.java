@@ -2595,7 +2595,7 @@ class CompanyProfileServiceTest {
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
-        verify(companyProfileRepository, times(1)).save(any());
+        verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
     }
