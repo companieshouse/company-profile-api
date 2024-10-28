@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,19 +26,8 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import uk.gov.companieshouse.api.company.*;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.api.company.Accounts;
-import uk.gov.companieshouse.api.company.AnnualReturn;
-import uk.gov.companieshouse.api.company.BranchCompanyDetails;
-import uk.gov.companieshouse.api.company.CompanyDetails;
-import uk.gov.companieshouse.api.company.CompanyProfile;
-import uk.gov.companieshouse.api.company.ConfirmationStatement;
-import uk.gov.companieshouse.api.company.Data;
-import uk.gov.companieshouse.api.company.Links;
-import uk.gov.companieshouse.api.company.NextAccounts;
-import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
-import uk.gov.companieshouse.api.company.UkEstablishment;
-import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
@@ -2078,6 +2068,26 @@ class CompanyProfileServiceTest {
         Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
 
         assertEquals(document.getCompanyProfile(), result);
+        verify(companyProfileRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("An empty list of company names or corporate annotations stored in Mongo should not be returned")
+    public void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException, JsonProcessingException {
+        CompanyProfileDocument doc = new CompanyProfileDocument();
+        Data data = new Data();
+        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        data.setCorporateAnnotation(Collections.emptyList());
+        data.setPreviousCompanyNames(Collections.emptyList());
+        doc.setCompanyProfile(data);
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(doc));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+        assertNull(result.getCorporateAnnotation());
+        assertNull(result.getPreviousCompanyNames());
+
+        assertEquals(doc.getCompanyProfile(), result);
         verify(companyProfileRepository, times(1)).findById(anyString());
     }
 
