@@ -2020,8 +2020,8 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(companyProfileTransformer.transform(COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, null)) //Something with the company_profile_document here.
-                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileTransformer.transform(any(), any(), any())) //Something with the company_profile_document here.
+                .thenReturn(COMPANY_PROFILE_DOCUMENT.version(0L));
 
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
@@ -2029,7 +2029,7 @@ class CompanyProfileServiceTest {
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNull(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().getOverseas());
-        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
