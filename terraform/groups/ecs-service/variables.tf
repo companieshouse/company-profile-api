@@ -37,6 +37,11 @@ variable "max_task_count" {
   description = "The maximum number of tasks for this service."
   default     = 3
 }
+variable "min_task_count" {
+  type        = number
+  description = "The minimum number of tasks for this service."
+  default     = 1
+}
 variable "desired_task_count_links" {
   type        = number
   description = "The desired ECS task count for this service"
@@ -46,6 +51,11 @@ variable "max_task_count_links" {
   type        = number
   description = "The maximum number of tasks for this service."
   default     = 3
+}
+variable "min_task_count_links" {
+  type        = number
+  description = "The minimum number of tasks for this service."
+  default     = 1
 }
 variable "required_cpus" {
   type        = number
