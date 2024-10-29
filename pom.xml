@@ -17,45 +17,38 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>21</java.version>
-        <spring.boot.version>3.2.6</spring.boot.version>
+        <spring.boot.version>3.3.5</spring.boot.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
-        <maven-build-helper-plugin.version>3.2.0</maven-build-helper-plugin.version>
-        <docker-maven-plugin.version>1.0.0</docker-maven-plugin.version>
-        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
-        <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <apache.httpclient5.version>5.3.1</apache.httpclient5.version>
-        <commons-io.version>2.16.1</commons-io.version>
 
         <!-- Internal -->
-        <structured-logging.version>3.0.7</structured-logging.version>
-        <private-api-sdk-java.version>4.0.221</private-api-sdk-java.version>
-        <data-sync-api-sdk-java.version>1.0.5</data-sync-api-sdk-java.version>
-        <api-sdk-manager-java-library.version>3.0.5</api-sdk-manager-java-library.version>
+        <structured-logging.version>3.0.20</structured-logging.version>
+        <private-api-sdk-java.version>4.0.224</private-api-sdk-java.version>
+        <data-sync-api-sdk-java.version>1.0.8</data-sync-api-sdk-java.version>
+        <api-sdk-manager-java-library.version>3.0.6</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>3.0.1</api-helper-java-library.version>
         <api-security-java.version>2.0.6</api-security-java.version>
 
         <!-- tests -->
         <test-containers.version>1.20.3</test-containers.version>
-        <cucumber-java.version>7.18.0</cucumber-java.version>
-        <wiremock.version>3.5.2</wiremock.version>
-        <docker-java-api.version>3.3.6</docker-java-api.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+        <cucumber-java.version>7.20.1</cucumber-java.version>
+        <wiremock.version>3.9.1</wiremock.version>
+        <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.1</maven-failsafe-plugin.version>
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
 
         <!--Plugin-->
+        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
         <maven-build-helper-plugin.version>3.6.0</maven-build-helper-plugin.version>
-        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 
         <!--sonar configuration-->
-        <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.projectKey>uk.gov.companieshouse:company-profile-api</sonar.projectKey>
         <sonar.sources>src/main</sonar.sources>
@@ -174,6 +167,12 @@
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>data-sync-api-sdk-java</artifactId>
             <version>${data-sync-api-sdk-java.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.docker-java</groupId>
+                    <artifactId>docker-java-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
@@ -250,12 +249,6 @@
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-spring</artifactId>
             <version>${cucumber-java.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java-api</artifactId>
-            <version>${docker-java-api.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
