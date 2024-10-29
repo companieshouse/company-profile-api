@@ -28,6 +28,7 @@ import uk.gov.companieshouse.api.company.BranchCompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.ConfirmationStatement;
+import uk.gov.companieshouse.api.company.CorporateAnnotation;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.NextAccounts;
@@ -498,6 +499,10 @@ public class CompanyProfileService {
             List<PreviousCompanyNames> previousCompanyNames = profileData.getPreviousCompanyNames();
             if (previousCompanyNames != null && previousCompanyNames.isEmpty()) {
                 profileData.setPreviousCompanyNames(null);
+            }
+            List<CorporateAnnotation> corporateAnnotations = profileData.getCorporateAnnotation();
+            if (corporateAnnotations != null && corporateAnnotations.isEmpty()) {
+                profileData.setCorporateAnnotation(null);
             }
             LocalDate dissolutionDate = profileData.getDateOfDissolution();
             if (dissolutionDate != null) {
