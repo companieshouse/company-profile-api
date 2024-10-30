@@ -83,6 +83,13 @@
 
     <!--Spring dependencies-->
     <dependencies>
+        <!--the following transitive dependencies are added specifically to avoid vulnerabilities-->
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-core</artifactId>
+            <version>2.10.0</version>
+        </dependency>
+        <!--end transitive dependencies-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
