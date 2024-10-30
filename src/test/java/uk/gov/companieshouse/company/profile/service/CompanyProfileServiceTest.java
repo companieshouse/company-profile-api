@@ -36,14 +36,6 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLIS
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingCompanyProfile;
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingLinks;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
@@ -74,7 +66,6 @@ import uk.gov.companieshouse.api.company.NextAccounts;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
@@ -95,6 +86,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -2100,7 +2092,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("An empty list of company names or corporate annotations stored in Mongo should not be returned")
     public void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException, JsonProcessingException {
-        CompanyProfileDocument doc = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
         Data data = new Data();
         data.setCompanyNumber(MOCK_COMPANY_NUMBER);
         data.setCorporateAnnotation(Collections.emptyList());
