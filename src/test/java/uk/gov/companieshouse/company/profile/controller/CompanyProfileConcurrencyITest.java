@@ -25,8 +25,9 @@ import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import java.util.Optional;
 
 @Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 class CompanyProfileConcurrencyITest {
+
     private static final String COMPANY_NUMBER = "6146287";
     private static final String CONTEXT_ID = "123456";
 
@@ -104,7 +105,38 @@ class CompanyProfileConcurrencyITest {
         assertEquals(1, actual.get().getVersion());
     }
 
-    private static VersionedCompanyProfileDocument buildCompanyProfileDocument() {
+    @Test
+    void shouldDeleteVersionedDocument() {
+        // given
+        VersionedCompanyProfileDocument document = buildCompanyProfileDocument();
+
+        document = companyProfileRepository.insert(document);
+        assertEquals(0, document.getVersion());
+
+        // when
+        companyProfileService.deleteCompanyProfile(CONTEXT_ID, COMPANY_NUMBER);
+
+        // then
+        Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    void shouldDeleteLegacyUnversionedDocument() {
+        // given
+        CompanyProfileDocument document = buildLegacyCompanyProfileDocument();
+
+        mongoTemplate.save(document);
+
+        // when
+        companyProfileService.deleteCompanyProfile(CONTEXT_ID, COMPANY_NUMBER);
+
+        // then
+        Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
+        assertTrue(actual.isEmpty());
+    }
+
+     private static VersionedCompanyProfileDocument buildCompanyProfileDocument() {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
                 companyProfileDocument.setId(COMPANY_NUMBER);
                 companyProfileDocument.setCompanyProfile(new Data()
