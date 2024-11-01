@@ -22,7 +22,6 @@ class CompanyProfileTransformerTest {
 
     Logger logger = new StructuredLogger("CompanyProfileTransformerTest");
 
-    private TestHelper testHelper;
     private CompanyProfileTransformer transformer;
     private CompanyProfile COMPANY_PROFILE;
     private CompanyProfile COMPANY_PROFILE_WITHOUT_LINKS;

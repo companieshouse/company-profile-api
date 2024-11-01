@@ -2,12 +2,9 @@ package uk.gov.companieshouse.company.profile.model;
 
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 
-public class UnversionedCompanyProfileDocument  extends CompanyProfileDocument {
+public class UnversionedCompanyProfileDocument extends CompanyProfileDocument {
 
     private Long version;
-
-    UnversionedCompanyProfileDocument() {
-    }
 
     /**
      * Copy constructor.
