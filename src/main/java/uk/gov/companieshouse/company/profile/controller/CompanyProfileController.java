@@ -1,9 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.MongoTimeoutException;
 import jakarta.validation.Valid;
-import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,6 @@ import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
@@ -28,6 +25,7 @@ import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.ErrorResponseBody;
 import uk.gov.companieshouse.logging.Logger;
+import java.util.Optional;
 
 @RestController
 public class CompanyProfileController {

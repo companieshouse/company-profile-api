@@ -4,13 +4,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -47,11 +40,20 @@ import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
+import uk.gov.companieshouse.company.profile.model.UnversionedCompanyProfileDocument;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CompanyProfileService {
@@ -88,10 +90,10 @@ public class CompanyProfileService {
      * @param companyNumber the company number
      * @return a company profile if one with given company number exists, otherwise - empty optional
      */
-    public Optional<CompanyProfileDocument> get(String companyNumber) {
+    public Optional<VersionedCompanyProfileDocument> get(String companyNumber) {
         logger.trace(String.format("Call to retrieve company profile with company number %s",
                 companyNumber), DataMapHolder.getLogMap());
-        Optional<CompanyProfileDocument> companyProfileDocument;
+        Optional<VersionedCompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
         } catch (DataAccessException dbException) {
@@ -111,7 +113,7 @@ public class CompanyProfileService {
 
         //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
         if (companyProfileDocument.isPresent()) {
-            CompanyProfileDocument document = companyProfileDocument.get();
+            VersionedCompanyProfileDocument document = companyProfileDocument.get();
             RegisteredOfficeAddress roa = document.getCompanyProfile().getRegisteredOfficeAddress();
             if (roa != null) {
                 if (roa.getCareOf() == null) {
@@ -136,7 +138,7 @@ public class CompanyProfileService {
                                      final CompanyProfile companyProfileRequest) {
         try {
 
-            Optional<CompanyProfileDocument> cpDocumentOptional =
+            Optional<VersionedCompanyProfileDocument> cpDocumentOptional =
                     companyProfileRepository.findById(companyNumber);
 
             var cpDocument = cpDocumentOptional.orElseThrow(() ->
@@ -397,14 +399,16 @@ public class CompanyProfileService {
      * Finds existing company profile from db if any and
      * updates or saves new record into db.
      */
-    @Transactional
     public void processCompanyProfile(String contextId, String companyNumber,
                                       CompanyProfile companyProfile)
             throws ServiceUnavailableException, BadRequestException {
 
-        Optional<CompanyProfileDocument> existingProfile =
-                companyProfileRepository.findById(companyNumber);
-        Optional<Links> existingLinks = existingProfile
+        VersionedCompanyProfileDocument companyProfileDocument =
+                companyProfileRepository.findById(companyNumber)
+                        .orElse(new VersionedCompanyProfileDocument()
+                                .version(0L));
+
+        Optional<Links> existingLinks = Optional.of(companyProfileDocument)
                 .map(CompanyProfileDocument::getCompanyProfile)
                 .map(Data::getLinks);
 
@@ -425,7 +429,7 @@ public class CompanyProfileService {
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
-                        companyProfileRepository.save(
+                        companyProfileRepository.insert(
                                 createParentCompanyDocument(parentCompanyNumber));
                         companyProfileApiService.invokeChsKafkaApi(
                                 contextId, parentCompanyNumber);
@@ -437,7 +441,7 @@ public class CompanyProfileService {
 
         if (companyProfile.getData() != null) {
             if (companyProfile.getData().getHasCharges() == null) {
-                existingProfile
+                Optional.of(companyProfileDocument)
                         .map(CompanyProfileDocument::getCompanyProfile)
                         .map(Data::getHasCharges).ifPresent(hasCharges ->
                                 companyProfile.getData().setHasCharges(hasCharges));
@@ -449,7 +453,7 @@ public class CompanyProfileService {
             }
 
             if (companyProfile.getData().getHasBeenLiquidated() == null) {
-                existingProfile
+                Optional.of(companyProfileDocument)
                         .map(CompanyProfileDocument::getCompanyProfile)
                         .map(Data::getHasBeenLiquidated).ifPresent(hasBeenLiquidated ->
                                 companyProfile.getData().setHasBeenLiquidated(hasBeenLiquidated)
@@ -457,11 +461,18 @@ public class CompanyProfileService {
             }
         }
 
-        CompanyProfileDocument companyProfileDocument = companyProfileTransformer
-                .transform(companyProfile, companyNumber, existingLinks.orElse(null));
+        VersionedCompanyProfileDocument transformedDocument = companyProfileTransformer
+                .transform(companyProfileDocument, companyProfile, existingLinks.orElse(null));
 
         try {
-            companyProfileRepository.save(companyProfileDocument);
+            if (companyProfileDocument.getId() == null) { // A new document
+                transformedDocument.setId(companyNumber);
+                companyProfileRepository.insert(transformedDocument);
+            } else if (companyProfileDocument.getVersion() == null) { // A legacy document
+                mongoTemplate.save(new UnversionedCompanyProfileDocument(transformedDocument));
+            } else {
+                companyProfileRepository.save(transformedDocument);
+            }
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
 
             logger.infoContext(contextId, String.format("Company profile is updated in "
@@ -471,8 +482,8 @@ public class CompanyProfileService {
         }
     }
 
-    private CompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
-        CompanyProfileDocument parentCompanyDocument = new CompanyProfileDocument();
+    private VersionedCompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
+        VersionedCompanyProfileDocument parentCompanyDocument = new VersionedCompanyProfileDocument();
         parentCompanyDocument.setId(parentCompanyNumber);
         parentCompanyDocument.setDeltaAt(LocalDateTime.now());
         Data parentCompanyData = new Data();
@@ -482,6 +493,7 @@ public class CompanyProfileService {
         parentCompanyLinks.setUkEstablishments(ukEstablishmentLink);
         parentCompanyData.setLinks(parentCompanyLinks);
         parentCompanyDocument.setCompanyProfile(parentCompanyData);
+        parentCompanyDocument.version(0L);
         return parentCompanyDocument;
     }
 
@@ -522,9 +534,9 @@ public class CompanyProfileService {
         return profileData;
     }
 
-    private CompanyProfileDocument getCompanyProfileDocument(String companyNumber)
+    private VersionedCompanyProfileDocument getCompanyProfileDocument(String companyNumber)
             throws ResourceNotFoundException {
-        Optional<CompanyProfileDocument> companyProfileOptional =
+        Optional<VersionedCompanyProfileDocument> companyProfileOptional =
                 companyProfileRepository.findById(companyNumber);
         return companyProfileOptional.orElseThrow(() ->
                 new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
@@ -535,7 +547,7 @@ public class CompanyProfileService {
     @Transactional
     public void deleteCompanyProfile(String contextId,
                                      String companyNumber) throws ResourceNotFoundException {
-        CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
+        VersionedCompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
         if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {

@@ -1,10 +1,6 @@
 package uk.gov.companieshouse.company.profile.transform;
 
 import jakarta.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
@@ -13,7 +9,12 @@ import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.logging.Logger;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 public class CompanyProfileTransformer {
@@ -28,10 +29,9 @@ public class CompanyProfileTransformer {
     /**
      * transforms links in accordance with existing links in db.
      */
-    public CompanyProfileDocument transform(CompanyProfile companyProfile,
-                                            String companyNumber, @Nullable Links existinglinks) {
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
-        companyProfileDocument.setId(companyNumber);
+    public VersionedCompanyProfileDocument transform(VersionedCompanyProfileDocument companyProfileDocument,
+                                            CompanyProfile companyProfile,
+                                            @Nullable Links existinglinks) {
 
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         if (companyProfile.getData() != null) {

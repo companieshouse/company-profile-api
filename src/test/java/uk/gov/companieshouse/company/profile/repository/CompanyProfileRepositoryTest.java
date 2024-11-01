@@ -2,9 +2,6 @@ package uk.gov.companieshouse.company.profile.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +15,11 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -58,7 +58,7 @@ class CompanyProfileRepositoryTest {
         insertCompanyProfile(COMPANY_NUMBER + 3, PARENT_COMPANY_NUMBER + 1);
 
         // when
-        List<CompanyProfileDocument> result = repository.findAllByParentCompanyNumber(PARENT_COMPANY_NUMBER);
+        List<VersionedCompanyProfileDocument> result = repository.findAllByParentCompanyNumber(PARENT_COMPANY_NUMBER);
 
         // then
         assertEquals(COMPANY_NUMBER + 1, result.get(0).getId());

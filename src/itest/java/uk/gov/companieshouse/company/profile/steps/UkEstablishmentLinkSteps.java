@@ -1,22 +1,25 @@
 package uk.gov.companieshouse.company.profile.steps;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
-
 import java.util.Collections;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
 public class UkEstablishmentLinkSteps {
 
@@ -62,14 +65,14 @@ public class UkEstablishmentLinkSteps {
     }
 
     private void getUkEstablishmentLink(String parentCompanyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(parentCompanyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(parentCompanyNumber);
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
     }
 
     private void getOverseasLink(String companyNumber, String parentCompanyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
         assertThat(document.get().getCompanyProfile().getLinks().getOverseas()).isEqualTo(String.format(OVERSEAS_LINK, parentCompanyNumber));
@@ -86,7 +89,7 @@ public class UkEstablishmentLinkSteps {
     }
 
     private void ukEstablishmentLinkShouldNotExist(String companyNumber) {
-        Optional<CompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
+        Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
         assertThat(document).isPresent();
         assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isNullOrEmpty();
     }
