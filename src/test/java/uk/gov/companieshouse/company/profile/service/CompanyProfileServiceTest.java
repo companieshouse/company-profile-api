@@ -71,7 +71,6 @@ import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
@@ -524,7 +523,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -661,7 +660,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -784,7 +783,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -909,7 +908,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getCharges()).thenReturn(CHARGES_LINK);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1032,7 +1031,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1157,7 +1156,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getInsolvency()).thenReturn(INSOLVENCY_LINK);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1292,7 +1291,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1430,7 +1429,7 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1574,7 +1573,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1720,7 +1719,7 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControlStatements()).thenReturn(String.format(
                 "/company/%s/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -1877,7 +1876,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -2023,7 +2022,7 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
                 "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -2243,7 +2242,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("ltd");
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
@@ -2257,7 +2256,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("dissolved");
         companyData.setType("ltd");
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
@@ -2271,7 +2270,7 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("other");
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
@@ -2284,7 +2283,7 @@ class CompanyProfileServiceTest {
     void testDetermineCanFileCompanyTypeNull() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
@@ -2304,7 +2303,7 @@ class CompanyProfileServiceTest {
         when(confirmationStatement.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
         when(annualReturn.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
 
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineOverdue(companyProfileDocument);
@@ -2317,7 +2316,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Overdue set to true when next due fields are before current date")
     void testDetermineOverdueTrue() {
-        CompanyProfileDocument companyProfileDocument = COMPANY_PROFILE_DOCUMENT;
+        VersionedCompanyProfileDocument companyProfileDocument = COMPANY_PROFILE_DOCUMENT;
 
         companyProfileService.determineOverdue(companyProfileDocument);
 
@@ -2338,7 +2337,7 @@ class CompanyProfileServiceTest {
         when(confirmationStatement.getNextDue()).thenReturn(null);
         when(annualReturn.getNextDue()).thenReturn(null);
 
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineOverdue(companyProfileDocument);
@@ -2351,7 +2350,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Add new uk establishments links successfully")
     void addNewUkEstablishmentsLinkSuccessfully() {
-        CompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
+        VersionedCompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
 
@@ -2564,7 +2563,7 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
         when(links.getUkEstablishments()).thenReturn(String.format(
                 "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(CompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
@@ -2597,7 +2596,7 @@ class CompanyProfileServiceTest {
     void testDetermineOverDueAllNull() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
 
-        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineOverdue(companyProfileDocument);

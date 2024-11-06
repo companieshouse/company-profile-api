@@ -7,7 +7,6 @@ import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
-import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.logging.Logger;
@@ -65,7 +64,7 @@ public class CompanyProfileTransformer {
     }
 
     private void transformLinks(CompanyProfile companyProfile, Links existinglinks,
-                                CompanyProfileDocument companyProfileDocument) {
+                                VersionedCompanyProfileDocument companyProfileDocument) {
         Links links = new Links();
         if (companyProfile.getData().getLinks() != null) {
             // Iterating through each link in the Links class and calling the getter and setter

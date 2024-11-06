@@ -136,6 +136,20 @@ class CompanyProfileConcurrencyITest {
         assertTrue(actual.isEmpty());
     }
 
+    @Test
+    void shouldUpdateVersionedDocumentWhenPatchLinksRequest() {
+        // given
+        VersionedCompanyProfileDocument document = buildCompanyProfileDocument();
+
+        document = companyProfileRepository.insert(document);
+        assertEquals(0, document.getVersion());
+
+        // when
+//        companyProfileService.processLinkRequest();
+
+        // then
+    }
+
      private static VersionedCompanyProfileDocument buildCompanyProfileDocument() {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
                 companyProfileDocument.setId(COMPANY_NUMBER);
@@ -167,6 +181,4 @@ class CompanyProfileConcurrencyITest {
         companyProfile.getData().setCompanyNumber(COMPANY_NUMBER);
         return companyProfile;
     }
-
-
 }
