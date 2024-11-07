@@ -248,39 +248,19 @@ class CompanyProfileE2EITest {
     }
 
     private String filterLinkType(final String linkType, Links links) {
-        String actualLink;
-        switch (linkType) {
-            case "charges":
-                actualLink = links.getCharges();
-                break;
-            case "exemptions":
-                actualLink = links.getExemptions();
-                break;
-            case "filing-history":
-                actualLink = links.getFilingHistory();
-                break;
-            case "insolvency":
-                actualLink = links.getInsolvency();
-                break;
-            case "officers":
-                actualLink = links.getOfficers();
-                break;
-            case "persons-with-significant-control":
-                actualLink = links.getPersonsWithSignificantControl();
-                break;
-            case "persons-with-significant-control-statements":
-                actualLink = links.getPersonsWithSignificantControlStatements();
-                break;
-            case "uk-establishments":
-                actualLink = links.getUkEstablishments();
-                break;
-            case "registers":
-                actualLink = links.getRegisters();
-                break;
-            default:
-                actualLink = "DID NOT MATCH LINK TYPE";
-        }
-        return actualLink;
+        return switch (linkType) {
+            case "charges" -> links.getCharges();
+            case "exemptions" -> links.getExemptions();
+            case "filing-history" -> links.getFilingHistory();
+            case "insolvency" -> links.getInsolvency();
+            case "officers" -> links.getOfficers();
+            case "persons-with-significant-control" -> links.getPersonsWithSignificantControl();
+            case "persons-with-significant-control-statements" ->
+                    links.getPersonsWithSignificantControlStatements();
+            case "uk-establishments" -> links.getUkEstablishments();
+            case "registers" -> links.getRegisters();
+            default -> "DID NOT MATCH LINK TYPE";
+        };
     }
 
     private static @NotNull CompanyProfile makeBaseLegacyLinksCompanyProfile() {
