@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -157,7 +156,7 @@ class CompanyProfileConcurrencyITest {
         return companyProfileDocument;
     }
 
-    private static @NotNull CompanyProfile makeBaseCompanyProfile() {
+    private static CompanyProfile makeBaseCompanyProfile() {
         CompanyProfile companyProfile = new CompanyProfile();
         companyProfile.setHasMortgages(false);
         companyProfile.setData(new Data());
@@ -167,6 +166,4 @@ class CompanyProfileConcurrencyITest {
         companyProfile.getData().setCompanyNumber(COMPANY_NUMBER);
         return companyProfile;
     }
-
-
 }

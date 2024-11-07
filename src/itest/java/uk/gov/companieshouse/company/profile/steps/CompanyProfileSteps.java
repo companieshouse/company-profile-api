@@ -220,11 +220,12 @@ public class CompanyProfileSteps {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now().minusYears(1),
                 "abc", "company_delta");
-        CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
+        VersionedCompanyProfileDocument companyProfileDocument =
+                new VersionedCompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+        companyProfileDocument.version(0L);
 
-        mongoTemplate.save(companyProfileDocument);
+        companyProfileRepository.insert(companyProfileDocument);
     }
 
     @When("I send GET request with company number {string}")
@@ -351,7 +352,7 @@ public class CompanyProfileSteps {
 
     @And("a Company Profile exists for {string}")
     public void the_company_profile_exists_for(String dataFile) throws IOException {
-        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", dataFile), null);
+        insertCompanyIntoMongo(String.format("src/itest/resources/json/input/%s.json", dataFile), null);
     }
 
     @When("I send a PUT request with payload {string} file for company number {string}")
@@ -593,18 +594,18 @@ public class CompanyProfileSteps {
 
     @And("UK establishments exists for parent company with number {string}")
     public void ukEstablishmentsExistsForParentCompanyWithNumber(String companyNumber) throws IOException {
-        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", companyNumber), null);
-        saveCompanyToMongo("src/itest/resources/json/input/00006404.json", companyNumber);
-        saveCompanyToMongo("src/itest/resources/json/input/00006405.json", companyNumber);
+        insertCompanyIntoMongo(String.format("src/itest/resources/json/input/%s.json", companyNumber), null);
+        insertCompanyIntoMongo("src/itest/resources/json/input/00006404.json", companyNumber);
+        insertCompanyIntoMongo("src/itest/resources/json/input/00006405.json", companyNumber);
     }
 
     @And("a single UK establishment exist for parent company with number {string}")
     public void singleUkEstablishmentExistsForParentCompanyWithNumber(String companyNumber) throws IOException {
-        saveCompanyToMongo(String.format("src/itest/resources/json/input/%s.json", companyNumber), null);
-        saveCompanyToMongo("src/itest/resources/json/input/00006404.json", companyNumber);
+        insertCompanyIntoMongo(String.format("src/itest/resources/json/input/%s.json", companyNumber), null);
+        insertCompanyIntoMongo("src/itest/resources/json/input/00006404.json", companyNumber);
     }
 
-    private void saveCompanyToMongo(String filePath, String parentCompanyNumber) throws IOException {
+    private void insertCompanyIntoMongo(String filePath, String parentCompanyNumber) throws IOException {
         String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(filePath)));
         CompanyProfile companyProfile = objectMapper.readValue(data, CompanyProfile.class);
 
@@ -612,14 +613,15 @@ public class CompanyProfileSteps {
         Updated updated = new Updated(LocalDateTime.now().minusYears(1),
                 "abc", "company_delta");
 
-        CompanyProfileDocument companyProfileDocument =
-                new CompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
+        VersionedCompanyProfileDocument companyProfileDocument =
+                new VersionedCompanyProfileDocument(companyProfile.getData(), localDateTime, updated, false);
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
+        companyProfileDocument.version(0L);
         if (parentCompanyNumber != null) {
         companyProfileDocument.setParentCompanyNumber(
                 companyProfile.getData().getBranchCompanyDetails().getParentCompanyNumber());
         }
-        mongoTemplate.save(companyProfileDocument);
+        companyProfileRepository.insert(companyProfileDocument);
     }
 
     @And("the GET call response body for the list of uk establishments should match {string}")

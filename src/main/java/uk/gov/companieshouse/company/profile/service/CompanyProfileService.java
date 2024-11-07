@@ -204,7 +204,7 @@ public class CompanyProfileService {
 
             Query query = new Query(Criteria.where("_id").is(companyNumber));
 
-            mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+            mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
             logger.infoContext(contextId, String.format("Company %s link inserted "
                     + "in Company Profile with company number: %s", linkType, companyNumber),
                     DataMapHolder.getLogMap());
@@ -252,7 +252,7 @@ public class CompanyProfileService {
                     .setBy(contextId));
             Query query = new Query(Criteria.where("_id").is(companyNumber));
 
-            mongoTemplate.updateFirst(query, update, CompanyProfileDocument.class);
+            mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
             logger.infoContext(contextId, String.format("Company %s link deleted "
                     + "in Company Profile with company number: %s",
                     linkType, companyNumber), DataMapHolder.getLogMap());
@@ -272,7 +272,7 @@ public class CompanyProfileService {
         }
     }
 
-    private CompanyProfileDocument getDocument(String companyNumber) {
+    private VersionedCompanyProfileDocument getDocument(String companyNumber) {
         try {
             return companyProfileRepository.findById(companyNumber)
                     .orElseThrow(() -> new DocumentNotFoundException(
@@ -284,7 +284,7 @@ public class CompanyProfileService {
         }
     }
 
-    private void updateSpecificFields(CompanyProfileDocument companyProfileDocument) {
+    private void updateSpecificFields(VersionedCompanyProfileDocument companyProfileDocument) {
         Update update = new Update();
         setUpdateIfNotNull(update, "data.etag",
                 companyProfileDocument.getCompanyProfile().getEtag());
@@ -308,7 +308,7 @@ public class CompanyProfileService {
         setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
                 companyProfileDocument.getCompanyProfile().getHasCharges());
         Query query = new Query(Criteria.where("_id").is(companyProfileDocument.getId()));
-        mongoTemplate.upsert(query, update, CompanyProfileDocument.class);
+        mongoTemplate.upsert(query, update, VersionedCompanyProfileDocument.class);
     }
 
     private void setUpdateIfNotNull(Update update, String key, Object object) {
@@ -500,7 +500,7 @@ public class CompanyProfileService {
     /** Retrieve company profile. */
     public Data retrieveCompanyNumber(String companyNumber)
             throws ResourceNotFoundException {
-        CompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
+        VersionedCompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         companyProfileDocument = determineCanFile(companyProfileDocument);
         companyProfileDocument = determineOverdue(companyProfileDocument);
 
@@ -626,7 +626,7 @@ public class CompanyProfileService {
     }
 
     /** Set can_file based on company type and status. */
-    public CompanyProfileDocument determineCanFile(CompanyProfileDocument companyProfileDocument) {
+    public VersionedCompanyProfileDocument determineCanFile(VersionedCompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
             String companyType = companyProfile.getType();
@@ -655,7 +655,7 @@ public class CompanyProfileService {
 
     /** Set overdue field based on next due confirmation statement,
      * next accounts, and annual return. */
-    public CompanyProfileDocument determineOverdue(CompanyProfileDocument companyProfileDocument) {
+    public VersionedCompanyProfileDocument determineOverdue(VersionedCompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
             LocalDate currentDate = LocalDate.now();
