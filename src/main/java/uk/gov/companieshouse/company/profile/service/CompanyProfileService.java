@@ -167,16 +167,16 @@ public class CompanyProfileService {
 
             if (statusCode.is2xxSuccessful()) {
                 logger.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
-                        + "invoked successfully for company number %s", companyNumber),
+                                + "invoked successfully for company number %s", companyNumber),
                         DataMapHolder.getLogMap());
                 updateSpecificFields(cpDocument);
                 logger.infoContext(contextId, String.format("Company profile is updated "
-                        + "in MongoDB with company number %s", companyNumber),
+                                + "in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
             } else {
                 logger.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked "
-                        + "successfully for company number %s. Response code %s.", companyNumber,
-                        statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
+                                        + "successfully for company number %s. Response code %s.", companyNumber,
+                                statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
                         DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
@@ -189,29 +189,31 @@ public class CompanyProfileService {
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
         try {
-            Update update = Update.update(
-                    String.format("data.links.%s", convertToDBformat(linkType)),
-                    String.format("/company/%s/%s", companyNumber, linkType));
-            update.set("data.etag", GenerateEtagUtil.generateEtag());
-            update.set("updated", new Updated()
+            VersionedCompanyProfileDocument companyProfileDocument = getDocument(linkRequest.getCompanyNumber());
+
+            setLinksOnType(companyProfileDocument.getCompanyProfile().getLinks(), linkType, companyNumber);
+            companyProfileDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+            companyProfileDocument.setUpdated(new Updated()
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
                     .setBy(contextId));
 
             if (Objects.equals(linkRequest.getLinkType(), "charges")) {
-                update.set("data.has_charges", true);
+                companyProfileDocument.getCompanyProfile().setHasCharges(true);
             }
 
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
-
-            mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
+            if (companyProfileDocument.getVersion() == null) { // Update a legacy document with links
+                mongoTemplate.save(new UnversionedCompanyProfileDocument(companyProfileDocument));
+            } else { // Update a normal document with links
+                companyProfileRepository.save(companyProfileDocument);
+            }
             logger.infoContext(contextId, String.format("Company %s link inserted "
-                    + "in Company Profile with company number: %s", linkType, companyNumber),
+                            + "in Company Profile with company number: %s", linkType, companyNumber),
                     DataMapHolder.getLogMap());
 
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
             logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
-                    + "successfully for company number: %s", companyNumber),
+                            + "successfully for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
             logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
@@ -224,11 +226,36 @@ public class CompanyProfileService {
         }
     }
 
+    private static void setLinksOnType(Links links, String linkType, String companyNumber) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
+            case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
+            case "filing-history" ->
+                    links.setFilingHistory(formatLinks(companyNumber, linkType));
+            case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
+            case "officers" -> links.setOfficers(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control" ->
+                    links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
+            case "uk-establishments" ->
+                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
+            case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
+    private static String formatLinks(String companyNumber, String linkType) {
+        return String.format("/company/%s/%s", companyNumber, linkType);
+    }
+
+
     private void deleteLink(LinkRequest linkRequest) {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
-
+// same versioning fix as adding a link required here, there is also another test scenario because the deletion of a link is essentially an
+        // update and so should have the same effect on versioning.
         if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkType)) {
             int ukEstablishmentsCount = retrieveUkEstablishments(companyNumber).getItems().size();
             if (ukEstablishmentsCount > 1) {
@@ -254,12 +281,12 @@ public class CompanyProfileService {
 
             mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
             logger.infoContext(contextId, String.format("Company %s link deleted "
-                    + "in Company Profile with company number: %s",
+                            + "in Company Profile with company number: %s",
                     linkType, companyNumber), DataMapHolder.getLogMap());
 
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
             logger.infoContext(contextId, String.format("chs-kafka-api DELETED invoked "
-                    + "successfully for company number: %s", companyNumber),
+                            + "successfully for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
             logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
@@ -355,9 +382,9 @@ public class CompanyProfileService {
     public void checkForAddLink(LinkRequest linkRequest) {
         Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
-                            new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                    "no data for company profile: "
-                                    + linkRequest.getCompanyNumber()));
+                        new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                "no data for company profile: "
+                                        + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
@@ -380,7 +407,7 @@ public class CompanyProfileService {
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                 "no data for company profile: "
-                                + linkRequest.getCompanyNumber()));
+                                        + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                 new ResourceStateConflictException("links data not found"));
         String linkData = linkRequest.getCheckLink().apply(links);
@@ -457,7 +484,7 @@ public class CompanyProfileService {
                         .map(CompanyProfileDocument::getCompanyProfile)
                         .map(Data::getHasBeenLiquidated).ifPresent(hasBeenLiquidated ->
                                 companyProfile.getData().setHasBeenLiquidated(hasBeenLiquidated)
-                    );
+                        );
             }
         }
 
@@ -497,7 +524,9 @@ public class CompanyProfileService {
         return parentCompanyDocument;
     }
 
-    /** Retrieve company profile. */
+    /**
+     * Retrieve company profile.
+     */
     public Data retrieveCompanyNumber(String companyNumber)
             throws ResourceNotFoundException {
         VersionedCompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
@@ -543,7 +572,9 @@ public class CompanyProfileService {
                         "Resource not found for company number: %s", companyNumber)));
     }
 
-    /** Delete company profile. */
+    /**
+     * Delete company profile.
+     */
     @Transactional
     public void deleteCompanyProfile(String contextId,
                                      String companyNumber) throws ResourceNotFoundException {
@@ -567,7 +598,9 @@ public class CompanyProfileService {
 
     }
 
-    /** Get company details. */
+    /**
+     * Get company details.
+     */
     public Optional<CompanyDetails> getCompanyDetails(String companyNumber) {
         try {
             Data companyProfile = retrieveCompanyNumber(companyNumber);
@@ -588,7 +621,6 @@ public class CompanyProfileService {
      *
      * @param parentCompanyNumber the supplied parent company number
      * @return a list of uk establishments
-     *
      * @throws ResourceNotFoundException when a company is not located
      */
     public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber)
@@ -625,7 +657,9 @@ public class CompanyProfileService {
         return ukEstablishmentsList;
     }
 
-    /** Set can_file based on company type and status. */
+    /**
+     * Set can_file based on company type and status.
+     */
     public VersionedCompanyProfileDocument determineCanFile(VersionedCompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
@@ -634,7 +668,7 @@ public class CompanyProfileService {
 
             if (companyType == null || companyStatus == null) {
                 companyProfile.setCanFile(false);
-            }   else if (companyType.equals("ltd")
+            } else if (companyType.equals("ltd")
                     || companyType.equals("llp")
                     || companyType.equals("plc")
                     || companyType.contains("private")) {
@@ -653,8 +687,10 @@ public class CompanyProfileService {
         return companyProfileDocument;
     }
 
-    /** Set overdue field based on next due confirmation statement,
-     * next accounts, and annual return. */
+    /**
+     * Set overdue field based on next due confirmation statement,
+     * next accounts, and annual return.
+     */
     public VersionedCompanyProfileDocument determineOverdue(VersionedCompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
@@ -664,7 +700,7 @@ public class CompanyProfileService {
                     .map(ConfirmationStatement::getNextDue)
                     .ifPresent(nextDue -> {
                         companyProfile.getConfirmationStatement()
-                            .setOverdue(nextDue.isBefore(currentDate));
+                                .setOverdue(nextDue.isBefore(currentDate));
                     });
 
             Optional.ofNullable(companyProfile.getAccounts())

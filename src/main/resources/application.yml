@@ -19,7 +19,6 @@ chs:
       key: ${CHS_API_KEY:chsApiKey}
 
 mongodb:
-  transactional: ${TRANSACTIONS_ENABLED:true}
   company-profile:
     collection:
       name: ${COMPANY_PROFILE_COLLECTION_NAME:company_profile}

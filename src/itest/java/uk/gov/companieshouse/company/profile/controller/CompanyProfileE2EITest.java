@@ -32,6 +32,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -97,7 +98,7 @@ class CompanyProfileE2EITest {
             "uk-establishments , uk_establishment_delta"
     })
     @DisplayName("Successfully add link to existing versioned company profile document")
-    void testAddLink(final String linkType, final String deltaType) throws Exception {
+    void testAddLinkExistingDocument(final String linkType, final String deltaType) throws Exception {
         // given
         final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
         final String oldEtag = "oldEtag";
@@ -134,6 +135,58 @@ class CompanyProfileE2EITest {
         assertEquals(deltaType, updated.getType());
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "charges, charges_delta",
+            "exemptions , exemption_delta",
+            "filing-history , filing_history_delta",
+            "insolvency, insolvency_delta",
+            "officers , officer_delta",
+            "persons-with-significant-control , psc_delta",
+            "persons-with-significant-control-statements , psc_statement_delta",
+            "uk-establishments , uk_establishment_delta"
+    })
+    @DisplayName("Successfully add link to existing versioned company profile document")
+    void testAddLinkLegacyDocument(final String linkType, final String deltaType) throws Exception {
+        // given
+        final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
+        final String oldEtag = "oldEtag";
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setId(COMPANY_NUMBER);
+        companyProfileDocument.setCompanyProfile(new Data()
+                .links(new Links()
+                        .self("/company/" + COMPANY_NUMBER)));
+        companyProfileDocument.setHasMortgages(false);
+
+        mongoTemplate.save(companyProfileDocument);
+
+        // when
+        final ResultActions result = mockMvc.perform(patch(ADD_LINK_ENDPOINT, COMPANY_NUMBER, linkType)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
+
+        assertEquals(expectedLink, actualLink);
+        assertNotNull(updated.getAt());
+        assertEquals(deltaType, updated.getType());
+        assertEquals(CONTEXT_ID, updated.getBy());
+        assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }

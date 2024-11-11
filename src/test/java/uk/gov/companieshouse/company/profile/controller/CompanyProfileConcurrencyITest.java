@@ -87,6 +87,29 @@ class CompanyProfileConcurrencyITest {
     }
 
     @Test
+    void shouldUpdateLegacyUnversionedDocumentWithAVersionAndAGetWithAVersion() {
+        // given
+        CompanyProfileDocument document = buildLegacyCompanyProfileDocument();
+
+        mongoTemplate.save(document);
+        CompanyProfile companyProfile = makeBaseCompanyProfile();
+
+        // when
+        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+
+        // then
+        Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
+        assertTrue(actual.isPresent());
+        assertEquals(0, actual.get().getVersion());
+
+        companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER);
+
+        Optional<VersionedCompanyProfileDocument> actualCheck2 = companyProfileRepository.findById(COMPANY_NUMBER);
+        assertTrue(actualCheck2.isPresent());
+        assertEquals(0, actual.get().getVersion());
+    }
+
+    @Test
     void shouldUpdateVersionedDocument() {
         // given
         VersionedCompanyProfileDocument document = buildCompanyProfileDocument();
