@@ -184,44 +184,34 @@ public class CompanyProfileService {
         }
     }
 
-    private void addLink(LinkRequest linkRequest) {
-        String companyNumber = linkRequest.getCompanyNumber();
-        String contextId = linkRequest.getContextId();
-        String linkType = linkRequest.getLinkType();
+    private void addLink(LinkRequest linkRequest, VersionedCompanyProfileDocument existingDocument) {
         try {
-            VersionedCompanyProfileDocument companyProfileDocument = getDocument(linkRequest.getCompanyNumber());
-
-            setLinksOnType(companyProfileDocument.getCompanyProfile().getLinks(), linkType, companyNumber);
-            companyProfileDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
-            companyProfileDocument.setUpdated(new Updated()
+            setLinksOnType(existingDocument.getCompanyProfile().getLinks(), linkRequest.getLinkType(), linkRequest.getCompanyNumber());
+            existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+            existingDocument.setUpdated(new Updated()
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
-                    .setBy(contextId));
+                    .setBy(linkRequest.getContextId()));
 
             if (Objects.equals(linkRequest.getLinkType(), "charges")) {
-                companyProfileDocument.getCompanyProfile().setHasCharges(true);
+                existingDocument.getCompanyProfile().setHasCharges(true);
             }
 
-            if (companyProfileDocument.getVersion() == null) { // Update a legacy document with links
-                mongoTemplate.save(new UnversionedCompanyProfileDocument(companyProfileDocument));
-            } else { // Update a normal document with links
-                companyProfileRepository.save(companyProfileDocument);
+            if (existingDocument.getVersion() == null) { // Update a legacy document with links
+                mongoTemplate.save(new UnversionedCompanyProfileDocument(existingDocument));
+            } else { // Update a versioned document with links
+                companyProfileRepository.save(existingDocument);
             }
-            logger.infoContext(contextId, String.format("Company %s link inserted "
-                            + "in Company Profile with company number: %s", linkType, companyNumber),
+            logger.info(String.format("Company %s link inserted in Company Profile", linkRequest.getLinkType()),
                     DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
-                            + "successfully for company number: %s", companyNumber),
-                    DataMapHolder.getLogMap());
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
+            logger.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
-            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
-                    DataMapHolder.getLogMap());
+            logger.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            logger.errorContext(contextId, "Error accessing MongoDB", exception,
-                    DataMapHolder.getLogMap());
+            logger.error("Error accessing MongoDB", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
@@ -254,7 +244,7 @@ public class CompanyProfileService {
         String companyNumber = linkRequest.getCompanyNumber();
         String contextId = linkRequest.getContextId();
         String linkType = linkRequest.getLinkType();
-// same versioning fix as adding a link required here, there is also another test scenario because the deletion of a link is essentially an
+// TODO same versioning fix as adding a link required here, there is also another test scenario because the deletion of a link is essentially an
         // update and so should have the same effect on versioning.
         if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkType)) {
             int ukEstablishmentsCount = retrieveUkEstablishments(companyNumber).getItems().size();
@@ -380,7 +370,8 @@ public class CompanyProfileService {
      * call addLink if this is false.
      */
     public void checkForAddLink(LinkRequest linkRequest) {
-        Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
+        VersionedCompanyProfileDocument existingDocument = getDocument(linkRequest.getCompanyNumber());
+        Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                 "no data for company profile: "
@@ -394,7 +385,7 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
-            addLink(linkRequest);
+            addLink(linkRequest, existingDocument);
         }
     }
 
