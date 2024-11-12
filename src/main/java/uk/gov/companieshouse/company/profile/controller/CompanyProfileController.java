@@ -115,8 +115,10 @@ public class CompanyProfileController {
             @Valid @RequestBody CompanyProfile requestBody) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
+        DataMapHolder.get().contextId(contextId);
         logger.infoContext(contextId, String.format("Payload received on PATCH links endpoint "
                 + "for company number %s", companyNumber), DataMapHolder.getLogMap());
+        //TODO make sure versioning applies here too
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -155,7 +157,8 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on the DELETE links endpoint "
+        DataMapHolder.get().contextId(contextId);
+        logger.info(String.format("Payload received on the DELETE links endpoint "
                 + "with company number %s", companyNumber), DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();

@@ -240,52 +240,62 @@ public class CompanyProfileService {
     }
 
 
-    private void deleteLink(LinkRequest linkRequest) {
-        String companyNumber = linkRequest.getCompanyNumber();
-        String contextId = linkRequest.getContextId();
-        String linkType = linkRequest.getLinkType();
-// TODO same versioning fix as adding a link required here, there is also another test scenario because the deletion of a link is essentially an
-        // update and so should have the same effect on versioning.
-        if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkType)) {
-            int ukEstablishmentsCount = retrieveUkEstablishments(companyNumber).getItems().size();
+    private void deleteLink(LinkRequest linkRequest, VersionedCompanyProfileDocument existingDocument) {
+        if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkRequest.getLinkType())) {
+            int ukEstablishmentsCount = retrieveUkEstablishments(linkRequest.getCompanyNumber())
+                    .getItems().size();
             if (ukEstablishmentsCount > 1) {
-                logger.infoContext(contextId, String.format("Link not deleted, "
-                                + "UK establishments still exists for: %s", companyNumber),
+                logger.info("Link not deleted, UK establishments still exists",
                         DataMapHolder.getLogMap());
                 return;
             }
-            logger.infoContext(contextId, String.format("Company: %s only has zero or "
-                            + "one uk establishment, link to be deleted.", companyNumber),
-                    DataMapHolder.getLogMap());
         }
-
         try {
-            Update update = new Update();
-            update.unset(String.format("data.links.%s", convertToDBformat(linkType)));
-            update.set("data.etag", GenerateEtagUtil.generateEtag());
-            update.set("updated", new Updated()
+            unsetLinksOnType(existingDocument.getCompanyProfile().getLinks(), linkRequest.getLinkType());
+            existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+            existingDocument.setUpdated(new Updated()
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
-                    .setBy(contextId));
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
+                    .setBy(linkRequest.getContextId()));
 
-            mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
-            logger.infoContext(contextId, String.format("Company %s link deleted "
-                            + "in Company Profile with company number: %s",
-                    linkType, companyNumber), DataMapHolder.getLogMap());
+            if (existingDocument.getVersion() == null) { // Update a legacy document
+                mongoTemplate.save(new UnversionedCompanyProfileDocument(existingDocument));
+            } else { // Update a versioned document
+                companyProfileRepository.save(existingDocument);
+            }
+            logger.info(String.format("Company %s link deleted in Company Profile",
+                    linkRequest.getLinkType()), DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.infoContext(contextId, String.format("chs-kafka-api DELETED invoked "
-                            + "successfully for company number: %s", companyNumber),
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
+            logger.info("chs-kafka-api DELETED invoked successfully",
                     DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
-            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
+            logger.error("Error calling chs-kafka-api", exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            logger.errorContext(contextId, "Error accessing MongoDB", exception,
+            logger.error("Error accessing MongoDB", exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
+    private static void unsetLinksOnType(Links links, String linkType) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(null);
+            case "exemptions" -> links.setExemptions(null);
+            case "filing-history" ->
+                    links.setFilingHistory(null);
+            case "insolvency" -> links.setInsolvency(null);
+            case "officers" -> links.setOfficers(null);
+            case "persons-with-significant-control" ->
+                    links.setPersonsWithSignificantControl(null);
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(null);
+            case "uk-establishments" ->
+                    links.setUkEstablishments(null);
+            case "registers" -> links.setRegisters(null);
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
         }
     }
 
@@ -325,6 +335,12 @@ public class CompanyProfileService {
         setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
                 companyProfileDocument.getCompanyProfile().getHasCharges());
         Query query = new Query(Criteria.where("_id").is(companyProfileDocument.getId()));
+//
+//        if (companyProfileDocument.getVersion() == null) { // Update a legacy document
+//            mongoTemplate.upsert(query, update, new UnversionedCompanyProfileDocument(companyProfileDocument));
+//        } else { // Update a versioned document
+//            companyProfileRepository.save(existingDocument);
+//        }
         mongoTemplate.upsert(query, update, VersionedCompanyProfileDocument.class);
     }
 
@@ -340,13 +356,6 @@ public class CompanyProfileService {
         } else {
             update.unset(key);
         }
-    }
-
-    /**
-     * transforms link type string to format required to fetch from db.
-     */
-    private String convertToDBformat(String linkType) {
-        return linkType.replace('-', '_');
     }
 
     /**
@@ -394,7 +403,8 @@ public class CompanyProfileService {
      * call deleteLink if this is false.
      */
     public void checkForDeleteLink(LinkRequest linkRequest) {
-        Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
+        VersionedCompanyProfileDocument existingDocument = getDocument(linkRequest.getCompanyNumber());
+        Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                 "no data for company profile: "
@@ -409,7 +419,7 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already does not exist");
         } else {
-            deleteLink(linkRequest);
+            deleteLink(linkRequest, existingDocument);
         }
     }
 
