@@ -52,8 +52,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
 import uk.gov.companieshouse.api.company.BranchCompanyDetails;
@@ -91,9 +89,9 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
-    private static final String MOCK_COMPANY_NUMBER = "6146287";
+    private static final String COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
-    private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
+    private static final String PARENT_COMPANY_NUMBER = "321033";
     private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
 
     @Mock
@@ -143,12 +141,12 @@ class CompanyProfileServiceTest {
     private static VersionedCompanyProfileDocument EXISTING_UK_ESTABLISHMENT_COMPANY;
     private static VersionedCompanyProfileDocument EXISTING_PARENT_COMPANY;
 
-    private final LinkRequest chargesLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+    private final LinkRequest chargesLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, COMPANY_NUMBER,
             CHARGES_LINK_TYPE, CHARGES_DELTA_TYPE, CHARGES_GET);
-    private final LinkRequest insolvencyLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+    private final LinkRequest insolvencyLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, COMPANY_NUMBER,
             INSOLVENCY_LINK_TYPE, INSOLVENCY_DELTA_TYPE, INSOLVENCY_GET);
-    private final String CHARGES_LINK = String.format("/company/%s/charges", MOCK_COMPANY_NUMBER);
-    private final String INSOLVENCY_LINK = String.format("/company/%s/insolvency", MOCK_COMPANY_NUMBER);
+    private final String CHARGES_LINK = String.format("/company/%s/charges", COMPANY_NUMBER);
+    private final String INSOLVENCY_LINK = String.format("/company/%s/insolvency", COMPANY_NUMBER);
 
     @BeforeAll
     static void setUp() throws IOException {
@@ -159,31 +157,31 @@ class CompanyProfileServiceTest {
         EXISTING_COMPANY_PROFILE_DOCUMENT = createExistingCompanyProfile();
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT = createExistingCompanyProfile();
         UK_ESTABLISHMENTS_TEST_INPUT = Arrays.asList(
-                testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 1),
-                testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 2));
+                testHelper.createUkEstablishmentTestInput(COMPANY_NUMBER + 1),
+                testHelper.createUkEstablishmentTestInput(COMPANY_NUMBER + 2));
         UK_ESTABLISHMENTS_TEST_OUTPUT = Arrays.asList(
-                testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 1),
-                testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 2));
-        EXISTING_UK_ESTABLISHMENT_COMPANY = testHelper.createCompanyProfileTypeUkEstablishment(MOCK_COMPANY_NUMBER);
+                testHelper.createUkEstablishmentTestOutput(COMPANY_NUMBER + 1),
+                testHelper.createUkEstablishmentTestOutput(COMPANY_NUMBER + 2));
+        EXISTING_UK_ESTABLISHMENT_COMPANY = testHelper.createCompanyProfileTypeUkEstablishment(COMPANY_NUMBER);
         EXISTING_PARENT_COMPANY = testHelper.createParentCompanyProfile(ANOTHER_PARENT_COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("When company profile is retrieved successfully then it is returned")
     void getCompanyProfile() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setType("ltd");
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        companyProfileDocument.setId(COMPANY_NUMBER);
         companyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(companyProfileDocument));
 
         Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+                companyProfileService.get(COMPANY_NUMBER);
 
         assertThat(companyProfileActual).containsSame(companyProfileDocument);
         verify(logger, times(2)).trace(anyString(), any());
@@ -192,7 +190,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company profile is retrieved successfully with CareOf then it is returned")
     void getCompanyProfileWithCareOf() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setType("ltd");
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOf("careOf");
@@ -201,14 +199,14 @@ class CompanyProfileServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        companyProfileDocument.setId(COMPANY_NUMBER);
         companyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(companyProfileDocument));
 
         Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+                companyProfileService.get(COMPANY_NUMBER);
 
         assertThat(companyProfileActual).containsSame(companyProfileDocument);
         assertEquals("careOf", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
@@ -219,7 +217,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company profile is retrieved successfully with only CareOfName then it is returned with CareOf")
     void getCompanyProfileWithCareOfName() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setType("ltd");
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOfName("careOfName");
@@ -227,14 +225,14 @@ class CompanyProfileServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        companyProfileDocument.setId(COMPANY_NUMBER);
         companyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(companyProfileDocument));
 
         Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+                companyProfileService.get(COMPANY_NUMBER);
 
         assertThat(companyProfileActual).containsSame(companyProfileDocument);
         assertEquals("careOfName", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
@@ -245,24 +243,24 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company details is retrieved successfully then it is returned")
     void getCompanyDetails() throws JsonProcessingException {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setCompanyName("String");
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
         VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        mockCompanyProfileDocument.setId(COMPANY_NUMBER);
         mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("String");
         CompanyDetails mockCompanyDetails = new CompanyDetails();
         mockCompanyDetails.setCompanyStatus("String");
         mockCompanyDetails.setCompanyName("String");
-        mockCompanyDetails.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        mockCompanyDetails.setCompanyNumber(COMPANY_NUMBER);
         Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
         Optional<CompanyDetails> companyDetailsActual =
-                companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
+                companyProfileService.getCompanyDetails(COMPANY_NUMBER);
 
         assertEquals(mockCompanyDetailsOP,companyDetailsActual);
     }
@@ -274,7 +272,7 @@ class CompanyProfileServiceTest {
                 .thenReturn(Optional.empty());
 
         Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+                companyProfileService.get(COMPANY_NUMBER);
 
         assertTrue(companyProfileActual.isEmpty());
         verify(logger, times(2)).trace(anyString(), any());
@@ -287,7 +285,7 @@ class CompanyProfileServiceTest {
                 .thenReturn(Optional.empty());
 
         Optional<CompanyDetails> companyDetailsActual =
-                companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
+                companyProfileService.getCompanyDetails(COMPANY_NUMBER);
 
         assertFalse(companyDetailsActual.isPresent());
     }
@@ -300,7 +298,7 @@ class CompanyProfileServiceTest {
                 .thenThrow(new DataAccessResourceFailureException("Connection broken"));
 
         Assert.assertThrows(ServiceUnavailableException.class,
-                () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
+                () -> companyProfileService.get(COMPANY_NUMBER));
         verify(logger, times(1)).trace(anyString(), any());
     }
 
@@ -312,7 +310,7 @@ class CompanyProfileServiceTest {
                 .thenThrow(new ServiceUnavailableException("Service unavailable"));
 
         Exception exception = assertThrows(ServiceUnavailableException.class,
-                () -> companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER));
+                () -> companyProfileService.getCompanyDetails(COMPANY_NUMBER));
 
         assertEquals("Service unavailable", exception.getMessage());
     }
@@ -325,58 +323,59 @@ class CompanyProfileServiceTest {
                 .thenThrow(new IllegalArgumentException());
 
         Assert.assertThrows(BadRequestException.class,
-                () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
+                () -> companyProfileService.get(COMPANY_NUMBER));
         verify(logger, times(1)).trace(anyString(), any());
     }
 
     @Test
-    void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+    void when_insolvency_data_is_given_then_data_should_be_saved() {
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(localDateTime,
                 null, "company-profile");
 
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        companyProfileDocument.setId(COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
+                .thenReturn(Optional.of(companyProfileDocument));
         when(apiResponse.getStatusCode()).thenReturn(200);
         when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
-        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
+        CompanyProfile companyProfileWithInsolvency = buildCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
-        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 companyProfileWithInsolvency);
 
-        verify(mongoTemplate).upsert(any(Query.class), any(Update.class), any(Class.class));
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(mongoTemplate).save(any());
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("When there's a connection issue while performing the PATCH request then throw a "
             + "service unavailable exception")
     void patchConnectionIssueServiceUnavailable() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
-        mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        companyProfileDocument.setId(COMPANY_NUMBER);
+        companyProfileDocument.version(0L);
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(mockCompanyProfileDocument));
+                .thenReturn(Optional.of(companyProfileDocument));
 
         when(apiResponse.getStatusCode()).thenReturn(200);
         when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
 
-        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
+        CompanyProfile companyProfileWithInsolvency = buildCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
-        when(mongoTemplate.upsert(any(Query.class), any(Update.class), any(Class.class))).thenThrow(new DataAccessResourceFailureException("Connection broken"));
+        when(companyProfileRepository.save(any())).thenThrow(new DataAccessResourceFailureException("Connection broken"));
         Assert.assertThrows(ServiceUnavailableException.class,
-                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                         companyProfileWithInsolvency));
     }
 
@@ -387,11 +386,11 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
-        CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
+        CompanyProfile companyProfileWithInsolvency = buildCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
         Assert.assertThrows(DocumentNotFoundException.class,
-                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                         companyProfileWithInsolvency));
 
         verify(apiResponse, never()).getStatusCode();
@@ -404,41 +403,41 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link successfully updates MongoDB and calls chs-kafka-api")
     void addExemptionsLink() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add exemptions link throws document not found exception")
     void addExemptionsLinkNotFound() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -447,23 +446,23 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws resource state conflict exception")
     void addExemptionsLinkConflict() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; exemptions link already exists", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -472,42 +471,42 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws service unavailable exception when illegal argument exception caught")
     void addExemptionsLinkIllegalArgument() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during findById")
     void addExemptionsLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -516,22 +515,22 @@ class CompanyProfileServiceTest {
     @DisplayName("Add exemptions link throws service unavailable exception when data access exception thrown during update")
     void addExemptionsLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -539,42 +538,42 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete exemptions link successfully updates MongoDB and calls chs-kafka-api")
     void deleteExemptionsLink() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", COMPANY_NUMBER));
 
         // when
-        companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete exemptions link throws document not found exception")
     void deleteExemptionsLinkNotFound() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -583,22 +582,22 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete exemptions link throws resource state conflict exception")
     void deleteExemptionsLinkConflict() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; exemptions link already does not exist", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -607,43 +606,43 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete exemptions link throws service unavailable exception when illegal argument exception caught")
     void deleteExemptionsLinkIllegalArgument() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", COMPANY_NUMBER));
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete exemptions link throws service unavailable exception when data access exception thrown during findById")
     void deleteExemptionsLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -652,23 +651,23 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete exemptions link throws service unavailable exception when data access exception thrown during update")
     void deleteExemptionsLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest exemptionsLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", COMPANY_NUMBER));
+        when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -677,18 +676,18 @@ class CompanyProfileServiceTest {
     void addChargesLink() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -696,17 +695,17 @@ class CompanyProfileServiceTest {
     void addChargesLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -716,20 +715,20 @@ class CompanyProfileServiceTest {
     void addChargesLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getCharges()).thenReturn(CHARGES_LINK);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; charges link already exists", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -739,20 +738,20 @@ class CompanyProfileServiceTest {
     void addChargesLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -760,16 +759,16 @@ class CompanyProfileServiceTest {
     void addChargesLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -779,19 +778,19 @@ class CompanyProfileServiceTest {
     void addChargesLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -800,19 +799,19 @@ class CompanyProfileServiceTest {
     void deleteChargesLink() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getCharges()).thenReturn(CHARGES_LINK);
 
         // when
-        companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -820,17 +819,17 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -840,19 +839,19 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; charges link already does not exist", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -862,7 +861,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -870,13 +869,13 @@ class CompanyProfileServiceTest {
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -884,16 +883,16 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -903,20 +902,20 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getCharges()).thenReturn(CHARGES_LINK);
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -925,18 +924,18 @@ class CompanyProfileServiceTest {
     void addInsolvencyLink() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -944,17 +943,17 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -964,20 +963,20 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getInsolvency()).thenReturn(INSOLVENCY_LINK);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; insolvency link already exists", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -987,20 +986,20 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -1008,16 +1007,16 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1027,19 +1026,19 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -1048,19 +1047,19 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLink() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getInsolvency()).thenReturn(INSOLVENCY_LINK);
 
         // when
-        companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -1068,17 +1067,17 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1088,19 +1087,19 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; insolvency link already does not exist", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1110,7 +1109,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1118,13 +1117,13 @@ class CompanyProfileServiceTest {
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
@@ -1132,16 +1131,16 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1151,20 +1150,21 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getInsolvency()).thenReturn(INSOLVENCY_LINK);
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(document.getVersion()).thenReturn(0L);
+        when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -1172,41 +1172,41 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link successfully updates MongoDB and calls chs-kafka-api")
     void addOfficersLink() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add officers link throws document not found exception")
     void addOfficersLinkNotFound() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1215,23 +1215,23 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws resource state conflict exception")
     void addOfficersLinkConflict() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
+        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; officers link already exists", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1240,42 +1240,42 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws service unavailable exception when illegal argument exception caught")
     void addOfficersLinkIllegalArgument() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add officer link throws service unavailable exception when data access exception thrown during findById")
     void addOfficersLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1284,22 +1284,22 @@ class CompanyProfileServiceTest {
     @DisplayName("Add officers link throws service unavailable exception when data access exception thrown during update")
     void addOfficersLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -1308,42 +1308,42 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete officers link successfully updates MongoDB and calls chs-kafka-api")
     void deleteOfficersLink() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
+        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", COMPANY_NUMBER));
 
         // when
-        companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete officers link throws document not found exception")
     void deleteOfficersLinkNotFound() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1352,22 +1352,22 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete officers link throws resource state conflict exception")
     void deleteOfficersLinkConflict() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; officers link already does not exist", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1376,43 +1376,43 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete officers link throws service unavailable exception when illegal argument exception caught")
     void deleteOfficersLinkIllegalArgument() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
+        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", COMPANY_NUMBER));
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete officers link throws service unavailable exception when data access exception thrown during findById")
     void deleteOfficersLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1421,23 +1421,24 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete officers link throws service unavailable exception when data access exception thrown during update")
     void deleteOfficersLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+        when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", COMPANY_NUMBER));
+        when(document.getVersion()).thenReturn(0L);
+        when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -1445,43 +1446,43 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link successfully updates MongoDB and calls chs-kafka-api")
     void addPscStatementsLink() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add psc statements link throws document not found exception")
     void addPscStatementsLinkNotFound() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1490,19 +1491,19 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws resource state conflict exception")
     void addPscStatementsLinkConflict() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControlStatements()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control-statements", COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
 
@@ -1510,7 +1511,7 @@ class CompanyProfileServiceTest {
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; persons-with-significant-control-statements" +
                 " link already exists", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1519,44 +1520,44 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws service unavailable exception when illegal argument exception caught")
     void addPscStatementsLinkIllegalArgument() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add psc statements link throws service unavailable exception when data access exception thrown during findById")
     void addPscStatementsLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1565,23 +1566,24 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc statements link throws service unavailable exception when data access exception thrown during update")
     void addPscStatementsLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
+        when(document.getVersion()).thenReturn(0L);
         when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -1589,44 +1591,44 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link successfully updates MongoDB and calls chs-kafka-api")
     void deletePscStatementsLink() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControlStatements()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control-statements", COMPANY_NUMBER));
 
         // when
-        companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete psc statements link throws document not found exception")
     void deletePscStatementsLinkNotFound() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1635,24 +1637,24 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws resource state conflict exception")
     void deletePscStatementsLinkConflict() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; persons-with-significant-control-statements" +
                 " link already does not exist", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1661,46 +1663,46 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws service unavailable exception when illegal argument exception caught")
     void deletePscStatementsLinkIllegalArgument() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControlStatements()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control-statements", COMPANY_NUMBER));
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete psc statements link throws service unavailable exception when data access exception thrown during findById")
     void deletePscStatementsLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1709,32 +1711,32 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc statements link throws service unavailable exception when data access exception thrown during update")
     void deletePscStatementsLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControlStatements()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+                "/company/%s/persons-with-significant-control-statements", COMPANY_NUMBER));
+        when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
-    private CompanyProfile mockCompanyProfileWithoutInsolvency() {
+    private CompanyProfile buildCompanyProfileWithoutInsolvency() {
         CompanyProfile companyProfile = new CompanyProfile();
         Data data = new Data();
-        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        data.setCompanyNumber(COMPANY_NUMBER);
 
         Links links = new Links();
         links.setOfficers("officer");
@@ -1748,43 +1750,43 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc link successfully updates MongoDB and calls chs-kafka-api")
     void addPscLink() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add psc link throws document not found exception")
     void addPscLinkNotFound() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1793,19 +1795,19 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc link throws resource state conflict exception")
     void addPscLinkConflict() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", COMPANY_NUMBER));
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
 
@@ -1813,7 +1815,7 @@ class CompanyProfileServiceTest {
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; persons-with-significant-control" +
                 " link already exists", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1822,44 +1824,44 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc link throws service unavailable exception when illegal argument exception caught")
     void addPscLinkIllegalArgument() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add psc link throws service unavailable exception when data access exception thrown during findById")
     void addPscLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1868,23 +1870,23 @@ class CompanyProfileServiceTest {
     @DisplayName("Add psc link throws service unavailable exception when data access exception thrown during update")
     void addPscLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -1892,44 +1894,44 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc link successfully updates MongoDB and calls chs-kafka-api")
     void deletePscLink() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", COMPANY_NUMBER));
 
         // when
-        companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete psc link throws document not found exception")
     void deletePscLinkNotFound() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        assertEquals(String.format("No company profile with company number %s found", COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1938,24 +1940,24 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc link throws resource state conflict exception")
     void deletePscLinkConflict() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; persons-with-significant-control" +
                 " link already does not exist", exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -1964,46 +1966,46 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc link throws service unavailable exception when illegal argument exception caught")
     void deletePscLinkIllegalArgument() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
+                "/company/%s/persons-with-significant-control", COMPANY_NUMBER));
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete psc link throws service unavailable exception when data access exception thrown during findById")
     void deletePscLinkDataAccessExceptionFindById() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -2012,59 +2014,58 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete psc link throws service unavailable exception when data access exception thrown during update")
     void deletePscLinkDataAccessExceptionUpdate() {
         // given
-        LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest officersLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
-        when(document.getCompanyProfile()).thenReturn(data);
-        when(data.getLinks()).thenReturn(links);
-        when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
-                "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        EXISTING_COMPANY_PROFILE_DOCUMENT.version(null);
+        EXISTING_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setPersonsWithSignificantControl(String.format(
+                "/company/%s/persons-with-significant-control", COMPANY_NUMBER));
+        when(mongoTemplate.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
     @Test
     @DisplayName("Put company profile")
     void putCompanyProfileSuccessfully() {
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileTransformer.transform(any(), any(), any()))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT.version(0L));
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNull(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().getOverseas());
         verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Put company profile with existing links")
     void putCompanyProfileWithExistingLinksSuccessfully() {
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
+        when(companyProfileRepository.findById(PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
 
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
@@ -2072,7 +2073,7 @@ class CompanyProfileServiceTest {
         Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_LINKS);
         verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
     }
 
     @Test
@@ -2082,7 +2083,7 @@ class CompanyProfileServiceTest {
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
 
-        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+        Data result = companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER);
 
         assertEquals(document.getCompanyProfile(), result);
         verify(companyProfileRepository, times(1)).findById(anyString());
@@ -2093,14 +2094,14 @@ class CompanyProfileServiceTest {
     public void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException, JsonProcessingException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
         Data data = new Data();
-        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        data.setCompanyNumber(COMPANY_NUMBER);
         data.setCorporateAnnotation(Collections.emptyList());
         data.setPreviousCompanyNames(Collections.emptyList());
         doc.setCompanyProfile(data);
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(doc));
 
-        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+        Data result = companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER);
         assertNull(result.getCorporateAnnotation());
         assertNull(result.getPreviousCompanyNames());
 
@@ -2119,9 +2120,9 @@ class CompanyProfileServiceTest {
         data.setRegisteredOfficeAddress(roa);
         doc.setCompanyProfile(data);
 
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(doc));
 
-        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+        Data result = companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER);
 
         assertEquals(doc.getCompanyProfile(), result);
         assertEquals("careOf", result.getRegisteredOfficeAddress().getCareOf());
@@ -2139,9 +2140,9 @@ class CompanyProfileServiceTest {
         data.setRegisteredOfficeAddress(roa);
         doc.setCompanyProfile(data);
 
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(doc));
 
-        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+        Data result = companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER);
 
         assertEquals(doc.getCompanyProfile(), result);
         assertEquals("careOfName", result.getRegisteredOfficeAddress().getCareOf());
@@ -2159,7 +2160,7 @@ class CompanyProfileServiceTest {
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(profileDocument));
 
-        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+        Data result = companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER);
 
         assertEquals(LocalDate.of(2019, 1, 1), result.getDateOfCessation());
         assertNull(result.getDateOfDissolution());
@@ -2171,17 +2172,17 @@ class CompanyProfileServiceTest {
     public void testRetrieveCompanyNumberResourceNotFoundException(){
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER));
-        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(COMPANY_NUMBER));
+        verify(companyProfileRepository, times(1)).findById(COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("When company number is provided delete company profile")
     public void testDeleteCompanyProfile() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        companyProfileService.deleteCompanyProfile("123456", COMPANY_NUMBER);
 
-        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).findById(COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
     }
@@ -2189,13 +2190,13 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Check delete link should be called when deleting Uk establishments")
     public void testDeleteCompanyProfileUkEstablishments() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).
                 thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        companyProfileService.deleteCompanyProfile("123456", COMPANY_NUMBER);
 
-        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).findById(COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
         verify(companyProfileService, times(1)).checkForDeleteLink(any());
@@ -2204,13 +2205,13 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company number is null throw ResourceNotFound Exception")
     public void testDeleteCompanyProfileThrowsResourceNotFoundException() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+            companyProfileService.deleteCompanyProfile("123456", COMPANY_NUMBER);
         });
 
-        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).findById(COMPANY_NUMBER);
         verify(companyProfileRepository, times(0)).delete(any());
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
     }
@@ -2219,7 +2220,7 @@ class CompanyProfileServiceTest {
     @DisplayName("Add filing history link successfully updates MongoDB and calls chs-kafka-api")
     void addFilingHistoryLink() {
         // given
-        LinkRequest filingHistoryLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest filingHistoryLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 FILING_HISTORY_LINK_TYPE, FILING_HISTORY_DELTA_TYPE, Links::getFilingHistory);
 
         when(linkRequestFactory.createLinkRequest(anyString(), anyString(), anyString())).thenReturn(filingHistoryLinkRequest);
@@ -2228,18 +2229,18 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, false);
+        companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, COMPANY_NUMBER, MOCK_CONTEXT_ID, false);
 
         // then
-        verify(linkRequestFactory).createLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(linkRequestFactory).createLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Can file set to true when company type ltd and status active")
     void testDetermineCanFileLtdActiveTrue() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("ltd");
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
@@ -2253,7 +2254,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Can file set to false when company type ltd and status dissolved")
     void testDetermineCanFileLtdDissolvedFalse() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setCompanyStatus("dissolved");
         companyData.setType("ltd");
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
@@ -2267,7 +2268,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Can file set to false when company type ltd and status dissolved")
     void testDetermineCanFileOtherActiveFalse() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         companyData.setType("other");
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
@@ -2281,7 +2282,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Can file set to false when company type is null")
     void testDetermineCanFileCompanyTypeNull() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
@@ -2294,7 +2295,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName(("Overdue set to false when next due fields are after current date"))
     void testDetermineOverdueFalse() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setConfirmationStatement(confirmationStatement);
         companyData.setAnnualReturn(annualReturn);
         companyData.setAccounts(accounts);
@@ -2328,7 +2329,7 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Overdue not set when next due fields are null")
     void testDetermineOverDueNull() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyData.setConfirmationStatement(confirmationStatement);
         companyData.setAnnualReturn(annualReturn);
         companyData.setAccounts(accounts);
@@ -2351,55 +2352,55 @@ class CompanyProfileServiceTest {
     @DisplayName("Add new uk establishments links successfully")
     void addNewUkEstablishmentsLinkSuccessfully() {
         VersionedCompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
 
-        companyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().setCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        companyProfileDocument.setId(PARENT_COMPANY_NUMBER);
+        companyProfileDocument.getCompanyProfile().setCompanyNumber(PARENT_COMPANY_NUMBER);
+        when(companyProfileRepository.findById(PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
 
         BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
-        branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        branchCompanyDetails.setParentCompanyNumber(PARENT_COMPANY_NUMBER);
         CompanyProfile companyProfile = COMPANY_PROFILE;
         companyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 companyProfile);
 
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
-        Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, PARENT_COMPANY_NUMBER);
+        Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", PARENT_COMPANY_NUMBER));
     }
 
     @Test
     @DisplayName("Put company profile with existing links")
     void putUkEstablishmentAndOverseasSuccessfully() {
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
+        when(companyProfileRepository.findById(PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
         EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
 
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
         Assertions.assertNotNull(EXISTING_LINKS);
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks().getOverseas(), String.format("/company/%s", PARENT_COMPANY_NUMBER));
         verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Add new uk establishments links unsuccessfully and throw 503")
     void addNewUkEstablishmentsLinkUnsuccessfullyAndThrow503() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
 
         assertThrows(ServiceUnavailableException.class, () -> {
-            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                     COMPANY_PROFILE);
         });
         verifyNoInteractions(companyProfileApiService);
@@ -2409,49 +2410,49 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete uk establishment link successfully updates MongoDB and calls chs-kafka-api")
     void deleteUkEstablishmentLink() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getUkEstablishments()).thenReturn(String.format(
-                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
+                "/company/%s/uk-establishments", COMPANY_NUMBER));
 
         // when
-        companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Don't delete the uk establishment link due to establishments existing")
     void deleteUkEstablishmentLinkEstablishmentsExists() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getUkEstablishments()).thenReturn(String.format(
-                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
-        when(companyProfileRepository.findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER))
+                "/company/%s/uk-establishments", COMPANY_NUMBER));
+        when(companyProfileRepository.findAllByParentCompanyNumber(COMPANY_NUMBER))
                 .thenReturn(UK_ESTABLISHMENTS_TEST_INPUT);
 
         // when
-        companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
+        companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, COMPANY_NUMBER,
                 MOCK_CONTEXT_ID, true);
 
         // then
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
@@ -2459,21 +2460,21 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete uk establishment link throws document not found exception")
     void deleteUkEstablishmentLinkNotFound() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
         assertEquals(String.format("No company profile with company number %s found",
-                MOCK_COMPANY_NUMBER), exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+                COMPANY_NUMBER), exception.getMessage());
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -2482,23 +2483,23 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete uk establishment throws resource state conflict exception")
     void deleteUkEstablishmentConflict() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; uk-establishments link already does not exist",
                 exception.getMessage());
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -2507,45 +2508,45 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete uk establishment throws service unavailable exception when illegal argument exception caught")
     void deleteUkEstablishmentIllegalArgument() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getUkEstablishments()).thenReturn(String.format(
-                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
+                "/company/%s/uk-establishments", COMPANY_NUMBER));
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Delete uk establishment throws service unavailable exception when data access exception thrown during findById")
     void deleteUkEstablishmentDataAccessExceptionFindById() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
     }
@@ -2554,47 +2555,47 @@ class CompanyProfileServiceTest {
     @DisplayName("Delete uk establishment throws service unavailable exception when data access exception thrown during update")
     void deleteUkEstablishmentDataAccessExceptionUpdate() {
         // given
-        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
+        LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_CONTEXT_ID, COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getUkEstablishments()).thenReturn(String.format(
-                "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
-        when(mongoTemplate.updateFirst(any(), any(), eq(VersionedCompanyProfileDocument.class))).thenThrow(ServiceUnavailableException.class);
+                "/company/%s/uk-establishments", COMPANY_NUMBER));
+        when(companyProfileRepository.save(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
     }
 
     @Test
     @DisplayName("Create parent company profile for uk establishment when not already present")
     void createParentCompanyForUkEstablishment() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileRepository.findById(PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, PARENT_COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Overdue not set when all fields are null")
     void testDetermineOverDueAllNull() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
+        Data companyData = new Data().companyNumber(COMPANY_NUMBER);
 
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
@@ -2610,22 +2611,22 @@ class CompanyProfileServiceTest {
     @DisplayName("Returns a list of UK establishments for given parent company number")
     void testGetUKEstablishmentsReturnsCorrectData() {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
+        companyProfileDocument.setId(PARENT_COMPANY_NUMBER);
         // given
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(
+        when(companyProfileRepository.findById(PARENT_COMPANY_NUMBER)).thenReturn(
                 Optional.of(companyProfileDocument));
-        when(companyProfileRepository.findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER))
+        when(companyProfileRepository.findAllByParentCompanyNumber(PARENT_COMPANY_NUMBER))
                 .thenReturn(UK_ESTABLISHMENTS_TEST_INPUT);
 
         // when
-        UkEstablishmentsList result = companyProfileService.getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
+        UkEstablishmentsList result = companyProfileService.getUkEstablishments(PARENT_COMPANY_NUMBER);
 
         // then
         assertEquals("/company/321033", result.getLinks().getSelf());
         assertEquals("related-companies", result.getKind());
         assertEquals(UK_ESTABLISHMENTS_TEST_OUTPUT, result.getItems());
-        verify(companyProfileRepository).findById(MOCK_PARENT_COMPANY_NUMBER);
-        verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(PARENT_COMPANY_NUMBER);
+        verify(companyProfileRepository).findAllByParentCompanyNumber(PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -2637,7 +2638,7 @@ class CompanyProfileServiceTest {
         existingDoc.getCompanyProfile().setHasBeenLiquidated(true);
         existingDoc.getCompanyProfile().setHasCharges(true);
         existingDoc.version(1L);
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
+        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
 
         CompanyProfile profileToTransform = new CompanyProfile();
         profileToTransform.setData(new Data());
@@ -2652,13 +2653,13 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setHasCharges(null);
         companyProfile.getData().setHasBeenLiquidated(null);
         companyProfile.getData().setCompanyNumber("6146287");
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 companyProfile);
         verify(companyProfileTransformer).transform(existingDoc, profileToTransform, null);
 
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(COMPANY_NUMBER);
     }
 
     @Test
@@ -2669,12 +2670,12 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setLinks(links);
         companyProfile.getData().setHasCharges(false);
         companyProfile.getData().setHasBeenLiquidated(false);
-        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+        companyProfile.getData().setCompanyNumber(COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 companyProfile);
 
         assertFalse(companyProfile.getData().getHasCharges());
@@ -2688,13 +2689,13 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setLinks(links);
         companyProfile.getData().setHasCharges(null);
         companyProfile.getData().setHasBeenLiquidated(false);
-        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+        companyProfile.getData().setCompanyNumber(COMPANY_NUMBER);
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 companyProfile);
 
         assertFalse(companyProfile.getData().getHasCharges());

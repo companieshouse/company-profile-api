@@ -118,7 +118,6 @@ public class CompanyProfileController {
         DataMapHolder.get().contextId(contextId);
         logger.infoContext(contextId, String.format("Payload received on PATCH links endpoint "
                 + "for company number %s", companyNumber), DataMapHolder.getLogMap());
-        //TODO make sure versioning applies here too
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

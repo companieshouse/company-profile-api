@@ -84,6 +84,44 @@ public class CompanyProfileService {
         this.companyProfileTransformer = companyProfileTransformer;
     }
 
+    private static void setLinksOnType(Links links, String linkType, String companyNumber) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
+            case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
+            case "filing-history" -> links.setFilingHistory(formatLinks(companyNumber, linkType));
+            case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
+            case "officers" -> links.setOfficers(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control" ->
+                    links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
+            case "uk-establishments" ->
+                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
+            case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
+    private static String formatLinks(String companyNumber, String linkType) {
+        return String.format("/company/%s/%s", companyNumber, linkType);
+    }
+
+    private static void unsetLinksOnType(Links links, String linkType) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(null);
+            case "exemptions" -> links.setExemptions(null);
+            case "filing-history" -> links.setFilingHistory(null);
+            case "insolvency" -> links.setInsolvency(null);
+            case "officers" -> links.setOfficers(null);
+            case "persons-with-significant-control" -> links.setPersonsWithSignificantControl(null);
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(null);
+            case "uk-establishments" -> links.setUkEstablishments(null);
+            case "registers" -> links.setRegisters(null);
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
     /**
      * Retrieve a company profile using its company number.
      *
@@ -141,14 +179,21 @@ public class CompanyProfileService {
             Optional<VersionedCompanyProfileDocument> cpDocumentOptional =
                     companyProfileRepository.findById(companyNumber);
 
-            var cpDocument = cpDocumentOptional.orElseThrow(() ->
+            VersionedCompanyProfileDocument cpDocument = cpDocumentOptional.orElseThrow(() ->
                     new DocumentNotFoundException(
                             String.format("No company profile with company number %s found",
                                     companyNumber)));
 
-            companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
+            Data data = Optional.of(companyProfileRequest).map(CompanyProfile::getData)
+                    .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                    "no data for company profile within request"));
 
-            cpDocument.setCompanyProfile(companyProfileRequest.getData());
+            Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
+
+            companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
+            data.setLinks(links);
+
+            cpDocument.setCompanyProfile(data);
 
             if (cpDocument.getUpdated() != null) {
                 cpDocument.getUpdated()
@@ -169,7 +214,11 @@ public class CompanyProfileService {
                 logger.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
                                 + "invoked successfully for company number %s", companyNumber),
                         DataMapHolder.getLogMap());
-                updateSpecificFields(cpDocument);
+                if (cpDocument.getVersion() == null) { // Update a legacy document
+                    mongoTemplate.save(new UnversionedCompanyProfileDocument(cpDocument));
+                } else { // Update a versioned document
+                    companyProfileRepository.save(cpDocument);
+                }
                 logger.infoContext(contextId, String.format("Company profile is updated "
                                 + "in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
@@ -216,30 +265,6 @@ public class CompanyProfileService {
         }
     }
 
-    private static void setLinksOnType(Links links, String linkType, String companyNumber) {
-        switch (linkType) {
-            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
-            case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
-            case "filing-history" ->
-                    links.setFilingHistory(formatLinks(companyNumber, linkType));
-            case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
-            case "officers" -> links.setOfficers(formatLinks(companyNumber, linkType));
-            case "persons-with-significant-control" ->
-                    links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
-            case "persons-with-significant-control-statements" ->
-                    links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
-            case "uk-establishments" ->
-                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
-            case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
-            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
-        }
-    }
-
-    private static String formatLinks(String companyNumber, String linkType) {
-        return String.format("/company/%s/%s", companyNumber, linkType);
-    }
-
-
     private void deleteLink(LinkRequest linkRequest, VersionedCompanyProfileDocument existingDocument) {
         if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkRequest.getLinkType())) {
             int ukEstablishmentsCount = retrieveUkEstablishments(linkRequest.getCompanyNumber())
@@ -280,25 +305,6 @@ public class CompanyProfileService {
         }
     }
 
-    private static void unsetLinksOnType(Links links, String linkType) {
-        switch (linkType) {
-            case "charges" -> links.setCharges(null);
-            case "exemptions" -> links.setExemptions(null);
-            case "filing-history" ->
-                    links.setFilingHistory(null);
-            case "insolvency" -> links.setInsolvency(null);
-            case "officers" -> links.setOfficers(null);
-            case "persons-with-significant-control" ->
-                    links.setPersonsWithSignificantControl(null);
-            case "persons-with-significant-control-statements" ->
-                    links.setPersonsWithSignificantControlStatements(null);
-            case "uk-establishments" ->
-                    links.setUkEstablishments(null);
-            case "registers" -> links.setRegisters(null);
-            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
-        }
-    }
-
     private VersionedCompanyProfileDocument getDocument(String companyNumber) {
         try {
             return companyProfileRepository.findById(companyNumber)
@@ -308,53 +314,6 @@ public class CompanyProfileService {
         } catch (DataAccessException exception) {
             logger.error("Error accessing MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
-        }
-    }
-
-    private void updateSpecificFields(VersionedCompanyProfileDocument companyProfileDocument) {
-        Update update = new Update();
-        setUpdateIfNotNull(update, "data.etag",
-                companyProfileDocument.getCompanyProfile().getEtag());
-        setUpdateIfNotNull(update, "updated",
-                companyProfileDocument.getUpdated());
-        setUpdateIfNotNullOtherwiseRemove(update, "data.links.insolvency",
-                companyProfileDocument.getCompanyProfile().getLinks() != null
-                        ?
-                        companyProfileDocument.getCompanyProfile().getLinks().getInsolvency()
-                        : null);
-        setUpdateIfNotNullOtherwiseRemove(update, "data.links.charges",
-                companyProfileDocument.getCompanyProfile().getLinks() != null
-                        ? companyProfileDocument.getCompanyProfile().getLinks().getCharges()
-                        : null);
-        setUpdateIfNotNullOtherwiseRemove(update, "data.links.registers",
-                companyProfileDocument.getCompanyProfile().getLinks() != null
-                        ? companyProfileDocument.getCompanyProfile().getLinks().getRegisters()
-                        : null);
-        setUpdateIfNotNullOtherwiseRemove(update, "data.has_insolvency_history",
-                companyProfileDocument.getCompanyProfile().getHasInsolvencyHistory());
-        setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
-                companyProfileDocument.getCompanyProfile().getHasCharges());
-        Query query = new Query(Criteria.where("_id").is(companyProfileDocument.getId()));
-//
-//        if (companyProfileDocument.getVersion() == null) { // Update a legacy document
-//            mongoTemplate.upsert(query, update, new UnversionedCompanyProfileDocument(companyProfileDocument));
-//        } else { // Update a versioned document
-//            companyProfileRepository.save(existingDocument);
-//        }
-        mongoTemplate.upsert(query, update, VersionedCompanyProfileDocument.class);
-    }
-
-    private void setUpdateIfNotNull(Update update, String key, Object object) {
-        if (object != null) {
-            update.set(key, object);
-        }
-    }
-
-    private void setUpdateIfNotNullOtherwiseRemove(Update update, String key, Object object) {
-        if (object != null) {
-            update.set(key, object);
-        } else {
-            update.unset(key);
         }
     }
 

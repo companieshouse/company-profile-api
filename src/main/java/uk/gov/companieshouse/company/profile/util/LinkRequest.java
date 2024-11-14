@@ -41,6 +41,11 @@ public class LinkRequest {
     public static final Function<Links, String> UK_ESTABLISHMENTS_GET =
             Links::getUkEstablishments;
 
+    public static final String REGISTERS_LINK_TYPE = "registers";
+    public static final String REGISTERS_DELTA_TYPE = "registers_delta";
+    public static final Function<Links, String> REGISTERS_GET =
+            Links::getUkEstablishments;
+
     private final String contextId;
     private final String companyNumber;
     private final String linkType;

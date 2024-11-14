@@ -67,6 +67,7 @@ public class TestHelper {
         VersionedCompanyProfileDocument existingCompanyProfileDocument = new VersionedCompanyProfileDocument();
         existingCompanyProfileDocument.setCompanyProfile(companyProfileData);
         existingCompanyProfileDocument.version(1L);
+        existingCompanyProfileDocument.setHasMortgages(false);
         return existingCompanyProfileDocument;
     }
 

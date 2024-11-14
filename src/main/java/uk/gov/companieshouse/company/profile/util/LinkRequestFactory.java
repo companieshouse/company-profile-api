@@ -21,6 +21,9 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_LINK_TY
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.REGISTERS_DELTA_TYPE;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.REGISTERS_GET;
+import static uk.gov.companieshouse.company.profile.util.LinkRequest.REGISTERS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_GET;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
@@ -47,7 +50,9 @@ public class LinkRequestFactory {
             PSC_STATEMENTS_LINK_TYPE,
             new LinkTypeData(PSC_STATEMENTS_DELTA_TYPE, PSC_STATEMENTS_GET),
             UK_ESTABLISHMENTS_LINK_TYPE,
-            new LinkTypeData(UK_ESTABLISHMENTS_DELTA_TYPE, UK_ESTABLISHMENTS_GET));
+            new LinkTypeData(UK_ESTABLISHMENTS_DELTA_TYPE, UK_ESTABLISHMENTS_GET),
+            REGISTERS_LINK_TYPE,
+            new LinkTypeData(REGISTERS_DELTA_TYPE, REGISTERS_GET));
 
     /**
      * Creates linkRequest object.

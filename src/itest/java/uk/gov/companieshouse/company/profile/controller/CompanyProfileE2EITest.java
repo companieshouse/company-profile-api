@@ -96,7 +96,7 @@ class CompanyProfileE2EITest {
             "persons-with-significant-control , psc_delta",
             "persons-with-significant-control-statements , psc_statement_delta",
             "uk-establishments , uk_establishment_delta",
-            "registers", "registers"
+            "registers, registers_delta"
     })
     @DisplayName("Successfully add link to existing versioned company profile document")
     void testAddLinkExistingDocument(final String linkType, final String deltaType) throws Exception {
@@ -150,7 +150,7 @@ class CompanyProfileE2EITest {
             "persons-with-significant-control , psc_delta",
             "persons-with-significant-control-statements , psc_statement_delta",
             "uk-establishments , uk_establishment_delta",
-            "registers", "registers"
+            "registers, registers_delta"
     })
     @DisplayName("Successfully add link to existing versioned company profile document")
     void testAddLinkLegacyDocument(final String linkType, final String deltaType) throws Exception {
