@@ -26,23 +26,23 @@
 
         <!-- Internal -->
         <structured-logging.version>3.0.20</structured-logging.version>
-        <private-api-sdk-java.version>4.0.224</private-api-sdk-java.version>
+        <private-api-sdk-java.version>4.0.237</private-api-sdk-java.version>
         <data-sync-api-sdk-java.version>1.0.8</data-sync-api-sdk-java.version>
         <api-sdk-manager-java-library.version>3.0.6</api-sdk-manager-java-library.version>
         <api-helper-java-library.version>3.0.1</api-helper-java-library.version>
-        <api-security-java.version>2.0.6</api-security-java.version>
+        <api-security-java.version>2.0.8</api-security-java.version>
 
         <!-- tests -->
         <test-containers.version>1.20.3</test-containers.version>
         <cucumber-java.version>7.20.1</cucumber-java.version>
-        <wiremock.version>3.9.1</wiremock.version>
+        <wiremock.version>3.9.2</wiremock.version>
         <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.5.1</maven-failsafe-plugin.version>
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
 
         <!--Plugin-->
-        <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
+        <jib-maven-plugin.version>3.4.4</jib-maven-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
         <maven-build-helper-plugin.version>3.6.0</maven-build-helper-plugin.version>
