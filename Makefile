@@ -42,8 +42,10 @@ clean:
 .PHONY: build
 build:
 	@# Help: Pull down any dependencies and compile code into an executable if required
+	$(info Setting version: $(version))
 	mvn org.codehaus.mojo:versions-maven-plugin:2.17.1:set -DnewVersion=$(version) -DgenerateBackupPoms=false
-	mvn package -DskipTests=true
+	$(info Packing version: $(version))
+	mvn package -Dmaven.test.skip=true
 	cp ./target/$(artifact_name)-$(version).jar ./$(artifact_name).jar
 
 .PHONY: test
@@ -71,13 +73,13 @@ package:
 ifndef version
 	$(error No version given. Aborting)
 endif
-	$(info Packaging version: $(version))
 	mvn org.codehaus.mojo:versions-maven-plugin:2.17.1:set -DnewVersion=$(version) -DgenerateBackupPoms=false
-	mvn package -DskipTests=true
+	$(info Packaging version: $(version))
+	@test -s ./$(artifact_name).jar || { echo "ERROR: Service JAR not found"; exit 1; }
 	$(eval tmpdir:=$(shell mktemp -d build-XXXXXXXXXX))
 	cp ./start.sh $(tmpdir)
 	cp ./routes.yaml $(tmpdir)
-	cp ./target/$(artifact_name)-$(version).jar $(tmpdir)/$(artifact_name).jar
+	cp ./$(artifact_name).jar $(tmpdir)/$(artifact_name).jar
 	cd $(tmpdir); zip -r ../$(artifact_name)-$(version).zip *
 	rm -rf $(tmpdir)
 
