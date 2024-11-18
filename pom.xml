@@ -42,6 +42,7 @@
         <skip.unit.tests>false</skip.unit.tests>
 
         <!--Plugin-->
+        <!--the below jib plugin needs to be this version to build properly on mac-->
         <jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>

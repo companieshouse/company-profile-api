@@ -43,8 +43,10 @@ clean:
 build:
 	@# Help: Pull down any dependencies and compile code into an executable if required
 	$(info Setting version: $(version))
+	mvn org.codehaus.mojo:versions-maven-plugin:2.17.1:set -DnewVersion=$(version) -DgenerateBackupPoms=false
 	mvn versions:set -DnewVersion=$(version) -DgenerateBackupPoms=false
 	$(info Packing version: $(version))
+	mvn org.codehaus.mojo:versions-maven-plugin:2.17.1:set -DnewVersion=$(version) -DgenerateBackupPoms=false
 	mvn package -Dmaven.test.skip=true
 	cp ./target/$(artifact_name)-$(version).jar ./$(artifact_name).jar
 
