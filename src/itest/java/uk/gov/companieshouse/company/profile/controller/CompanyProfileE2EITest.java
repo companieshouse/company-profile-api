@@ -163,7 +163,6 @@ class CompanyProfileE2EITest {
         companyProfileDocument.setCompanyProfile(new Data()
                 .links(new Links()
                         .self("/company/" + COMPANY_NUMBER)));
-        companyProfileDocument.setHasMortgages(false);
 
         mongoTemplate.save(companyProfileDocument);
 
@@ -258,7 +257,6 @@ class CompanyProfileE2EITest {
         companyProfileDocument.setCompanyProfile(new Data()
                 .links(new Links()
                         .self("/company/" + COMPANY_NUMBER)));
-        companyProfileDocument.setHasMortgages(false);
 
         mongoTemplate.save(companyProfileDocument);
 
@@ -380,7 +378,6 @@ class CompanyProfileE2EITest {
                                 .personsWithSignificantControl(PERSONS_WITH_SIGNIFICANT_CONTROL_LINK)
                                 .personsWithSignificantControlStatements(PERSONS_WITH_SIGNIFICANT_CONTROL_STATEMENTS_LINK)
                                 .ukEstablishments(UK_ESTABLISHMENTS_LINK)));
-        document.setHasMortgages(true);
 
         mongoTemplate.save(document);
 
@@ -429,7 +426,6 @@ class CompanyProfileE2EITest {
 
     private static @NotNull CompanyProfile makeBaseLegacyLinksCompanyProfile() {
         CompanyProfile companyProfile = new CompanyProfile();
-        companyProfile.setHasMortgages(false);
         companyProfile.setData(new Data());
         companyProfile.getData().setLinks(new Links()
                 .charges(CHARGES_LINK)

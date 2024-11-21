@@ -73,6 +73,7 @@ package:
 ifndef version
 	$(error No version given. Aborting)
 endif
+	#temporary workaround to allow concourse pipeline to work with version
 	mvn org.codehaus.mojo:versions-maven-plugin:2.17.1:set -DnewVersion=$(version) -DgenerateBackupPoms=false
 	$(info Packaging version: $(version))
 	@test -s ./$(artifact_name).jar || { echo "ERROR: Service JAR not found"; exit 1; }

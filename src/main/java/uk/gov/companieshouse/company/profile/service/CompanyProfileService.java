@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.service;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
@@ -48,7 +49,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 public class CompanyProfileService {
     private static final String RELATED_COMPANIES_KIND = "related-companies";
     private static final String COMPANY_SELF_LINK = "/company/%s";
+    private static final String CHARGES_DELTA_TYPE = "charges";
     private final Logger logger;
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
@@ -79,6 +80,44 @@ public class CompanyProfileService {
         this.companyProfileApiService = companyProfileApiService;
         this.linkRequestFactory = linkRequestFactory;
         this.companyProfileTransformer = companyProfileTransformer;
+    }
+
+    private static void setLinksOnType(Links links, String linkType, String companyNumber) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
+            case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
+            case "filing-history" -> links.setFilingHistory(formatLinks(companyNumber, linkType));
+            case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
+            case "officers" -> links.setOfficers(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control" ->
+                    links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
+            case "uk-establishments" ->
+                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
+            case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
+    private static String formatLinks(String companyNumber, String linkType) {
+        return String.format("/company/%s/%s", companyNumber, linkType);
+    }
+
+    private static void unsetLinksOnType(Links links, String linkType) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(null);
+            case "exemptions" -> links.setExemptions(null);
+            case "filing-history" -> links.setFilingHistory(null);
+            case "insolvency" -> links.setInsolvency(null);
+            case "officers" -> links.setOfficers(null);
+            case "persons-with-significant-control" -> links.setPersonsWithSignificantControl(null);
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(null);
+            case "uk-establishments" -> links.setUkEstablishments(null);
+            case "registers" -> links.setRegisters(null);
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
     }
 
     /**
@@ -145,9 +184,10 @@ public class CompanyProfileService {
 
             Data data = Optional.of(companyProfileRequest).map(CompanyProfile::getData)
                     .orElseThrow(() -> new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                    "no data for company profile within request"));
+                            "no data for company profile within request"));
 
             Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
+            cpDocument.setHasMortgages(isNotBlank(links.getCharges()));
 
             companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
             data.setLinks(links);
@@ -191,7 +231,6 @@ public class CompanyProfileService {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
     }
-
 
     /**
      * func creates a Link Request for a given link type
@@ -306,12 +345,15 @@ public class CompanyProfileService {
             if (companyProfile.getData().getHasCharges() == null) {
                 Optional.of(companyProfileDocument)
                         .map(CompanyProfileDocument::getCompanyProfile)
-                        .map(Data::getHasCharges).ifPresent(hasCharges ->
-                                companyProfile.getData().setHasCharges(hasCharges));
+                        .map(Data::getHasCharges).ifPresent(hasCharges -> {
+                            companyProfile.getData().setHasCharges(hasCharges);
+                            companyProfile.setHasMortgages(hasCharges);
+                        });
 
                 if (companyProfile.getData().getLinks() != null) {
                     boolean hasCharges = companyProfile.getData().getLinks().getCharges() != null;
                     companyProfile.getData().setHasCharges(hasCharges);
+                    companyProfile.setHasMortgages(hasCharges);
                 }
             }
 
@@ -511,15 +553,19 @@ public class CompanyProfileService {
 
     private void addLink(LinkRequest linkRequest, VersionedCompanyProfileDocument existingDocument) {
         try {
-            setLinksOnType(existingDocument.getCompanyProfile().getLinks(), linkRequest.getLinkType(), linkRequest.getCompanyNumber());
+            Links links = Optional.ofNullable(existingDocument.getCompanyProfile().getLinks()).orElse(new Links());
+            setLinksOnType(links, linkRequest.getLinkType(), linkRequest.getCompanyNumber());
             existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
             existingDocument.setUpdated(new Updated()
                     .setAt(LocalDateTime.now())
                     .setType(linkRequest.getDeltaType())
                     .setBy(linkRequest.getContextId()));
 
-            if (Objects.equals(linkRequest.getLinkType(), "charges")) {
+            if (linkRequest.getLinkType().equals(CHARGES_DELTA_TYPE)) {
                 existingDocument.getCompanyProfile().setHasCharges(true);
+                existingDocument.setHasMortgages(true);
+            } else {
+                existingDocument.setHasMortgages(false);
             }
 
             if (existingDocument.getVersion() == null) { // Update a legacy document with links
@@ -552,6 +598,7 @@ public class CompanyProfileService {
             }
         }
         try {
+            existingDocument.setHasMortgages(!linkRequest.getLinkType().equals(CHARGES_DELTA_TYPE));
             unsetLinksOnType(existingDocument.getCompanyProfile().getLinks(), linkRequest.getLinkType());
             existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
             existingDocument.setUpdated(new Updated()
@@ -617,7 +664,6 @@ public class CompanyProfileService {
                         "Resource not found for company number: %s", companyNumber)));
     }
 
-
     private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
         List<UkEstablishment> ukEstablishments = companyProfileRepository
                 .findAllByParentCompanyNumber(companyNumber)
@@ -644,43 +690,5 @@ public class CompanyProfileService {
         ukEstablishmentsList.setLinks(parentCompanyLink);
 
         return ukEstablishmentsList;
-    }
-
-    private static void setLinksOnType(Links links, String linkType, String companyNumber) {
-        switch (linkType) {
-            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
-            case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
-            case "filing-history" -> links.setFilingHistory(formatLinks(companyNumber, linkType));
-            case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
-            case "officers" -> links.setOfficers(formatLinks(companyNumber, linkType));
-            case "persons-with-significant-control" ->
-                    links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
-            case "persons-with-significant-control-statements" ->
-                    links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
-            case "uk-establishments" ->
-                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
-            case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
-            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
-        }
-    }
-
-    private static String formatLinks(String companyNumber, String linkType) {
-        return String.format("/company/%s/%s", companyNumber, linkType);
-    }
-
-    private static void unsetLinksOnType(Links links, String linkType) {
-        switch (linkType) {
-            case "charges" -> links.setCharges(null);
-            case "exemptions" -> links.setExemptions(null);
-            case "filing-history" -> links.setFilingHistory(null);
-            case "insolvency" -> links.setInsolvency(null);
-            case "officers" -> links.setOfficers(null);
-            case "persons-with-significant-control" -> links.setPersonsWithSignificantControl(null);
-            case "persons-with-significant-control-statements" ->
-                    links.setPersonsWithSignificantControlStatements(null);
-            case "uk-establishments" -> links.setUkEstablishments(null);
-            case "registers" -> links.setRegisters(null);
-            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
-        }
     }
 }
