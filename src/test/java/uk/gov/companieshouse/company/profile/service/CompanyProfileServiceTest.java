@@ -2637,15 +2637,15 @@ class CompanyProfileServiceTest {
         existingDoc.getCompanyProfile().setHasBeenLiquidated(true);
         existingDoc.getCompanyProfile().setHasCharges(true);
         existingDoc.version(1L);
-        when(companyProfileRepository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(existingDoc));
 
         CompanyProfile profileToTransform = new CompanyProfile();
+        profileToTransform.hasMortgages(true);
         profileToTransform.setData(new Data());
         profileToTransform.getData().setHasBeenLiquidated(true);
         profileToTransform.getData().setHasCharges(true);
         profileToTransform.getData().setCompanyNumber("6146287");
-        when(companyProfileTransformer.transform(existingDoc, profileToTransform, null))
-                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
         CompanyProfile companyProfile = new CompanyProfile();
         companyProfile.setData(new Data());
@@ -2654,8 +2654,8 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setCompanyNumber("6146287");
         companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, COMPANY_NUMBER,
                 companyProfile);
-        verify(companyProfileTransformer).transform(existingDoc, profileToTransform, null);
 
+        verify(companyProfileTransformer).transform(existingDoc, profileToTransform, null);
         Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
         verify(companyProfileRepository).findById(COMPANY_NUMBER);
