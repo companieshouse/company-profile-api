@@ -17,11 +17,11 @@ Feature: Error and retry scenarios for company profile
     Given Company profile api service is running
     And the company links exists for "<company_number>"
     When I send PATCH request with payload "<data>" and company number "<company_number>"
-    Then I should receive 500 status code
+    Then I should receive 400 status code
 
     Examples:
       | data                  | company_number     |
-      | internal_server_error | 00006400           |
+      | null_data_payload     | 00006400           |
 
 
   Scenario Outline: Retrieve company profile unsuccessfully as the company number does not exist
