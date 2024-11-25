@@ -32,6 +32,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -96,19 +97,19 @@ class CompanyProfileE2EITest {
             "persons-with-significant-control-statements , psc_statement_delta",
             "uk-establishments , uk_establishment_delta"
     })
-    @DisplayName("Successfully add link to existing versioned company profile document")
-    void testAddLink(final String linkType, final String deltaType) throws Exception {
+    @DisplayName("Successfully add link to existing versioned document")
+    void testAddLinkExistingDocument(final String linkType, final String deltaType) throws Exception {
         // given
         final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
         final String oldEtag = "oldEtag";
 
         VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
-                document.setId(COMPANY_NUMBER)
+        document.setId(COMPANY_NUMBER)
                 .setCompanyProfile(new Data()
                         .etag(oldEtag)
                         .links(new Links()
                                 .self("/company/" + COMPANY_NUMBER)));
-                document.version(0L);
+        document.version(0L);
 
         companyProfileRepository.insert(document);
 
@@ -149,31 +150,22 @@ class CompanyProfileE2EITest {
             "persons-with-significant-control-statements , psc_statement_delta",
             "uk-establishments , uk_establishment_delta"
     })
-    @DisplayName("Successfully add link to existing versioned company profile document")
-    void testDeleteLink(final String linkType, final String deltaType) throws Exception {
+    @DisplayName("Successfully add link to existing versioned document")
+    void testAddLinkLegacyDocument(final String linkType, final String deltaType) throws Exception {
         // given
+        final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
         final String oldEtag = "oldEtag";
 
-        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
-        document.setId(COMPANY_NUMBER)
-                .setCompanyProfile(new Data()
-                        .etag(oldEtag)
-                        .links(new Links()
-                                .self(SELF_LINK)
-                                .charges(CHARGES_LINK)
-                                .exemptions(EXEMPTIONS_LINK)
-                                .filingHistory(FILING_HISTORY_LINK)
-                                .insolvency(INSOLVENCY_LINK)
-                                .officers(OFFICERS_LINK)
-                                .personsWithSignificantControl(PERSONS_WITH_SIGNIFICANT_CONTROL_LINK)
-                                .personsWithSignificantControlStatements(PERSONS_WITH_SIGNIFICANT_CONTROL_STATEMENTS_LINK)
-                                .ukEstablishments(UK_ESTABLISHMENTS_LINK)));
-        document.version(0L);
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setId(COMPANY_NUMBER);
+        companyProfileDocument.setCompanyProfile(new Data()
+                .links(new Links()
+                        .self("/company/" + COMPANY_NUMBER)));
 
-        companyProfileRepository.insert(document);
+        mongoTemplate.save(companyProfileDocument);
 
         // when
-        final ResultActions result = mockMvc.perform(patch(DELETE_LINK_ENDPOINT, COMPANY_NUMBER, linkType)
+        final ResultActions result = mockMvc.perform(patch(ADD_LINK_ENDPOINT, COMPANY_NUMBER, linkType)
                 .header("ERIC-Identity", "123")
                 .header("ERIC-Identity-Type", "key")
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
@@ -189,11 +181,11 @@ class CompanyProfileE2EITest {
 
         final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
 
-        assertNull(actualLink);
+        assertEquals(expectedLink, actualLink);
         assertNotNull(updated.getAt());
         assertEquals(deltaType, updated.getType());
         assertEquals(CONTEXT_ID, updated.getBy());
-        assertEquals(1L, actualDocument.getVersion());
+        assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }
@@ -247,6 +239,173 @@ class CompanyProfileE2EITest {
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "charges",
+            "insolvency",
+            "registers"
+    })
+    void testAddLinkLegacyEndpointLegacyDocument(final String linkType) throws Exception {
+        // given
+        final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
+        final String oldEtag = "oldEtag";
+
+        CompanyProfileDocument companyProfileDocument = new CompanyProfileDocument();
+        companyProfileDocument.setId(COMPANY_NUMBER);
+        companyProfileDocument.setCompanyProfile(new Data()
+                .links(new Links()
+                        .self("/company/" + COMPANY_NUMBER)));
+
+        mongoTemplate.save(companyProfileDocument);
+
+        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+
+        // when
+        final ResultActions result = mockMvc.perform(patch(ADD_LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(makeBaseLegacyLinksCompanyProfile())));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
+
+        assertEquals(expectedLink, actualLink);
+        assertNotNull(updated.getAt());
+        assertEquals(CONTEXT_ID, updated.getBy());
+        assertEquals(0L, actualDocument.getVersion());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "charges, charges_delta",
+            "exemptions , exemption_delta",
+            "filing-history , filing_history_delta",
+            "insolvency, insolvency_delta",
+            "officers , officer_delta",
+            "persons-with-significant-control , psc_delta",
+            "persons-with-significant-control-statements , psc_statement_delta",
+            "uk-establishments , uk_establishment_delta"
+    })
+    @DisplayName("Successfully delete link on existing versioned document")
+    void testDeleteLink(final String linkType, final String deltaType) throws Exception {
+        // given
+        final String oldEtag = "oldEtag";
+
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setId(COMPANY_NUMBER)
+                .setCompanyProfile(new Data()
+                        .etag(oldEtag)
+                        .links(new Links()
+                                .self(SELF_LINK)
+                                .charges(CHARGES_LINK)
+                                .exemptions(EXEMPTIONS_LINK)
+                                .filingHistory(FILING_HISTORY_LINK)
+                                .insolvency(INSOLVENCY_LINK)
+                                .officers(OFFICERS_LINK)
+                                .personsWithSignificantControl(PERSONS_WITH_SIGNIFICANT_CONTROL_LINK)
+                                .personsWithSignificantControlStatements(PERSONS_WITH_SIGNIFICANT_CONTROL_STATEMENTS_LINK)
+                                .ukEstablishments(UK_ESTABLISHMENTS_LINK)));
+        document.version(0L);
+
+        companyProfileRepository.insert(document);
+
+        // when
+        final ResultActions result = mockMvc.perform(patch(DELETE_LINK_ENDPOINT, COMPANY_NUMBER, linkType)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
+
+        assertNull(actualLink);
+        assertNotNull(updated.getAt());
+        assertEquals(deltaType, updated.getType());
+        assertEquals(CONTEXT_ID, updated.getBy());
+        assertEquals(1L, actualDocument.getVersion());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "charges, charges_delta",
+            "exemptions , exemption_delta",
+            "filing-history , filing_history_delta",
+            "insolvency, insolvency_delta",
+            "officers , officer_delta",
+            "persons-with-significant-control , psc_delta",
+            "persons-with-significant-control-statements , psc_statement_delta",
+            "uk-establishments , uk_establishment_delta"
+    })
+    @DisplayName("Successfully delete link from a legacy document and initialise version")
+    void testDeleteLinkLegacyDocument(final String linkType, final String deltaType) throws Exception {
+        // given
+        final String oldEtag = "oldEtag";
+
+        CompanyProfileDocument document = new CompanyProfileDocument();
+        document.setId(COMPANY_NUMBER)
+                .setCompanyProfile(new Data()
+                        .etag(oldEtag)
+                        .links(new Links()
+                                .self(SELF_LINK)
+                                .charges(CHARGES_LINK)
+                                .exemptions(EXEMPTIONS_LINK)
+                                .filingHistory(FILING_HISTORY_LINK)
+                                .insolvency(INSOLVENCY_LINK)
+                                .officers(OFFICERS_LINK)
+                                .personsWithSignificantControl(PERSONS_WITH_SIGNIFICANT_CONTROL_LINK)
+                                .personsWithSignificantControlStatements(PERSONS_WITH_SIGNIFICANT_CONTROL_STATEMENTS_LINK)
+                                .ukEstablishments(UK_ESTABLISHMENTS_LINK)));
+
+        mongoTemplate.save(document);
+
+        // when
+        final ResultActions result = mockMvc.perform(patch(DELETE_LINK_ENDPOINT, COMPANY_NUMBER, linkType)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
+
+        assertNull(actualLink);
+        assertNotNull(updated.getAt());
+        assertEquals(deltaType, updated.getType());
+        assertEquals(CONTEXT_ID, updated.getBy());
+        assertEquals(0L, actualDocument.getVersion());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+    }
+
+
     private String filterLinkType(final String linkType, Links links) {
         return switch (linkType) {
             case "charges" -> links.getCharges();
@@ -265,7 +424,6 @@ class CompanyProfileE2EITest {
 
     private static @NotNull CompanyProfile makeBaseLegacyLinksCompanyProfile() {
         CompanyProfile companyProfile = new CompanyProfile();
-        companyProfile.setHasMortgages(false);
         companyProfile.setData(new Data());
         companyProfile.getData().setLinks(new Links()
                 .charges(CHARGES_LINK)
