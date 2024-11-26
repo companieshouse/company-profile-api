@@ -154,11 +154,12 @@ public class CompanyProfileService {
             Data existingData = cpDocument.getCompanyProfile();
             existingData.setEtag(GenerateEtagUtil.generateEtag());
 
-            Links existingLinks = existingData.getLinks();
+            Links existingLinks = Optional.ofNullable(existingData.getLinks()).orElse(new Links());
             existingLinks.setInsolvency(links.getInsolvency());
             existingLinks.setCharges(links.getCharges());
             existingLinks.setRegisters(links.getRegisters());
 
+            existingData.setLinks(existingLinks);
             existingData.setHasInsolvencyHistory(data.getHasInsolvencyHistory());
             existingData.setHasCharges(data.getHasCharges());
 
@@ -517,6 +518,7 @@ public class CompanyProfileService {
         try {
             Links links = Optional.ofNullable(existingDocument.getCompanyProfile().getLinks()).orElse(new Links());
             setLinksOnType(links, linkRequest.getLinkType(), linkRequest.getCompanyNumber());
+            existingDocument.getCompanyProfile().setLinks(links);
             existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
             existingDocument.setUpdated(new Updated()
                     .setAt(LocalDateTime.now())
