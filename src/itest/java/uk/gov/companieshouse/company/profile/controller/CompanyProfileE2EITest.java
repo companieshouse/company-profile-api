@@ -54,11 +54,12 @@ class CompanyProfileE2EITest {
     private static final String FILING_HISTORY_LINK = String.format("/company/%s/filing-history", COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK = String.format("/company/%s/exemptions", COMPANY_NUMBER);
     private static final String CHARGES_LINK = String.format("/company/%s/charges", COMPANY_NUMBER);
+    private static final String REGISTERS_LINK = String.format("/company/%s/registers", COMPANY_NUMBER);
     private static final String SELF_LINK = String.format("/company/%s", COMPANY_NUMBER);
     private static final String CONTEXT_ID = "context_id";
     private static final String ADD_LINK_ENDPOINT = "/company/{company_number}/links/{link_type}";
     private static final String DELETE_LINK_ENDPOINT = "/company/{company_number}/links/{link_type}/delete";
-    private static final String ADD_LINK_ENDPOINT_LEGACY = "/company/{company_number}/links";
+    private static final String LINK_ENDPOINT_LEGACY = "/company/{company_number}/links";
 
 
     @Container
@@ -150,7 +151,7 @@ class CompanyProfileE2EITest {
             "persons-with-significant-control-statements , psc_statement_delta",
             "uk-establishments , uk_establishment_delta"
     })
-    @DisplayName("Successfully add link to existing versioned document")
+    @DisplayName("Successfully add link to existing legacy document without a version")
     void testAddLinkLegacyDocument(final String linkType, final String deltaType) throws Exception {
         // given
         final String expectedLink = String.format("/company/%s/%s", COMPANY_NUMBER, linkType);
@@ -214,13 +215,13 @@ class CompanyProfileE2EITest {
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
-        final ResultActions result = mockMvc.perform(patch(ADD_LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
+        final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
                 .header("ERIC-Identity", "123")
                 .header("ERIC-Identity-Type", "key")
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
                 .header("x-request-id", CONTEXT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(makeBaseLegacyLinksCompanyProfile())));
+                .content(objectMapper.writeValueAsString(makeLegacyLinksCompanyProfileAddRequest())));
 
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
@@ -261,13 +262,13 @@ class CompanyProfileE2EITest {
         when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
-        final ResultActions result = mockMvc.perform(patch(ADD_LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
+        final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
                 .header("ERIC-Identity", "123")
                 .header("ERIC-Identity-Type", "key")
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
                 .header("x-request-id", CONTEXT_ID)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(makeBaseLegacyLinksCompanyProfile())));
+                .content(objectMapper.writeValueAsString(makeLegacyLinksCompanyProfileAddRequest())));
 
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
@@ -405,6 +406,109 @@ class CompanyProfileE2EITest {
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "charges",
+            "insolvency",
+            "registers"
+    })
+    void testDeleteLinkLegacyEndpoint(final String linkType) throws Exception {
+        // given
+        final String oldEtag = "oldEtag";
+
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setId(COMPANY_NUMBER)
+                .setCompanyProfile(new Data()
+                        .etag(oldEtag)
+                        .links(new Links()
+                                .self(SELF_LINK)
+                                .charges(CHARGES_LINK)
+                                .insolvency(INSOLVENCY_LINK)
+                                .registers(REGISTERS_LINK)));
+        document.version(0L);
+
+        companyProfileRepository.insert(document);
+
+        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+
+        // when
+        final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(makeLegacyLinksCompanyProfileDeleteRequest())));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
+
+        assertNull(actualLink);
+        assertEquals(SELF_LINK, companyProfile.getLinks().getSelf());
+        assertNotNull(updated.getAt());
+        assertEquals(CONTEXT_ID, updated.getBy());
+        assertEquals(1L, actualDocument.getVersion());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "charges",
+            "insolvency",
+            "registers"
+    })
+    void testDeleteLinkLegacyEndpointLegacyDocument(final String linkType) throws Exception {
+        // given
+        final String oldEtag = "oldEtag";
+
+        CompanyProfileDocument document = new CompanyProfileDocument();
+        document.setId(COMPANY_NUMBER)
+                .setCompanyProfile(new Data()
+                        .etag(oldEtag)
+                        .links(new Links()
+                                .self(SELF_LINK)
+                                .charges(CHARGES_LINK)
+                                .insolvency(INSOLVENCY_LINK)
+                                .registers(REGISTERS_LINK)));
+
+        mongoTemplate.save(document);
+
+        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+
+        // when
+        final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(makeLegacyLinksCompanyProfileDeleteRequest())));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Updated updated = actualDocument.getUpdated();
+        final Data companyProfile = actualDocument.getCompanyProfile();
+
+        final String actualLink = filterLinkType(linkType, companyProfile.getLinks());
+
+        assertNull(actualLink);
+        assertEquals(SELF_LINK, companyProfile.getLinks().getSelf());
+        assertNotNull(updated.getAt());
+        assertEquals(CONTEXT_ID, updated.getBy());
+        assertEquals(0L, actualDocument.getVersion());
+        assertNotEquals(oldEtag, companyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+    }
+
 
     private String filterLinkType(final String linkType, Links links) {
         return switch (linkType) {
@@ -422,13 +526,26 @@ class CompanyProfileE2EITest {
         };
     }
 
-    private static @NotNull CompanyProfile makeBaseLegacyLinksCompanyProfile() {
+    private static @NotNull CompanyProfile makeLegacyLinksCompanyProfileAddRequest() {
         CompanyProfile companyProfile = new CompanyProfile();
         companyProfile.setData(new Data());
         companyProfile.getData().setLinks(new Links()
                 .charges(CHARGES_LINK)
                 .insolvency(INSOLVENCY_LINK)
-                .registers(String.format("/company/%s/registers", COMPANY_NUMBER)));
+                .registers(REGISTERS_LINK));
+        companyProfile.getData().setHasCharges(null);
+        companyProfile.getData().setHasBeenLiquidated(false);
+        companyProfile.getData().setCompanyNumber(COMPANY_NUMBER);
+        return companyProfile;
+    }
+
+    private static @NotNull CompanyProfile makeLegacyLinksCompanyProfileDeleteRequest() {
+        CompanyProfile companyProfile = new CompanyProfile();
+        companyProfile.setData(new Data());
+        companyProfile.getData().setLinks(new Links()
+                .charges(null)
+                .insolvency(null)
+                .registers(null));
         companyProfile.getData().setHasCharges(null);
         companyProfile.getData().setHasBeenLiquidated(false);
         companyProfile.getData().setCompanyNumber(COMPANY_NUMBER);
