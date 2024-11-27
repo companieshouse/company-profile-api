@@ -1,16 +1,13 @@
 package uk.gov.companieshouse.company.profile.service;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +48,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -141,14 +137,33 @@ public class CompanyProfileService {
             Optional<VersionedCompanyProfileDocument> cpDocumentOptional =
                     companyProfileRepository.findById(companyNumber);
 
-            var cpDocument = cpDocumentOptional.orElseThrow(() ->
+            VersionedCompanyProfileDocument cpDocument = cpDocumentOptional.orElseThrow(() ->
                     new DocumentNotFoundException(
                             String.format("No company profile with company number %s found",
                                     companyNumber)));
 
-            companyProfileRequest.getData().setEtag(GenerateEtagUtil.generateEtag());
+            Data data = Optional.of(companyProfileRequest)
+                    .map(CompanyProfile::getData)
+                    .orElseThrow(() -> new BadRequestException("no data within patch request"));
 
-            cpDocument.setCompanyProfile(companyProfileRequest.getData());
+            Links links = Optional.of(data)
+                    .map(Data::getLinks)
+                    .orElseThrow(() -> new BadRequestException("no links within patch request"));
+
+            cpDocument.setHasMortgages(isNotBlank(links.getCharges()));
+            Data existingData = cpDocument.getCompanyProfile();
+            existingData.setEtag(GenerateEtagUtil.generateEtag());
+
+            Links existingLinks = Optional.ofNullable(existingData.getLinks()).orElse(new Links());
+            existingLinks.setInsolvency(links.getInsolvency());
+            existingLinks.setCharges(links.getCharges());
+            existingLinks.setRegisters(links.getRegisters());
+
+            existingData.setLinks(existingLinks);
+            existingData.setHasInsolvencyHistory(data.getHasInsolvencyHistory());
+            existingData.setHasCharges(data.getHasCharges());
+
+            cpDocument.setCompanyProfile(existingData);
 
             if (cpDocument.getUpdated() != null) {
                 cpDocument.getUpdated()
@@ -167,169 +182,25 @@ public class CompanyProfileService {
 
             if (statusCode.is2xxSuccessful()) {
                 logger.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
-                        + "invoked successfully for company number %s", companyNumber),
+                                + "invoked successfully for company number %s", companyNumber),
                         DataMapHolder.getLogMap());
-                updateSpecificFields(cpDocument);
+                if (cpDocument.getVersion() == null) { // Update a legacy document
+                    mongoTemplate.save(new UnversionedCompanyProfileDocument(cpDocument));
+                } else { // Update a versioned document
+                    companyProfileRepository.save(cpDocument);
+                }
                 logger.infoContext(contextId, String.format("Company profile is updated "
-                        + "in MongoDB with company number %s", companyNumber),
+                                + "in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
             } else {
                 logger.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked "
-                        + "successfully for company number %s. Response code %s.", companyNumber,
-                        statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
+                                        + "successfully for company number %s. Response code %s.", companyNumber,
+                                statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
                         DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
         }
-    }
-
-    private void addLink(LinkRequest linkRequest) {
-        String companyNumber = linkRequest.getCompanyNumber();
-        String contextId = linkRequest.getContextId();
-        String linkType = linkRequest.getLinkType();
-        try {
-            Update update = Update.update(
-                    String.format("data.links.%s", convertToDBformat(linkType)),
-                    String.format("/company/%s/%s", companyNumber, linkType));
-            update.set("data.etag", GenerateEtagUtil.generateEtag());
-            update.set("updated", new Updated()
-                    .setAt(LocalDateTime.now())
-                    .setType(linkRequest.getDeltaType())
-                    .setBy(contextId));
-
-            if (Objects.equals(linkRequest.getLinkType(), "charges")) {
-                update.set("data.has_charges", true);
-            }
-
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
-
-            mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
-            logger.infoContext(contextId, String.format("Company %s link inserted "
-                    + "in Company Profile with company number: %s", linkType, companyNumber),
-                    DataMapHolder.getLogMap());
-
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.infoContext(contextId, String.format("chs-kafka-api CHANGED invoked "
-                    + "successfully for company number: %s", companyNumber),
-                    DataMapHolder.getLogMap());
-        } catch (IllegalArgumentException exception) {
-            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
-                    DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException(exception.getMessage());
-        } catch (DataAccessException exception) {
-            logger.errorContext(contextId, "Error accessing MongoDB", exception,
-                    DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException(exception.getMessage());
-        }
-    }
-
-    private void deleteLink(LinkRequest linkRequest) {
-        String companyNumber = linkRequest.getCompanyNumber();
-        String contextId = linkRequest.getContextId();
-        String linkType = linkRequest.getLinkType();
-
-        if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkType)) {
-            int ukEstablishmentsCount = retrieveUkEstablishments(companyNumber).getItems().size();
-            if (ukEstablishmentsCount > 1) {
-                logger.infoContext(contextId, String.format("Link not deleted, "
-                                + "UK establishments still exists for: %s", companyNumber),
-                        DataMapHolder.getLogMap());
-                return;
-            }
-            logger.infoContext(contextId, String.format("Company: %s only has zero or "
-                            + "one uk establishment, link to be deleted.", companyNumber),
-                    DataMapHolder.getLogMap());
-        }
-
-        try {
-            Update update = new Update();
-            update.unset(String.format("data.links.%s", convertToDBformat(linkType)));
-            update.set("data.etag", GenerateEtagUtil.generateEtag());
-            update.set("updated", new Updated()
-                    .setAt(LocalDateTime.now())
-                    .setType(linkRequest.getDeltaType())
-                    .setBy(contextId));
-            Query query = new Query(Criteria.where("_id").is(companyNumber));
-
-            mongoTemplate.updateFirst(query, update, VersionedCompanyProfileDocument.class);
-            logger.infoContext(contextId, String.format("Company %s link deleted "
-                    + "in Company Profile with company number: %s",
-                    linkType, companyNumber), DataMapHolder.getLogMap());
-
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
-            logger.infoContext(contextId, String.format("chs-kafka-api DELETED invoked "
-                    + "successfully for company number: %s", companyNumber),
-                    DataMapHolder.getLogMap());
-        } catch (IllegalArgumentException exception) {
-            logger.errorContext(contextId, "Error calling chs-kafka-api", exception,
-                    DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException(exception.getMessage());
-        } catch (DataAccessException exception) {
-            logger.errorContext(contextId, "Error accessing MongoDB", exception,
-                    DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException(exception.getMessage());
-        }
-    }
-
-    private VersionedCompanyProfileDocument getDocument(String companyNumber) {
-        try {
-            return companyProfileRepository.findById(companyNumber)
-                    .orElseThrow(() -> new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
-        } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB", DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException(exception.getMessage());
-        }
-    }
-
-    private void updateSpecificFields(VersionedCompanyProfileDocument companyProfileDocument) {
-        Update update = new Update();
-        setUpdateIfNotNull(update, "data.etag",
-                companyProfileDocument.getCompanyProfile().getEtag());
-        setUpdateIfNotNull(update, "updated",
-                companyProfileDocument.getUpdated());
-        setUpdateIfNotNullOtherwiseRemove(update, "data.links.insolvency",
-                companyProfileDocument.getCompanyProfile().getLinks() != null
-                        ?
-                        companyProfileDocument.getCompanyProfile().getLinks().getInsolvency()
-                        : null);
-        setUpdateIfNotNullOtherwiseRemove(update, "data.links.charges",
-                companyProfileDocument.getCompanyProfile().getLinks() != null
-                        ? companyProfileDocument.getCompanyProfile().getLinks().getCharges()
-                        : null);
-        setUpdateIfNotNullOtherwiseRemove(update, "data.links.registers",
-                companyProfileDocument.getCompanyProfile().getLinks() != null
-                        ? companyProfileDocument.getCompanyProfile().getLinks().getRegisters()
-                        : null);
-        setUpdateIfNotNullOtherwiseRemove(update, "data.has_insolvency_history",
-                companyProfileDocument.getCompanyProfile().getHasInsolvencyHistory());
-        setUpdateIfNotNullOtherwiseRemove(update, "data.has_charges",
-                companyProfileDocument.getCompanyProfile().getHasCharges());
-        Query query = new Query(Criteria.where("_id").is(companyProfileDocument.getId()));
-        mongoTemplate.upsert(query, update, VersionedCompanyProfileDocument.class);
-    }
-
-    private void setUpdateIfNotNull(Update update, String key, Object object) {
-        if (object != null) {
-            update.set(key, object);
-        }
-    }
-
-    private void setUpdateIfNotNullOtherwiseRemove(Update update, String key, Object object) {
-        if (object != null) {
-            update.set(key, object);
-        } else {
-            update.unset(key);
-        }
-    }
-
-    /**
-     * transforms link type string to format required to fetch from db.
-     */
-    private String convertToDBformat(String linkType) {
-        return linkType.replace('-', '_');
     }
 
     /**
@@ -353,11 +224,12 @@ public class CompanyProfileService {
      * call addLink if this is false.
      */
     public void checkForAddLink(LinkRequest linkRequest) {
-        Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
+        VersionedCompanyProfileDocument existingDocument = getDocument(linkRequest.getCompanyNumber());
+        Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
-                            new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                    "no data for company profile: "
-                                    + linkRequest.getCompanyNumber()));
+                        new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                "no data for company profile: "
+                                        + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
@@ -367,7 +239,7 @@ public class CompanyProfileService {
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
         } else {
-            addLink(linkRequest);
+            addLink(linkRequest, existingDocument);
         }
     }
 
@@ -376,22 +248,23 @@ public class CompanyProfileService {
      * call deleteLink if this is false.
      */
     public void checkForDeleteLink(LinkRequest linkRequest) {
-        Data data = Optional.ofNullable(getDocument(linkRequest.getCompanyNumber()))
+        VersionedCompanyProfileDocument existingDocument = getDocument(linkRequest.getCompanyNumber());
+        Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
                                 "no data for company profile: "
-                                + linkRequest.getCompanyNumber()));
+                                        + linkRequest.getCompanyNumber()));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                 new ResourceStateConflictException("links data not found"));
         String linkData = linkRequest.getCheckLink().apply(links);
 
-        if (StringUtils.isBlank(linkData)) {
+        if (isBlank(linkData)) {
             logger.error(linkRequest.getLinkType() + " link for company profile already"
                     + " does not exist", DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already does not exist");
         } else {
-            deleteLink(linkRequest);
+            deleteLink(linkRequest, existingDocument);
         }
     }
 
@@ -443,12 +316,15 @@ public class CompanyProfileService {
             if (companyProfile.getData().getHasCharges() == null) {
                 Optional.of(companyProfileDocument)
                         .map(CompanyProfileDocument::getCompanyProfile)
-                        .map(Data::getHasCharges).ifPresent(hasCharges ->
-                                companyProfile.getData().setHasCharges(hasCharges));
+                        .map(Data::getHasCharges).ifPresent(hasCharges -> {
+                            companyProfile.getData().setHasCharges(hasCharges);
+                            companyProfile.setHasMortgages(hasCharges);
+                        });
 
                 if (companyProfile.getData().getLinks() != null) {
                     boolean hasCharges = companyProfile.getData().getLinks().getCharges() != null;
                     companyProfile.getData().setHasCharges(hasCharges);
+                    companyProfile.setHasMortgages(hasCharges);
                 }
             }
 
@@ -480,21 +356,6 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
-    }
-
-    private VersionedCompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
-        VersionedCompanyProfileDocument parentCompanyDocument = new VersionedCompanyProfileDocument();
-        parentCompanyDocument.setId(parentCompanyNumber);
-        parentCompanyDocument.setDeltaAt(LocalDateTime.now());
-        Data parentCompanyData = new Data();
-        Links parentCompanyLinks = new Links();
-        String ukEstablishmentLink = String.format("/company/%s/uk-establishments",
-                parentCompanyNumber);
-        parentCompanyLinks.setUkEstablishments(ukEstablishmentLink);
-        parentCompanyData.setLinks(parentCompanyLinks);
-        parentCompanyDocument.setCompanyProfile(parentCompanyData);
-        parentCompanyDocument.version(0L);
-        return parentCompanyDocument;
     }
 
     /** Retrieve company profile. */
@@ -534,14 +395,6 @@ public class CompanyProfileService {
         return profileData;
     }
 
-    private VersionedCompanyProfileDocument getCompanyProfileDocument(String companyNumber)
-            throws ResourceNotFoundException {
-        Optional<VersionedCompanyProfileDocument> companyProfileOptional =
-                companyProfileRepository.findById(companyNumber);
-        return companyProfileOptional.orElseThrow(() ->
-                new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
-                        "Resource not found for company number: %s", companyNumber)));
-    }
 
     /** Delete company profile. */
     @Transactional
@@ -588,7 +441,6 @@ public class CompanyProfileService {
      *
      * @param parentCompanyNumber the supplied parent company number
      * @return a list of uk establishments
-     *
      * @throws ResourceNotFoundException when a company is not located
      */
     public UkEstablishmentsList getUkEstablishments(String parentCompanyNumber)
@@ -597,33 +449,6 @@ public class CompanyProfileService {
         return retrieveUkEstablishments(numberFound);
     }
 
-    private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
-        List<UkEstablishment> ukEstablishments = companyProfileRepository
-                .findAllByParentCompanyNumber(companyNumber)
-                .stream().map(company -> {
-                    UkEstablishment ukEstablishment = new UkEstablishment();
-                    ukEstablishment.setCompanyName(company.getCompanyProfile().getCompanyName());
-                    ukEstablishment.setCompanyNumber(company.getId());
-                    ukEstablishment.setCompanyStatus(company.getCompanyProfile()
-                            .getCompanyStatus());
-                    ukEstablishment.setLocality(company.getCompanyProfile()
-                            .getRegisteredOfficeAddress().getLocality());
-                    SelfLink companySelfLink = new SelfLink();
-                    companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
-                    ukEstablishment.setLinks(companySelfLink);
-                    return ukEstablishment;
-                }).collect(Collectors.toList());
-
-        UkEstablishmentsList ukEstablishmentsList = new UkEstablishmentsList();
-        ukEstablishmentsList.setItems(ukEstablishments);
-        ukEstablishmentsList.setKind(RELATED_COMPANIES_KIND);
-        ukEstablishmentsList.setEtag(GenerateEtagUtil.generateEtag());
-        Links parentCompanyLink = new Links();
-        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, companyNumber));
-        ukEstablishmentsList.setLinks(parentCompanyLink);
-
-        return ukEstablishmentsList;
-    }
 
     /** Set can_file based on company type and status. */
     public VersionedCompanyProfileDocument determineCanFile(VersionedCompanyProfileDocument companyProfileDocument) {
@@ -687,5 +512,185 @@ public class CompanyProfileService {
         }
         companyProfileDocument.setCompanyProfile(companyProfile);
         return companyProfileDocument;
+    }
+
+    private void addLink(LinkRequest linkRequest, VersionedCompanyProfileDocument existingDocument) {
+        try {
+            Links links = Optional.ofNullable(existingDocument.getCompanyProfile().getLinks()).orElse(new Links());
+            setLinksOnType(links, linkRequest.getLinkType(), linkRequest.getCompanyNumber());
+            existingDocument.getCompanyProfile().setLinks(links);
+            existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+            existingDocument.setUpdated(new Updated()
+                    .setAt(LocalDateTime.now())
+                    .setType(linkRequest.getDeltaType())
+                    .setBy(linkRequest.getContextId()));
+
+            if (linkRequest.getLinkType().equals("charges")) {
+                existingDocument.getCompanyProfile().setHasCharges(true);
+                existingDocument.setHasMortgages(true);
+            } else {
+                existingDocument.setHasMortgages(false);
+            }
+
+            if (existingDocument.getVersion() == null) { // Update a legacy document with links
+                mongoTemplate.save(new UnversionedCompanyProfileDocument(existingDocument));
+            } else { // Update a versioned document with links
+                companyProfileRepository.save(existingDocument);
+            }
+            logger.info(String.format("Company %s link inserted in Company Profile", linkRequest.getLinkType()),
+                    DataMapHolder.getLogMap());
+
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
+            logger.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
+        } catch (IllegalArgumentException exception) {
+            logger.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB", exception, DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
+    private void deleteLink(LinkRequest linkRequest, VersionedCompanyProfileDocument existingDocument) {
+        if (UK_ESTABLISHMENTS_LINK_TYPE.equals(linkRequest.getLinkType())) {
+            int ukEstablishmentsCount = retrieveUkEstablishments(linkRequest.getCompanyNumber())
+                    .getItems().size();
+            if (ukEstablishmentsCount > 1) {
+                logger.info("Link not deleted, UK establishments still exists",
+                        DataMapHolder.getLogMap());
+                return;
+            }
+        }
+        try {
+            existingDocument.setHasMortgages(!linkRequest.getLinkType().equals("charges"));
+            unsetLinksOnType(existingDocument.getCompanyProfile().getLinks(), linkRequest.getLinkType());
+            existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
+            existingDocument.setUpdated(new Updated()
+                    .setAt(LocalDateTime.now())
+                    .setType(linkRequest.getDeltaType())
+                    .setBy(linkRequest.getContextId()));
+
+            if (existingDocument.getVersion() == null) { // Update a legacy document
+                mongoTemplate.save(new UnversionedCompanyProfileDocument(existingDocument));
+            } else { // Update a versioned document
+                companyProfileRepository.save(existingDocument);
+            }
+            logger.info(String.format("Company %s link deleted in Company Profile",
+                    linkRequest.getLinkType()), DataMapHolder.getLogMap());
+
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
+            logger.info("chs-kafka-api DELETED invoked successfully",
+                    DataMapHolder.getLogMap());
+        } catch (IllegalArgumentException exception) {
+            logger.error("Error calling chs-kafka-api", exception,
+                    DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB", exception,
+                    DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
+    private VersionedCompanyProfileDocument getDocument(String companyNumber) {
+        try {
+            return companyProfileRepository.findById(companyNumber)
+                    .orElseThrow(() -> new DocumentNotFoundException(
+                            String.format("No company profile with company number %s found",
+                                    companyNumber)));
+        } catch (DataAccessException exception) {
+            logger.error("Error accessing MongoDB", DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(exception.getMessage());
+        }
+    }
+
+    private VersionedCompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
+        VersionedCompanyProfileDocument parentCompanyDocument = new VersionedCompanyProfileDocument();
+        parentCompanyDocument.setId(parentCompanyNumber);
+        parentCompanyDocument.setDeltaAt(LocalDateTime.now());
+        Data parentCompanyData = new Data();
+        Links parentCompanyLinks = new Links();
+        String ukEstablishmentLink = String.format("/company/%s/uk-establishments",
+                parentCompanyNumber);
+        parentCompanyLinks.setUkEstablishments(ukEstablishmentLink);
+        parentCompanyData.setLinks(parentCompanyLinks);
+        parentCompanyDocument.setCompanyProfile(parentCompanyData);
+        parentCompanyDocument.version(0L);
+        return parentCompanyDocument;
+    }
+
+    private VersionedCompanyProfileDocument getCompanyProfileDocument(String companyNumber)
+            throws ResourceNotFoundException {
+        Optional<VersionedCompanyProfileDocument> companyProfileOptional =
+                companyProfileRepository.findById(companyNumber);
+        return companyProfileOptional.orElseThrow(() ->
+                new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
+                        "Resource not found for company number: %s", companyNumber)));
+    }
+
+    private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
+        List<UkEstablishment> ukEstablishments = companyProfileRepository
+                .findAllByParentCompanyNumber(companyNumber)
+                .stream().map(company -> {
+                    UkEstablishment ukEstablishment = new UkEstablishment();
+                    ukEstablishment.setCompanyName(company.getCompanyProfile().getCompanyName());
+                    ukEstablishment.setCompanyNumber(company.getId());
+                    ukEstablishment.setCompanyStatus(company.getCompanyProfile()
+                            .getCompanyStatus());
+                    ukEstablishment.setLocality(company.getCompanyProfile()
+                            .getRegisteredOfficeAddress().getLocality());
+                    SelfLink companySelfLink = new SelfLink();
+                    companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
+                    ukEstablishment.setLinks(companySelfLink);
+                    return ukEstablishment;
+                }).collect(Collectors.toList());
+
+        UkEstablishmentsList ukEstablishmentsList = new UkEstablishmentsList();
+        ukEstablishmentsList.setItems(ukEstablishments);
+        ukEstablishmentsList.setKind(RELATED_COMPANIES_KIND);
+        ukEstablishmentsList.setEtag(GenerateEtagUtil.generateEtag());
+        Links parentCompanyLink = new Links();
+        parentCompanyLink.setSelf(String.format(COMPANY_SELF_LINK, companyNumber));
+        ukEstablishmentsList.setLinks(parentCompanyLink);
+
+        return ukEstablishmentsList;
+    }
+
+    private static void setLinksOnType(Links links, String linkType, String companyNumber) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
+            case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
+            case "filing-history" -> links.setFilingHistory(formatLinks(companyNumber, linkType));
+            case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
+            case "officers" -> links.setOfficers(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control" ->
+                    links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
+            case "uk-establishments" ->
+                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
+            case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
+    private static String formatLinks(String companyNumber, String linkType) {
+        return String.format("/company/%s/%s", companyNumber, linkType);
+    }
+
+    private static void unsetLinksOnType(Links links, String linkType) {
+        switch (linkType) {
+            case "charges" -> links.setCharges(null);
+            case "exemptions" -> links.setExemptions(null);
+            case "filing-history" -> links.setFilingHistory(null);
+            case "insolvency" -> links.setInsolvency(null);
+            case "officers" -> links.setOfficers(null);
+            case "persons-with-significant-control" -> links.setPersonsWithSignificantControl(null);
+            case "persons-with-significant-control-statements" ->
+                    links.setPersonsWithSignificantControlStatements(null);
+            case "uk-establishments" -> links.setUkEstablishments(null);
+            case "registers" -> links.setRegisters(null);
+            default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
     }
 }
