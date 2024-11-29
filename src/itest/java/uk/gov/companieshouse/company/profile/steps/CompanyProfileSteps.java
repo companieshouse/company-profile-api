@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +56,7 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 
 public class CompanyProfileSteps {
 
+    private static final DateTimeFormatter DELTA_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
     private String companyNumber;
     private String contextId;
     private ResponseEntity<Data> response;
@@ -307,12 +309,18 @@ public class CompanyProfileSteps {
     public void saveCompanyProfileResourceToDatabase(String dataFile, String companyNumber) throws IOException {
         File source = new ClassPathResource(String.format("/json/input/%s.json", dataFile)).getFile();
 
-        Data companyProfileData = objectMapper.readValue(source, CompanyProfile.class).getData();
+        CompanyProfile companyProfile = objectMapper.readValue(source, CompanyProfile.class);
+        Data companyProfileData = companyProfile.getData();
 
-        VersionedCompanyProfileDocument companyProfile = new VersionedCompanyProfileDocument();
-        companyProfile.setCompanyProfile(companyProfileData).setId(companyNumber);
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setCompanyProfile(companyProfileData)
+                .setId(companyNumber);
 
-        companyProfileRepository.save(companyProfile);
+        if (companyProfile.getDeltaAt() != null) {
+            document.setDeltaAt(LocalDateTime.parse(companyProfile.getDeltaAt(), DELTA_AT_FORMATTER));
+        }
+
+        companyProfileRepository.save(document);
         assertThat(companyProfileRepository.findById(companyNumber)).isPresent();
         CucumberContext.CONTEXT.set("companyProfileData", companyProfileData);
     }

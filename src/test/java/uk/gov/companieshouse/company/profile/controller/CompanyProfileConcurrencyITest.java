@@ -29,6 +29,7 @@ class CompanyProfileConcurrencyITest {
 
     private static final String COMPANY_NUMBER = "6146287";
     private static final String CONTEXT_ID = "123456";
+    private static final String DELTA_AT = "20241129123010123789";
 
     @Container
     private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:5.0.12");
@@ -157,7 +158,8 @@ class CompanyProfileConcurrencyITest {
     }
 
     private static CompanyProfile makeBaseCompanyProfile() {
-        CompanyProfile companyProfile = new CompanyProfile();
+        CompanyProfile companyProfile = new CompanyProfile()
+                .deltaAt(DELTA_AT);
         companyProfile.setHasMortgages(false);
         companyProfile.setData(new Data());
         companyProfile.getData().setLinks(new Links());
