@@ -5,7 +5,7 @@ locals {
   name_prefix_links               = "${local.stack_name}-${var.environment}-links"
   global_prefix                   = "global-${var.environment}"
   service_name                    = "company-profile-api"
-  service_name_links              = "company-profile-api-links"
+  service_name_links              = "links-company-profile-api"
   container_port                  = "8080"
   eric_port                       = "10000"
   docker_repo                     = "company-profile-api"
