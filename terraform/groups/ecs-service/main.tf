@@ -144,6 +144,7 @@ module "ecs-service-links" {
   service_name                       = local.service_name_links
   name_prefix                        = local.name_prefix
   desired_task_count                 = var.desired_task_count_links
+  min_task_count                     = var.min_task_count_links
   max_task_count                     = var.max_task_count_links
   min_task_count                     = var.min_task_count_links
   required_cpus                      = var.required_cpus

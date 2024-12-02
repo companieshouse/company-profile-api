@@ -2,7 +2,10 @@ environment = "staging"
 aws_profile = "staging-eu-west-2"
 # service configs
 use_set_environment_files = true
-
+min_task_count = 3
+desired_task_count = 3
+required_cpus = 768
+required_memory = 1536
 # scaling configs
 service_autoscale_enabled  = true
 service_scaledown_schedule = "55 19 * * ? *"
