@@ -48,7 +48,7 @@ public class TestHelper {
         companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
         companyProfileDocument.version(1L);
-
+        companyProfileDocument.setDeltaAt(LocalDateTime.parse("2024-11-28T19:38:43"));
         companyProfileDocument.setUpdated(new Updated()
                 .setAt(LocalDateTime.now()));
         return companyProfileDocument;

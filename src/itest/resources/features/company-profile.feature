@@ -60,6 +60,20 @@ Feature: Process company profile
       | companyNumber     |
       | 00006402          |
 
+  Scenario Outline: Processing stale company profile information returns HTTP 409 conflict
+
+    Given Company profile api service is running
+    And the CHS Kafka API is reachable
+    And the company profile resource "<companyNumber>" exists for "<companyNumber>"
+    When I send a PUT request with payload "<staleDeltaRequest>" file for company number "<companyNumber>"
+    Then I should receive 409 status code
+    And the CHS Kafka API is not invoked
+
+    Examples:
+      | companyNumber | staleDeltaRequest         |
+      | 00006402      | 00006402_missing_delta_at |
+      | 00006402      | 00006402_stale            |
+
   Scenario Outline: Processing company profile information successfully when has_charges is null
 
     Given Company profile api service is running

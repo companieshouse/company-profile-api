@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.CHARGES_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.CHARGES_GET;
@@ -139,6 +140,7 @@ class CompanyProfileServiceTest {
     private static List<UkEstablishment> UK_ESTABLISHMENTS_TEST_OUTPUT;
     private static VersionedCompanyProfileDocument EXISTING_UK_ESTABLISHMENT_COMPANY;
     private static VersionedCompanyProfileDocument EXISTING_PARENT_COMPANY;
+    private static final String DELTA_AT = "20241129123010123789";
 
     private final LinkRequest chargesLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
             CHARGES_LINK_TYPE, CHARGES_DELTA_TYPE, CHARGES_GET);
@@ -2057,6 +2059,21 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("Put company profile fails when delta is stale")
+    void putCompanyProfileThrowsConflictExceptionsWhenStaleDelta() {
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(COMPANY_PROFILE_DOCUMENT));
+
+        Executable actual = () -> companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                COMPANY_PROFILE);
+
+        assertThrows(ResourceStateConflictException.class, actual);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoMoreInteractions(companyProfileRepository);
+        verifyNoInteractions(companyProfileTransformer);
+        verifyNoInteractions(companyProfileApiService);
+    }
+
+    @Test
     @DisplayName("Put company profile with existing links")
     void putCompanyProfileWithExistingLinksSuccessfully() {
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
@@ -2642,7 +2659,8 @@ class CompanyProfileServiceTest {
         existingDoc.version(1L);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingDoc));
 
-        CompanyProfile profileToTransform = new CompanyProfile();
+        CompanyProfile profileToTransform = new CompanyProfile()
+                .deltaAt(DELTA_AT);
         profileToTransform.setData(new Data());
         profileToTransform.getData().setHasBeenLiquidated(true);
         profileToTransform.getData().setHasCharges(true);
@@ -2651,7 +2669,8 @@ class CompanyProfileServiceTest {
         when(companyProfileTransformer.transform(existingDoc, profileToTransform, null))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT);
 
-        CompanyProfile companyProfile = new CompanyProfile();
+        CompanyProfile companyProfile = new CompanyProfile()
+                .deltaAt(DELTA_AT);
         companyProfile.setData(new Data());
         companyProfile.getData().setHasCharges(null);
         companyProfile.getData().setHasBeenLiquidated(null);
@@ -2667,7 +2686,8 @@ class CompanyProfileServiceTest {
 
     @Test
     void updateCompanyProfileWhenHasChargesIsFalse() {
-        CompanyProfile companyProfile = new CompanyProfile();
+        CompanyProfile companyProfile = new CompanyProfile()
+                .deltaAt(DELTA_AT);
         Links links = new Links();
         companyProfile.setData(new Data());
         companyProfile.getData().setLinks(links);
@@ -2686,7 +2706,8 @@ class CompanyProfileServiceTest {
 
     @Test
     void updateCompanyProfileWhenHasChargesIsNull() {
-        CompanyProfile companyProfile = new CompanyProfile();
+        CompanyProfile companyProfile = new CompanyProfile()
+                .deltaAt(DELTA_AT);
         Links links = new Links();
         companyProfile.setData(new Data());
         companyProfile.getData().setLinks(links);

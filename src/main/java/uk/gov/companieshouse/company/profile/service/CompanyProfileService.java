@@ -2,9 +2,16 @@ package uk.gov.companieshouse.company.profile.service;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static uk.gov.companieshouse.company.profile.util.DateUtils.isDeltaStale;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -44,15 +51,10 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CompanyProfileService {
+
     private static final String RELATED_COMPANIES_KIND = "related-companies";
     private static final String COMPANY_SELF_LINK = "/company/%s";
     private final Logger logger;
@@ -67,11 +69,11 @@ public class CompanyProfileService {
      */
     @Autowired
     public CompanyProfileService(Logger logger,
-                                 CompanyProfileRepository companyProfileRepository,
-                                 MongoTemplate mongoTemplate,
-                                 CompanyProfileApiService companyProfileApiService,
-                                 LinkRequestFactory linkRequestFactory,
-                                 CompanyProfileTransformer companyProfileTransformer) {
+            CompanyProfileRepository companyProfileRepository,
+            MongoTemplate mongoTemplate,
+            CompanyProfileApiService companyProfileApiService,
+            LinkRequestFactory linkRequestFactory,
+            CompanyProfileTransformer companyProfileTransformer) {
         this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
@@ -131,7 +133,7 @@ public class CompanyProfileService {
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
     public void updateInsolvencyLink(String contextId, String companyNumber,
-                                     final CompanyProfile companyProfileRequest) {
+            final CompanyProfile companyProfileRequest) {
         try {
 
             Optional<VersionedCompanyProfileDocument> cpDocumentOptional =
@@ -204,11 +206,10 @@ public class CompanyProfileService {
     }
 
     /**
-     * func creates a Link Request for a given link type
-     * and calls checkAdd or checkDelete.
+     * func creates a Link Request for a given link type and calls checkAdd or checkDelete.
      */
     public void processLinkRequest(String linkType, String companyNumber, String contextId,
-                                   boolean delete) {
+            boolean delete) {
         LinkRequest linkRequest =
                 linkRequestFactory.createLinkRequest(linkType, contextId, companyNumber);
 
@@ -220,8 +221,7 @@ public class CompanyProfileService {
     }
 
     /**
-     * Checks if link for given type exists in document and
-     * call addLink if this is false.
+     * Checks if link for given type exists in document and call addLink if this is false.
      */
     public void checkForAddLink(LinkRequest linkRequest) {
         VersionedCompanyProfileDocument existingDocument = getDocument(linkRequest.getCompanyNumber());
@@ -244,8 +244,7 @@ public class CompanyProfileService {
     }
 
     /**
-     * Checks if link for given type does not exist in document and
-     * call deleteLink if this is false.
+     * Checks if link for given type does not exist in document and call deleteLink if this is false.
      */
     public void checkForDeleteLink(LinkRequest linkRequest) {
         VersionedCompanyProfileDocument existingDocument = getDocument(linkRequest.getCompanyNumber());
@@ -269,16 +268,21 @@ public class CompanyProfileService {
     }
 
     /**
-     * Finds existing company profile from db if any and
-     * updates or saves new record into db.
+     * Finds existing company profile from db if any and updates or saves new record into db.
      */
     public void processCompanyProfile(String contextId, String companyNumber,
-                                      CompanyProfile companyProfile)
+            CompanyProfile companyProfile)
             throws ServiceUnavailableException, BadRequestException {
 
         VersionedCompanyProfileDocument companyProfileDocument =
                 companyProfileRepository.findById(companyNumber)
                         .orElse(new VersionedCompanyProfileDocument());
+
+        if (isDeltaStale(companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt())) {
+            logger.error("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
+                    companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt()), DataMapHolder.getLogMap());
+            throw new ResourceStateConflictException("Stale delta for upsert");
+        }
 
         Optional<Links> existingLinks = Optional.of(companyProfileDocument)
                 .map(CompanyProfileDocument::getCompanyProfile)
@@ -332,7 +336,7 @@ public class CompanyProfileService {
                         .map(CompanyProfileDocument::getCompanyProfile)
                         .map(Data::getHasBeenLiquidated).ifPresent(hasBeenLiquidated ->
                                 companyProfile.getData().setHasBeenLiquidated(hasBeenLiquidated)
-                    );
+                        );
             }
         }
 
@@ -357,7 +361,9 @@ public class CompanyProfileService {
         }
     }
 
-    /** Retrieve company profile. */
+    /**
+     * Retrieve company profile.
+     */
     public Data retrieveCompanyNumber(String companyNumber)
             throws ResourceNotFoundException {
         VersionedCompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
@@ -395,10 +401,12 @@ public class CompanyProfileService {
     }
 
 
-    /** Delete company profile. */
+    /**
+     * Delete company profile.
+     */
     @Transactional
     public void deleteCompanyProfile(String contextId,
-                                     String companyNumber) throws ResourceNotFoundException {
+            String companyNumber) throws ResourceNotFoundException {
         VersionedCompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
@@ -419,7 +427,9 @@ public class CompanyProfileService {
 
     }
 
-    /** Get company details. */
+    /**
+     * Get company details.
+     */
     public Optional<CompanyDetails> getCompanyDetails(String companyNumber) {
         try {
             Data companyProfile = retrieveCompanyNumber(companyNumber);
@@ -435,8 +445,7 @@ public class CompanyProfileService {
     }
 
     /**
-     * Retrieves a list of company profile documents.
-     * And then maps them into a list of UK establishments.
+     * Retrieves a list of company profile documents. And then maps them into a list of UK establishments.
      *
      * @param parentCompanyNumber the supplied parent company number
      * @return a list of uk establishments
@@ -449,7 +458,9 @@ public class CompanyProfileService {
     }
 
 
-    /** Set can_file based on company type and status. */
+    /**
+     * Set can_file based on company type and status.
+     */
     public VersionedCompanyProfileDocument determineCanFile(VersionedCompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
@@ -458,7 +469,7 @@ public class CompanyProfileService {
 
             if (companyType == null || companyStatus == null) {
                 companyProfile.setCanFile(false);
-            }   else if (companyType.equals("ltd")
+            } else if (companyType.equals("ltd")
                     || companyType.equals("llp")
                     || companyType.equals("plc")
                     || companyType.contains("private")) {
@@ -477,8 +488,9 @@ public class CompanyProfileService {
         return companyProfileDocument;
     }
 
-    /** Set overdue field based on next due confirmation statement,
-     * next accounts, and annual return. */
+    /**
+     * Set overdue field based on next due confirmation statement, next accounts, and annual return.
+     */
     public VersionedCompanyProfileDocument determineOverdue(VersionedCompanyProfileDocument companyProfileDocument) {
         Data companyProfile = companyProfileDocument.getCompanyProfile();
         try {
@@ -488,7 +500,7 @@ public class CompanyProfileService {
                     .map(ConfirmationStatement::getNextDue)
                     .ifPresent(nextDue -> {
                         companyProfile.getConfirmationStatement()
-                            .setOverdue(nextDue.isBefore(currentDate));
+                                .setOverdue(nextDue.isBefore(currentDate));
                     });
 
             Optional.ofNullable(companyProfile.getAccounts())
@@ -665,8 +677,7 @@ public class CompanyProfileService {
                     links.setPersonsWithSignificantControl(formatLinks(companyNumber, linkType));
             case "persons-with-significant-control-statements" ->
                     links.setPersonsWithSignificantControlStatements(formatLinks(companyNumber, linkType));
-            case "uk-establishments" ->
-                    links.setUkEstablishments(formatLinks(companyNumber, linkType));
+            case "uk-establishments" -> links.setUkEstablishments(formatLinks(companyNumber, linkType));
             case "registers" -> links.setRegisters(formatLinks(companyNumber, linkType));
             default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
         }
