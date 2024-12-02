@@ -45,11 +45,11 @@ module "ecs-service" {
   lb_listener_paths                 = local.lb_listener_paths
   multilb_setup                   = true
   multilb_listeners               = {
-    "priv-api-lb": {
+    "pri-api-lb": {
       listener_arn                = data.aws_lb_listener.secondary_lb_listener.arn,
       load_balancer_arn           = data.aws_lb.secondary_lb.arn
     }
-    "pub-api-lb": {
+    "pu-api-lb": {
       load_balancer_arn      = data.aws_lb.service_lb.arn
       listener_arn           = data.aws_lb_listener.service_lb_listener.arn
     }
@@ -119,11 +119,11 @@ module "ecs-service-links" {
   lb_listener_paths                 = local.lb_listener_paths_links
   multilb_setup                   = true
   multilb_listeners               = {
-    "priv-api-lb": {
+    "priva-api-lb": {
       listener_arn                = data.aws_lb_listener.secondary_lb_listener.arn,
       load_balancer_arn           = data.aws_lb.secondary_lb.arn
     }
-    "pub-api-lb": {
+    "publ-api-lb": {
       load_balancer_arn      = data.aws_lb.service_lb.arn
       listener_arn           = data.aws_lb_listener.service_lb_listener.arn
     }
