@@ -278,8 +278,7 @@ public class CompanyProfileService {
 
         VersionedCompanyProfileDocument companyProfileDocument =
                 companyProfileRepository.findById(companyNumber)
-                        .orElse(new VersionedCompanyProfileDocument()
-                                .version(0L));
+                        .orElse(new VersionedCompanyProfileDocument());
 
         Optional<Links> existingLinks = Optional.of(companyProfileDocument)
                 .map(CompanyProfileDocument::getCompanyProfile)
@@ -615,7 +614,6 @@ public class CompanyProfileService {
         parentCompanyLinks.setUkEstablishments(ukEstablishmentLink);
         parentCompanyData.setLinks(parentCompanyLinks);
         parentCompanyDocument.setCompanyProfile(parentCompanyData);
-        parentCompanyDocument.version(0L);
         return parentCompanyDocument;
     }
 
