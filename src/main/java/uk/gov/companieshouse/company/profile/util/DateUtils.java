@@ -9,7 +9,9 @@ import java.time.format.DateTimeFormatter;
 
 public final class DateUtils {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
+    private static final DateTimeFormatter DELTA_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
+            .withZone(UTC);
+    private static final DateTimeFormatter PUBLISHED_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss")
             .withZone(UTC);
 
     private DateUtils() {
@@ -18,12 +20,11 @@ public final class DateUtils {
     public static boolean isDeltaStale(final String requestDeltaAt, final LocalDateTime existingDeltaAt) {
         return requestDeltaAt == null ||
                 (existingDeltaAt != null &&
-                        OffsetDateTime.parse(requestDeltaAt, FORMATTER)
+                        OffsetDateTime.parse(requestDeltaAt, DELTA_AT_FORMATTER)
                                 .isBefore(existingDeltaAt.atOffset(UTC)));
     }
 
     public static String publishedAtString(final Instant source) {
-        return source.atOffset(UTC)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss"));
+        return source.atOffset(UTC).format(PUBLISHED_AT_FORMATTER);
     }
 }
