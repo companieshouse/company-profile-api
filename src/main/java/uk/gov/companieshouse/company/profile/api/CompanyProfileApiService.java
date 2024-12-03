@@ -1,7 +1,6 @@
 package uk.gov.companieshouse.company.profile.api;
 
-import java.time.OffsetDateTime;
-
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
@@ -12,6 +11,7 @@ import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
+import uk.gov.companieshouse.company.profile.util.DateUtils;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
@@ -20,6 +20,7 @@ public class CompanyProfileApiService {
     public static final String CHANGED_EVENT_TYPE = "changed";
     public static final String DELETED_EVENT_TYPE = "deleted";
     private static final String CHANGED_RESOURCE_URI = "/private/resource-changed";
+
     private final Logger logger;
     private final ApiClientService apiClientService;
 
@@ -49,8 +50,8 @@ public class CompanyProfileApiService {
     /**
      * Invoke chs-kafka api with delete event.
      *
-     * @param companyNumber company insolvency number
-     * @param contextId context ID
+     * @param companyNumber  company insolvency number
+     * @param contextId      context ID
      * @param companyProfile the company profile being deleted
      * @return response returned from chs-kafka api
      */
@@ -66,7 +67,7 @@ public class CompanyProfileApiService {
     }
 
     private ChangedResource mapChangedResource(String contextId, String companyNumber,
-                                               String eventType, Data companyProfile) {
+            String eventType, Data companyProfile) {
         ChangedResource changedResource = new ChangedResource();
 
         ChangedResourceEvent event = new ChangedResourceEvent();
@@ -74,7 +75,7 @@ public class CompanyProfileApiService {
         if (eventType.equals(DELETED_EVENT_TYPE)) {
             changedResource.setDeletedData(companyProfile);
         }
-        event.publishedAt(String.valueOf(OffsetDateTime.now()));
+        event.publishedAt(DateUtils.publishedAtString(Instant.now()));
 
         changedResource.setResourceUri("/company/" + companyNumber);
         changedResource.event(event);
