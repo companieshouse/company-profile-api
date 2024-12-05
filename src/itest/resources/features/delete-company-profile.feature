@@ -55,13 +55,13 @@ Feature: Delete company profile
       | 00006400       |
 
 
-  Scenario Outline: Delete psc statement unsuccessfully when kafka-api is not available
+  Scenario Outline: Delete company profile successfully when kafka-api is not available
     Given Company profile api service is running
     And the company profile resource "<data_file>" exists for "<company_number>"
     And CHS kafka API service is unavailable
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
     Then I should receive 503 status code
-    And a company profile exists with id "<company_number>"
+    And the company profile does not exist for "<company_number>"
 
     Examples:
       | data_file               | company_number |

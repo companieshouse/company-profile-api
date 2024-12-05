@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -71,8 +72,10 @@ import java.util.Optional;
 class CompanyProfileControllerTest {
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "FR123456";
+    private static final String MOCK_DELTA_AT = "20241129123010123789";
     private final TestHelper testHelper = new TestHelper();
     private static final String COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
+    private static final String PUT_COMPANY_PROFILE_URL = String.format("/company/%s/internal", MOCK_COMPANY_NUMBER);
     private static final String COMPANY_LINKS_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String COMPANY_DETAILS_URL = String.format("/company/%s/company-detail", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
@@ -89,7 +92,7 @@ class CompanyProfileControllerTest {
     private static final String GET_UK_ESTABLISHMENTS_URL = String.format(
             "/company/%s/uk-establishments", MOCK_PARENT_COMPANY_NUMBER);
 
-    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s", MOCK_COMPANY_NUMBER);
+    private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s/internal", MOCK_COMPANY_NUMBER);
 
     private static final String X_REQUEST_ID = "123456";
     private static final String ERIC_IDENTITY = "Test-Identity";
@@ -983,7 +986,7 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
@@ -999,7 +1002,7 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
@@ -1014,7 +1017,7 @@ class CompanyProfileControllerTest {
         doNothing().when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .content(testHelper.createJsonCompanyProfilePayload()))
                 .andExpect(status().isUnauthorized());
     }
@@ -1025,7 +1028,7 @@ class CompanyProfileControllerTest {
         doThrow(HttpClientErrorException.Forbidden.class).when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
@@ -1042,7 +1045,7 @@ class CompanyProfileControllerTest {
                 .when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
@@ -1059,7 +1062,7 @@ class CompanyProfileControllerTest {
         doThrow(ServiceUnavailableException.class).when(companyProfileService)
                 .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
@@ -1167,25 +1170,25 @@ class CompanyProfileControllerTest {
     void deleteCompanyProfileWhenNoApiKeyPresent() throws Exception {
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL).header("x-request-id", X_REQUEST_ID)).andExpect(status().isUnauthorized());
 
-        verify(companyProfileService
-                , times(0)).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        verifyNoInteractions(companyProfileService);
     }
 
 
     @Test
     @DisplayName("Return 200 and delete company profile")
     void deleteCompanyProfile() throws Exception {
-        doNothing().when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        doNothing().when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", X_REQUEST_ID)
+                        .header("X-DELTA-AT", MOCK_DELTA_AT)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
 
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
 
     @Test
@@ -1193,50 +1196,59 @@ class CompanyProfileControllerTest {
     void deleteCompanyProfileForbiddenRequest() throws Exception {
 
         doThrow(HttpClientErrorException.Forbidden.class)
-                .when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+                .when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", X_REQUEST_ID)
+                        .header("X-DELTA-AT", MOCK_DELTA_AT)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isForbidden());
 
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
 
+    /**
+     * This case can't be tested right now from what I can tell. The getCompanyProfileDocument method which retrieves
+     * from mongo is currently sitting in the Service class as a private method, which mean I can't have it throw a
+     * ResourceNotFoundError, and the deleteCompanyProfile method no longer throws that error since it should handle
+     * it fine now
     @Test
-    @DisplayName("Return 404 when no company profile is found")
+    @DisplayName("Return 200 when no company profile is found")
     void deleteCompanyProfileNotFound() throws Exception {
 
-        doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", X_REQUEST_ID)
+                        .header("X-DELTA-AT", MOCK_DELTA_AT)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
 
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
+     **/
 
     @Test
     @DisplayName("Return 503 when service is unavailable")
     void deleteCompanyProfileWhenServiceIsUnavailable() throws Exception {
-        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", X_REQUEST_ID)
+                        .header("X-DELTA-AT", MOCK_DELTA_AT)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
 
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
 
     @Test
@@ -1350,7 +1362,7 @@ class CompanyProfileControllerTest {
     @Test
     void putCompanyProfileCORSForbidden() throws Exception {
 
-        mockMvc.perform(put(COMPANY_PROFILE_URL)
+        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("Origin", "")
                         .header("ERIC-Allowed-Origin", "some-origin")
                         .contentType(MediaType.APPLICATION_JSON)

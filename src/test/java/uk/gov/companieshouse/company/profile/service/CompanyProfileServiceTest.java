@@ -93,6 +93,7 @@ class CompanyProfileServiceTest {
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
     private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
+    private static final String MOCK_DELTA_AT = "20241129123010123789";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -2199,7 +2200,7 @@ class CompanyProfileServiceTest {
     @DisplayName("When company number is provided delete company profile")
     public void testDeleteCompanyProfile() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
@@ -2213,7 +2214,7 @@ class CompanyProfileServiceTest {
                 thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
@@ -2222,17 +2223,16 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("When company number is null throw ResourceNotFound Exception")
-    public void testDeleteCompanyProfileThrowsResourceNotFoundException() {
+    @DisplayName("When company number is null process without error")
+    public void testDeleteCompanyProfileProcessesInvalidCompanyNumber() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER);
-        });
+        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository, times(0)).delete(any());
+        verifyNoMoreInteractions(companyProfileRepository);
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent("123456", MOCK_COMPANY_NUMBER, new Data());
     }
 
     @Test
