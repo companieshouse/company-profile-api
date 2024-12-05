@@ -6,10 +6,10 @@ use_set_environment_files = true
 required_cpus = 768
 required_memory = 1536
 
-desired_task_count = 5
-max_task_count = 8
-min_task_count = 4
+desired_task_count = 10
+max_task_count = 14
+min_task_count = 10
 
-desired_task_count_links = 5
-max_task_count_links = 8
-min_task_count_links = 4
+desired_task_count_links = 3
+max_task_count_links = 5
+min_task_count_links = 2
