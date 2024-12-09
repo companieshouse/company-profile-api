@@ -43,6 +43,7 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
+import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.model.UnversionedCompanyProfileDocument;
@@ -405,36 +406,44 @@ public class CompanyProfileService {
     /**
      * Delete company profile.
      */
-    public void deleteCompanyProfile(String contextId, String companyNumber, String deltaAt) {
-        if (StringUtils.isBlank(deltaAt)) {
+    public void deleteCompanyProfile(String contextId, String companyNumber, String requestDeltaAt) {
+        if (StringUtils.isBlank(requestDeltaAt)) {
             logger.error("deltaAt missing from delete request", DataMapHolder.getLogMap());
             throw new BadRequestException("deltaAt is null or empty");
         }
-        // Ask someone about this better to use a try catch for the getCompanyProfileDocument call as it's used by other methods too,
-        // or should change the method itself and fix the other methods in this class that use it
-        try {
-            VersionedCompanyProfileDocument companyProfileDocument = getCompanyProfileDocument(companyNumber);
-            Data companyProfile = companyProfileDocument.getCompanyProfile();
-            String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
-            if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
-                LinkRequest ukEstablishmentLinkRequest =
-                        new LinkRequest(contextId, parentCompanyNumber,
-                                UK_ESTABLISHMENTS_LINK_TYPE,
-                                UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-                checkForDeleteLink(ukEstablishmentLinkRequest);
-            }
+        companyProfileRepository.findById(companyNumber).ifPresentOrElse(
+                companyProfileDocument -> {
+                    Data companyProfile = companyProfileDocument.getCompanyProfile();
+                    LocalDateTime existingDeltaAt = companyProfileDocument.getDeltaAt();
+                    if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
+                        logger.error(String.format(
+                                "Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
+                                requestDeltaAt, existingDeltaAt), DataMapHolder.getLogMap());
+                        throw new ConflictException("Stale delta received");
+                    }
 
-            companyProfileRepository.delete(companyProfileDocument);
-            logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
-                    companyNumber), DataMapHolder.getLogMap());
-            companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
-                    companyProfile);
-        } catch (ResourceNotFoundException ex) {
-            logger.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
-                    companyNumber), DataMapHolder.getLogMap());
-            companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
-                    new Data());
-        }
+                    String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
+                    if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
+                        LinkRequest ukEstablishmentLinkRequest =
+                                new LinkRequest(contextId, parentCompanyNumber,
+                                        UK_ESTABLISHMENTS_LINK_TYPE,
+                                        UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
+                        checkForDeleteLink(ukEstablishmentLinkRequest);
+                    }
+
+                    companyProfileRepository.delete(companyProfileDocument);
+                    logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
+                            companyNumber), DataMapHolder.getLogMap());
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
+                            companyProfile);
+                },
+                () -> {
+                    logger.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
+                            companyNumber), DataMapHolder.getLogMap());
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
+                            new Data());
+                }
+        );
     }
 
     /**

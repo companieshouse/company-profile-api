@@ -125,7 +125,8 @@ class ControllerExceptionHandlerTest {
                 Arguments.of(503, "Service unavailable", ServiceUnavailableException.class),
                 Arguments.of(500, "Unexpected exception", IllegalArgumentException.class),
                 Arguments.of(500, "Unexpected exception", RuntimeException.class),
-                Arguments.of(500, "Unexpected exception", NoSuchMethodException.class)
+                Arguments.of(500, "Unexpected exception", NoSuchMethodException.class),
+                Arguments.of(409, "Conflict", ConflictException.class)
         );
     }
 

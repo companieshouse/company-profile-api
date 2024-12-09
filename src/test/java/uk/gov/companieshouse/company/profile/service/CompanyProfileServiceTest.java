@@ -71,6 +71,7 @@ import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
+import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -2233,6 +2234,36 @@ class CompanyProfileServiceTest {
         verifyNoMoreInteractions(companyProfileRepository);
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
         verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent("123456", MOCK_COMPANY_NUMBER, new Data());
+    }
+
+    @Test
+    @DisplayName("When deltaAt is null throw bad request exception")
+    void testDeleteCompanyProfileDeltaAtBadRequest() {
+        // given
+
+        // when
+        Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, null);
+
+        // then
+        assertThrows(BadRequestException.class, actual);
+        verifyNoInteractions(companyProfileApiService);
+        verifyNoInteractions(companyProfileRepository);
+    }
+
+    @Test
+    @DisplayName("When deltaAt is stale throw conflict exception")
+    void testDeleteCompanyProfileStaleDeltaAt() {
+        // given
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.ofNullable(COMPANY_PROFILE_DOCUMENT));
+
+        // when
+        Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "20001129123010123789");
+
+        // then
+        assertThrows(ConflictException.class, actual);
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+        verifyNoMoreInteractions(companyProfileRepository);
+        verifyNoInteractions(companyProfileApiService);
     }
 
     @Test

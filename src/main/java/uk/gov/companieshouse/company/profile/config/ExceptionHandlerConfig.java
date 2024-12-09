@@ -21,6 +21,7 @@ import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.MethodNotAllowedException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.logging.Logger;
 
 
@@ -145,6 +146,13 @@ public class ExceptionHandlerConfig {
     @ExceptionHandler(value = {ResourceStateConflictException.class})
     public ResponseEntity<Object> handleResourceStateConflictException() {
         return new ResponseEntity<>(HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(value = {ConflictException.class})
+    public ResponseEntity<Object> handleConflictException(Exception ex,
+                                                          WebRequest request) {
+        return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
+                HttpStatus.CONFLICT);
     }
 
     private String generateShortCorrelationId() {
