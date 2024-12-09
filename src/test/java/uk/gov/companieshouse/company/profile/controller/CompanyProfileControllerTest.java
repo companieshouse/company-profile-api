@@ -1210,30 +1210,6 @@ class CompanyProfileControllerTest {
         verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
 
-    /**
-     * This case can't be tested right now from what I can tell. The getCompanyProfileDocument method which retrieves
-     * from mongo is currently sitting in the Service class as a private method, which mean I can't have it throw a
-     * ResourceNotFoundError, and the deleteCompanyProfile method no longer throws that error since it should handle
-     * it fine now
-    @Test
-    @DisplayName("Return 200 when no company profile is found")
-    void deleteCompanyProfileNotFound() throws Exception {
-
-        doThrow(ResourceNotFoundException.class).when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
-
-        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("X-DELTA-AT", MOCK_DELTA_AT)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isOk());
-
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
-    }
-     **/
-
     @Test
     @DisplayName("Return 503 when service is unavailable")
     void deleteCompanyProfileWhenServiceIsUnavailable() throws Exception {
