@@ -8,7 +8,7 @@ The `company-profile-api` is a service that receives company profile deltas from
 * stores or deletes documents within the `company_profile collection` in MongoDB, and
 * enqueues a resource changed message that triggers further downstream processing.
 
-Documents are the available for retrieval via the services GET endpoints, described below.
+Documents are available for retrieval via the services GET endpoints, described below.
 
 The service is implemented in Java 21 using Spring Boot 3.3
 
@@ -21,7 +21,7 @@ The service is implemented in Java 21 using Spring Boot 3.3
 | GET    | `/company/{company_number}/company-detail`           | Returns company details object for a given company number                                                                       |
 | GET    | `/company/{company_number}/uk-establishments`        | Returns a list of uk establishments for a given parent company number                                                           |
 | PUT    | `/company/{company_number}/internal`                 | Inserts or updates an existing company profile within the collection, includes checks for delta staleness and Mongo versioning. |
-| PATCH  | `/company/{company_number}/links`                    | Updates a company insolvency link for a given company number                                                                    |
+| PATCH  | `/company/{company_number}/links`                    | Updates a company insolvency, charges and registers links for a given company number                                            |
 | PATCH  | `/company/{company_number}/links/{link_type}`        | Updates a company to add a link of a given type                                                                                 |
 | PATCH  | `/company/{company_number}/links/{link_type}/delete` | Deletes a link of a given type for a company                                                                                    |                                                                                                 
 | DELETE | `/company/{company_number}/internal`                 | Deletes company information for a given company number, includes checks for delta staleness                                     |
@@ -63,13 +63,18 @@ code, or resources will automatically trigger a rebuild and relaunch.
 
 ## Environment Variables
 
-| Variable          | Description                                                                            | Example (from docker-chs-development) |
-|-------------------|----------------------------------------------------------------------------------------|---------------------------------------|
-| CHS_KAFKA_API_URL | The URL which the chs-kafka-api is hosted on                                           | http://api.chs.local:4001             |
-| CHS_API_KEY       | The client ID of an API key, with internal app privileges, to call chs-kafka-api with  | abc123def456ghi789                    |
-| SERVER_PORT       | The port at which the service is hosted in ECS                                         | 8080                                  |
-| LOG_LEVEL         | The level of log messages output to the logs                                           | debug                                 |
-| HUMAN_LOG         | A boolean value to enable more readable log messages                                   | 1                                     |
+| Variable                        | Description                                                                                              | Example (from docker-chs-development) |
+|---------------------------------|----------------------------------------------------------------------------------------------------------|---------------------------------------|
+| CHS_KAFKA_API_URL               | The URL which the chs-kafka-api is hosted on                                                             | http://api.chs.local:4001             |
+| CHS_API_KEY                     | The client ID of an API key, with internal app privileges, to call chs-kafka-api with                    | abc123def456ghi789                    |
+| SERVER_PORT                     | The port at which the service is hosted in ECS                                                           | 8080                                  |
+| LOG_LEVEL                       | The level of log messages output to the logs                                                             | debug                                 |
+| HUMAN_LOG                       | A boolean value to enable more readable log messages                                                     | 1                                     |
+| MONGODB_URL                     | The URL which mongo is hosted on                                                                         | mongodb://mongo:27017/company_profile |
+| MONGODB_COLLECTION              | The name of the collection containing company profile documents in mongodb                               | company_profile                       |
+| COMPANY_PROFILE_COLLECTION_NAME | The name of the collection containing company profile documents in mongodb                               | company_profile                       |
+| TRANSACTIONS_ENABLED            | Toggles the transaction property for DELETE requests to restore documents if call to chs-kafka-api fails | true                                  |
+
 
 ## Terraform ECS
 
