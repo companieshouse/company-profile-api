@@ -448,6 +448,54 @@ public class CompanyProfileSteps {
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
+    @When("a DELETE request is sent to the company profile endpoint for {string} with stale delta")
+    public void a_DELETE_request_is_sent_to_the_company_profile_endpoint_for_with_stale_delta(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("X-DELTA-AT", "20000815110718375628");
+
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "*");
+        headers.add("api-key", "g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}/internal", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a DELETE request is sent to the company profile endpoint for {string} with blank delta at")
+    public void a_DELETE_request_is_sent_to_the_company_profile_endpoint_for_with_blank_delta_at(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("X-DELTA-AT", "");
+
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "key");
+        headers.set("ERIC-Authorised-Key-Roles", "*");
+        headers.add("api-key", "g9yZIA81Zo9J46Kzp3JPbfld6kOqxR47EAYqXbRV");
+        headers.add("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/company/{company_number}/internal", HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
     @And("the company profile does not exist for {string}")
     public void the_company_profile_does_not_exist_for(String companyNumber) {
         assertThat(companyProfileRepository.existsById(companyNumber)).isFalse();

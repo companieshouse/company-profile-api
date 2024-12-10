@@ -30,6 +30,23 @@ Feature: Delete company profile
       | company_number |
       | 00006400       |
 
+  Scenario Outline: Delete company profile unsuccessfully - stale delta
+    Given the company profile resource "<data_file>" exists for "<company_number>"
+    When a DELETE request is sent to the company profile endpoint for "<company_number>" with stale delta
+    Then the response code should be 409
+
+    Examples:
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
+
+  Scenario Outline: Delete company profile unsuccessfully - delta at is blank
+    When a DELETE request is sent to the company profile endpoint for "<company_number>" with blank delta at
+    Then the response code should be 400
+
+    Examples:
+      | company_number |
+      | 00006400       |
+
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
   Scenario Outline: Delete company profile unsuccessfully - company profile resource does not exist
