@@ -18,7 +18,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
@@ -441,7 +440,7 @@ public class CompanyProfileService {
                     logger.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
                             companyNumber), DataMapHolder.getLogMap());
                     companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
-                            new Data());
+                            null);
                 }
         );
     }

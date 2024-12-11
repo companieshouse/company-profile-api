@@ -2225,7 +2225,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When company number is null process without error")
-    public void testDeleteCompanyProfileProcessesInvalidCompanyNumber() {
+    void testDeleteCompanyProfileProcessesInvalidCompanyNumber() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
         companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
@@ -2233,7 +2233,7 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verifyNoMoreInteractions(companyProfileRepository);
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
-        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent("123456", MOCK_COMPANY_NUMBER, new Data());
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent("123456", MOCK_COMPANY_NUMBER, null);
     }
 
     @Test
