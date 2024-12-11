@@ -77,7 +77,7 @@ public class CompanyProfileController {
      * @param companyNumber  The company number of the company
      * @return ResponseEntity
      */
-    @PutMapping("/company/{company_number}")
+    @PutMapping("/company/{company_number}/internal")
     public ResponseEntity<Void> processCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
@@ -200,23 +200,20 @@ public class CompanyProfileController {
      * @param companyNumber The number of the company
      * @return ResponseEntity
      */
-    @DeleteMapping("/company/{company_number}")
+    @DeleteMapping("/company/{company_number}/internal")
     public ResponseEntity<Void> deleteCompanyProfile(
             @RequestHeader("x-request-id") String contextId,
+            @RequestHeader("X-DELTA-AT") String deltaAt,
             @PathVariable("company_number") String companyNumber) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         logger.info(String.format("Deleting company profile with company number %s", companyNumber),
                 DataMapHolder.getLogMap());
         try {
-            companyProfileService.deleteCompanyProfile(contextId, companyNumber);
+            companyProfileService.deleteCompanyProfile(contextId, companyNumber, deltaAt);
             logger.info("Successfully deleted company profile with company number: "
                     + companyNumber, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error("Error while trying to delete company profile.",
-                    resourceNotFoundException, DataMapHolder.getLogMap());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (DataAccessException | MongoTimeoutException ex) {
             logger.error("Error while trying to delete company profile.",
                     ex, DataMapHolder.getLogMap());

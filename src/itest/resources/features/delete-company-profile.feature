@@ -7,11 +7,20 @@ Feature: Delete company profile
     And the company profile does not exist for "<company_number>"
     Then I should receive 200 status code
 
-
     Examples:
       | data_file               | company_number |
       | with_links_resource     | 00006400       |
-    
+
+  Scenario Outline: Delete company profile successfully - company profile resource does not exist
+    Given the CHS Kafka API is reachable
+    And the company profile does not exist for "<company_number>"
+    When a DELETE request is sent to the company profile endpoint for "<company_number>"
+    Then I should receive 200 status code
+    And the CHS Kafka API is invoked successfully
+
+    Examples:
+      | company_number |
+      | 00006400       |
   
   Scenario Outline: Delete company profile unsuccessfully - user not authenticated
     When a DELETE request is sent to the company profile endpoint for "<company_number>" without valid ERIC headers
@@ -30,17 +39,22 @@ Feature: Delete company profile
       | company_number |
       | 00006400       |
 
-  @Ignored
-    #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
-  Scenario Outline: Delete company profile unsuccessfully - company profile resource does not exist
-    Given a company profile resource does not exist for "<company_number>"
-    When a DELETE request is sent to the company profile endpoint for "<company_number>"
-    Then the response code should be 404
+  Scenario Outline: Delete company profile unsuccessfully - stale delta
+    Given the company profile resource "<data_file>" exists for "<company_number>"
+    When a DELETE request is sent to the company profile endpoint for "<company_number>" with stale delta
+    Then the response code should be 409
+
+    Examples:
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
+
+  Scenario Outline: Delete company profile unsuccessfully - delta at is blank
+    When a DELETE request is sent to the company profile endpoint for "<company_number>" with blank delta at
+    Then the response code should be 400
 
     Examples:
       | company_number |
       | 00006400       |
-
 
   Scenario Outline: Delete company profile unsuccessfully while database is down
     Given Company profile api service is running
@@ -55,13 +69,13 @@ Feature: Delete company profile
       | 00006400       |
 
 
-  Scenario Outline: Delete psc statement unsuccessfully when kafka-api is not available
+  Scenario Outline: Delete company profile successfully when kafka-api is not available
     Given Company profile api service is running
     And the company profile resource "<data_file>" exists for "<company_number>"
     And CHS kafka API service is unavailable
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
     Then I should receive 503 status code
-    And a company profile exists with id "<company_number>"
+    And the company profile does not exist for "<company_number>"
 
     Examples:
       | data_file               | company_number |
