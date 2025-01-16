@@ -17,12 +17,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>21</java.version>
-        <spring.boot.version>3.3.7</spring.boot.version>
+        <spring.boot.version>3.4.1</spring.boot.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
-
-        <commons-lang3.version>3.14.0</commons-lang3.version>
-        <apache.httpclient5.version>5.3.1</apache.httpclient5.version>
 
         <!-- Internal -->
         <structured-logging.version>3.0.24</structured-logging.version>
@@ -75,11 +72,6 @@
     <!--Spring dependencies-->
     <dependencies>
         <!--the following transitive dependencies are added specifically to avoid vulnerabilities-->
-        <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-core</artifactId>
-            <version>2.10.0</version>
-        </dependency>
         <!--end transitive dependencies-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -127,16 +119,6 @@
                     <artifactId>log4j-to-slf4j</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>${apache.httpclient5.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
         </dependency>
 
         <!--CH Libraries-->
