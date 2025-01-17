@@ -416,7 +416,8 @@ public class CompanyProfileSteps {
         this.contextId = "5234234234";
         CucumberContext.CONTEXT.set("contextId", this.contextId);
         headers.set("x-request-id", this.contextId);
-        headers.set("X-DELTA-AT", DELTA_AT);
+        String deltaAt = LocalDateTime.now().plusMonths(1).format(DELTA_AT_FORMATTER);
+        headers.set("X-DELTA-AT", deltaAt);
 
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "key");
