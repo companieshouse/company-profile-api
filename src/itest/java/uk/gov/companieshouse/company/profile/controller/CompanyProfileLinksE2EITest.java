@@ -44,7 +44,7 @@ import java.util.Objects;
 @Testcontainers
 @AutoConfigureMockMvc
 @SpringBootTest(classes = CompanyProfileApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-class CompanyProfileE2EITest {
+class CompanyProfileLinksE2EITest {
 
     private static final String COMPANY_NUMBER = "12345678";
     private static final String UK_ESTABLISHMENTS_LINK = String.format("/company/%s/uk-establishments", COMPANY_NUMBER);
