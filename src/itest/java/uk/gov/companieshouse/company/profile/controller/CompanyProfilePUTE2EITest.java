@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import static java.time.ZoneOffset.UTC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,6 +13,8 @@ import jakarta.validation.Valid;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +46,7 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +65,12 @@ class CompanyProfilePUTE2EITest {
     private static final String CHILD_SELF_LINK = String.format("/company/%s", COMPANY_NUMBER);
     private static final String PARENT_SELF_LINK = String.format("/company/%s", PARENT_COMPANY_NUMBER);
     private static final String UK_ESTABLISHMENT_LINK = String.format("/company/%s/uk-establishments", PARENT_COMPANY_NUMBER);
+    private static final String OLD_ETAG = "oldEtag";
+    private static final String STALE_DELTA_AT = "20250121064805856963";
+    private static final String DELTA_AT = "20250121164805856963";
+    private static final String NEW_DELTA_AT = "20250121154805856963";
+    private static final DateTimeFormatter DELTA_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
+            .withZone(UTC);
 
     @Container
     private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:5.0.12");
@@ -91,8 +101,7 @@ class CompanyProfilePUTE2EITest {
     @Test
     void shouldPersistBaseParentFCCompanyProfileCorrectlyWhenBRDeltaReceivedOnPUTEndpoint() throws Exception {
         // given
-        final String oldEtag = "oldEtag";
-        CompanyProfile request = makeBRPutRequest();
+        CompanyProfile request = makeBRPutRequest(DELTA_AT);
 
         // when
         final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, COMPANY_NUMBER)
@@ -121,12 +130,16 @@ class CompanyProfilePUTE2EITest {
         assertNotNull(childDocument.getUpdated().getAt());
         assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
         assertEquals(0L, childDocument.getVersion());
-        assertNotEquals(oldEtag, childCompanyProfile.getEtag());
+        assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }
 
-    @Test
-    void shouldUpdateBaseFCCompanyProfileRegardlessOfDeltaAtTime() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+            STALE_DELTA_AT,
+            NEW_DELTA_AT
+    })
+    void shouldUpdateBaseFCCompanyProfileRegardlessOfDeltaAtTime(String deltaAt) throws Exception {
         // given
         VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
         document.setId(PARENT_COMPANY_NUMBER)
@@ -136,7 +149,7 @@ class CompanyProfilePUTE2EITest {
         document.version(0L);
         companyProfileRepository.insert(document);
 
-        CompanyProfile request = makeFCPutRequest();
+        CompanyProfile request = makeFCPutRequest(deltaAt);
         // when
         final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, PARENT_COMPANY_NUMBER)
                 .header("ERIC-Identity", "123")
@@ -158,22 +171,12 @@ class CompanyProfilePUTE2EITest {
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(1L, parentDocument.getVersion());
 
-        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
-        final Data childCompanyProfile = childDocument.getCompanyProfile();
-
-        assertEquals(CHILD_SELF_LINK, childCompanyProfile.getLinks().getSelf());
-        assertEquals(PARENT_SELF_LINK, childCompanyProfile.getLinks().getOverseas());
-        assertNotNull(childDocument.getUpdated().getAt());
-        assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
-        assertEquals(0L, childDocument.getVersion());
-        assertNotEquals(oldEtag, childCompanyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
     }
 
     @Test
     void shouldPersistFCCompanyProfileCorrectlyIfProcessedBeforeBCCompany() throws Exception {
         // given
-        CompanyProfile request = makeFCPutRequest();
+        CompanyProfile request = makeFCPutRequest(DELTA_AT);
 
         // when
         final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, PARENT_COMPANY_NUMBER)
@@ -202,13 +205,13 @@ class CompanyProfilePUTE2EITest {
         // given
         VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
         document.setId(PARENT_COMPANY_NUMBER)
-                .setCompanyProfile(makeFCPutRequest().getData())
-                .setDeltaAt(LocalDateTime.parse("20250121064805856963"));
+                .setCompanyProfile(makeFCPutRequest(DELTA_AT).getData())
+                .setDeltaAt(LocalDateTime.parse(DELTA_AT, DELTA_AT_FORMATTER));
         document.setHasMortgages(false);
         document.version(0L);
 
         companyProfileRepository.insert(document);
-        CompanyProfile request = makeBRPutRequest();
+        CompanyProfile request = makeBRPutRequest(STALE_DELTA_AT);
 
         // when
         final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, COMPANY_NUMBER)
@@ -229,13 +232,24 @@ class CompanyProfilePUTE2EITest {
         assertEquals(PARENT_SELF_LINK, parentDocument.getCompanyProfile().getLinks().getSelf());
         assertEquals(UK_ESTABLISHMENT_LINK, parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
-        assertEquals(0L, parentDocument.getVersion());
+        assertEquals(1L, parentDocument.getVersion());
 
+
+        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final Data childCompanyProfile = childDocument.getCompanyProfile();
+
+        assertEquals(CHILD_SELF_LINK, childCompanyProfile.getLinks().getSelf());
+        assertEquals(PARENT_SELF_LINK, childCompanyProfile.getLinks().getOverseas());
+        assertNotNull(childDocument.getUpdated().getAt());
+        assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
+        assertEquals(0L, childDocument.getVersion());
+        assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
 
 
     }
 
-    private CompanyProfile makeBRPutRequest() {
+    private CompanyProfile makeBRPutRequest(String deltaAt) {
         return new CompanyProfile()
                 .data(new Data()
                         .branchCompanyDetails(new BranchCompanyDetails()
@@ -258,10 +272,10 @@ class CompanyProfilePUTE2EITest {
                         .hasSuperSecurePscs(false))
                 .hasMortgages(false)
                 .parentCompanyNumber(PARENT_COMPANY_NUMBER)
-                .deltaAt("20250121164805856963");
+                .deltaAt(deltaAt);
     }
 
-    private CompanyProfile makeFCPutRequest() {
+    private CompanyProfile makeFCPutRequest(String deltaAt) {
         return new CompanyProfile()
                 .data(new Data()
                         .accounts(makeAccounts())
@@ -287,7 +301,7 @@ class CompanyProfilePUTE2EITest {
                         .hasSuperSecurePscs(false)
                 )
                 .hasMortgages(false)
-                .deltaAt("20250121064805856963");
+                .deltaAt(deltaAt);
     }
 
     private static Accounts makeAccounts() {
