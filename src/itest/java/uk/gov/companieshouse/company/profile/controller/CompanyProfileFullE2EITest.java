@@ -55,7 +55,7 @@ import java.util.Objects;
 @Testcontainers
 @AutoConfigureMockMvc
 @SpringBootTest(classes = CompanyProfileApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-class CompanyProfilePUTE2EITest {
+class CompanyProfileFullE2EITest {
 
     private static final String CHILD_COMPANY_NUMBER = "BR005209";
     private static final String PARENT_COMPANY_NUMBER = "FC022112";
