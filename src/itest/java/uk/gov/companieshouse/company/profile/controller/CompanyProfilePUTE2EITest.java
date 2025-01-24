@@ -170,6 +170,7 @@ class CompanyProfilePUTE2EITest {
         assertEquals(UK_ESTABLISHMENT_LINK, parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(1L, parentDocument.getVersion());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -197,6 +198,7 @@ class CompanyProfilePUTE2EITest {
         assertNull(parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(0L, parentDocument.getVersion());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -232,6 +234,7 @@ class CompanyProfilePUTE2EITest {
         assertEquals(UK_ESTABLISHMENT_LINK, parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(1L, parentDocument.getVersion());
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
 
 
         final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
