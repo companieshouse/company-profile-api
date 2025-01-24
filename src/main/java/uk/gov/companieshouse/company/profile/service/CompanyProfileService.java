@@ -268,6 +268,32 @@ public class CompanyProfileService {
         }
     }
 
+    public void checkForDeleteLinkUkEstablishmentParent(LinkRequest linkRequest) {
+        Optional<VersionedCompanyProfileDocument> existingDocumentOptional =
+                companyProfileRepository.findById(linkRequest.getCompanyNumber());
+
+        if (existingDocumentOptional.isPresent()) {
+            Data data = existingDocumentOptional
+                    .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
+                            new ResourceNotFoundException(HttpStatus.NOT_FOUND,
+                                    "no data for company profile: "
+                                            + linkRequest.getCompanyNumber()));
+            Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
+                    new ResourceStateConflictException("links data not found"));
+            String linkData = linkRequest.getCheckLink().apply(links);
+
+            if (isBlank(linkData)) {
+                logger.error(linkRequest.getLinkType() + " link for company profile already"
+                        + " does not exist", DataMapHolder.getLogMap());
+                throw new ResourceStateConflictException("Resource state conflict; "
+                        + linkRequest.getLinkType() + " link already does not exist");
+            } else {
+                deleteLink(linkRequest, existingDocumentOptional.get());
+            }
+        }
+        logger.info("No document found for parent profile, continuing to delete child Uk establishment");
+    }
+
     /**
      * Finds existing company profile from db if any and updates or saves new record into db.
      */
@@ -427,7 +453,8 @@ public class CompanyProfileService {
                                 new LinkRequest(contextId, parentCompanyNumber,
                                         UK_ESTABLISHMENTS_LINK_TYPE,
                                         UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-                        checkForDeleteLink(ukEstablishmentLinkRequest);
+                        // As business logic is different, a different check from others is needed.
+                        checkForDeleteLinkUkEstablishmentParent(ukEstablishmentLinkRequest);
                     }
 
                     companyProfileRepository.delete(companyProfileDocument);
