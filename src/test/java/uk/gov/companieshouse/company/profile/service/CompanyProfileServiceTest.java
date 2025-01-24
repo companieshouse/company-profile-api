@@ -2716,11 +2716,6 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    void shouldSaveParentFCDocumentWhenBRdeltaSent() {
-
-    }
-
-    @Test
     void updateCompanyProfileWhenHasChargesIsFalse() {
         CompanyProfile companyProfile = new CompanyProfile()
                 .deltaAt(DELTA_AT);

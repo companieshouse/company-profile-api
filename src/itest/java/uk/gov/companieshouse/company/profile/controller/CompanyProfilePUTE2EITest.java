@@ -170,7 +170,6 @@ class CompanyProfilePUTE2EITest {
         assertEquals(UK_ESTABLISHMENT_LINK, parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(1L, parentDocument.getVersion());
-
     }
 
     @Test
@@ -245,8 +244,6 @@ class CompanyProfilePUTE2EITest {
         assertEquals(0L, childDocument.getVersion());
         assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
-
-
     }
 
     private CompanyProfile makeBRPutRequest(String deltaAt) {
