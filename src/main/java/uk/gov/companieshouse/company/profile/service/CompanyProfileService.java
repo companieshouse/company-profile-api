@@ -636,7 +636,6 @@ public class CompanyProfileService {
     private VersionedCompanyProfileDocument createParentCompanyDocument(String parentCompanyNumber) {
         VersionedCompanyProfileDocument parentCompanyDocument = new VersionedCompanyProfileDocument();
         parentCompanyDocument.setId(parentCompanyNumber);
-        parentCompanyDocument.setDeltaAt(LocalDateTime.now());
         Data parentCompanyData = new Data();
         Links parentCompanyLinks = new Links();
         String ukEstablishmentLink = String.format("/company/%s/uk-establishments",
