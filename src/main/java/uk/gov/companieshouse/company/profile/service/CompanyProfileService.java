@@ -290,8 +290,9 @@ public class CompanyProfileService {
             } else {
                 deleteLink(linkRequest, existingDocumentOptional.get());
             }
+        } else {
+            logger.info("No document found for parent profile, continuing to delete child Uk establishment");
         }
-        logger.info("No document found for parent profile, continuing to delete child Uk establishment");
     }
 
     /**
@@ -453,7 +454,7 @@ public class CompanyProfileService {
                                 new LinkRequest(contextId, parentCompanyNumber,
                                         UK_ESTABLISHMENTS_LINK_TYPE,
                                         UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
-                        // As business logic is different, a different check from others is needed.
+                        // Business logic states UK establishments need deletion even if the parent document is not present
                         checkForDeleteLinkUkEstablishmentParent(ukEstablishmentLinkRequest);
                     }
 
