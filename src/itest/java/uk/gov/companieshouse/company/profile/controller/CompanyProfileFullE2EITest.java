@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,21 +55,22 @@ import java.util.Objects;
 @Testcontainers
 @AutoConfigureMockMvc
 @SpringBootTest(classes = CompanyProfileApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-class CompanyProfilePUTE2EITest {
+class CompanyProfileFullE2EITest {
 
-    private static final String COMPANY_NUMBER = "BR005209";
+    private static final String CHILD_COMPANY_NUMBER = "BR005209";
     private static final String PARENT_COMPANY_NUMBER = "FC022112";
     private static final String CONTEXT_ID = "context_id";
     private static final String PUT_ENDPOINT = "/company/{company_number}/internal";
+    private static final String DELETE_ENDPOINT = "/company/{company_number}/internal";
     private static final String UK_ESTABLISHMENT_TYPE = "uk-establishment";
     private static final String OVERSEA_COMPANY_TYPE = "oversea-company";
-    private static final String CHILD_SELF_LINK = String.format("/company/%s", COMPANY_NUMBER);
+    private static final String CHILD_SELF_LINK = String.format("/company/%s", CHILD_COMPANY_NUMBER);
     private static final String PARENT_SELF_LINK = String.format("/company/%s", PARENT_COMPANY_NUMBER);
     private static final String UK_ESTABLISHMENT_LINK = String.format("/company/%s/uk-establishments", PARENT_COMPANY_NUMBER);
     private static final String OLD_ETAG = "oldEtag";
     private static final String STALE_DELTA_AT = "20250121064805856963";
-    private static final String DELTA_AT = "20250121164805856963";
-    private static final String NEW_DELTA_AT = "20250121154805856963";
+    private static final String DELTA_AT = "20250121154805856963";
+    private static final String NEW_DELTA_AT = "20250121174805856963";
     private static final DateTimeFormatter DELTA_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
             .withZone(UTC);
 
@@ -104,7 +106,7 @@ class CompanyProfilePUTE2EITest {
         CompanyProfile request = makeBRPutRequest(DELTA_AT);
 
         // when
-        final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, COMPANY_NUMBER)
+        final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, CHILD_COMPANY_NUMBER)
                 .header("ERIC-Identity", "123")
                 .header("ERIC-Identity-Type", "key")
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
@@ -115,7 +117,7 @@ class CompanyProfilePUTE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Data childCompanyProfile = childDocument.getCompanyProfile();
 
         final VersionedCompanyProfileDocument baseParentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
@@ -131,7 +133,7 @@ class CompanyProfilePUTE2EITest {
         assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
         assertEquals(0L, childDocument.getVersion());
         assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, CHILD_COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -215,7 +217,7 @@ class CompanyProfilePUTE2EITest {
         CompanyProfile request = makeBRPutRequest(STALE_DELTA_AT);
 
         // when
-        final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, COMPANY_NUMBER)
+        final ResultActions result = mockMvc.perform(put(PUT_ENDPOINT, CHILD_COMPANY_NUMBER)
                 .header("ERIC-Identity", "123")
                 .header("ERIC-Identity-Type", "key")
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
@@ -237,7 +239,7 @@ class CompanyProfilePUTE2EITest {
         verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
 
 
-        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Data childCompanyProfile = childDocument.getCompanyProfile();
 
         assertEquals(CHILD_SELF_LINK, childCompanyProfile.getLinks().getSelf());
@@ -246,7 +248,140 @@ class CompanyProfilePUTE2EITest {
         assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
         assertEquals(0L, childDocument.getVersion());
         assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, CHILD_COMPANY_NUMBER);
+    }
+
+    @Test
+    void shouldDeleteBaseFCOverseaCompanyIfDeleteDeltaReceived() throws Exception {
+        // given
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setId(PARENT_COMPANY_NUMBER)
+                .setCompanyProfile(new Data()
+                        .links(new Links()
+                                .ukEstablishments(UK_ESTABLISHMENT_LINK)));
+        document.version(0L);
+        companyProfileRepository.insert(document);
+
+        // when
+        final ResultActions result = mockMvc.perform(delete(DELETE_ENDPOINT, PARENT_COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .header("X-DELTA-AT", DELTA_AT)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+
+        assertNull(parentDocument);
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, PARENT_COMPANY_NUMBER, document.getCompanyProfile());
+    }
+
+    @Test
+    void shouldDeleteFCParentOverseaCompanyIfDeleteDeltaReceived() throws Exception {
+        // given
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setId(PARENT_COMPANY_NUMBER)
+                .setCompanyProfile(makeFCPutRequest(DELTA_AT).getData())
+                .setDeltaAt(LocalDateTime.parse(DELTA_AT, DELTA_AT_FORMATTER));
+        document.setHasMortgages(false);
+        document.version(0L);
+
+        companyProfileRepository.insert(document);
+
+        // when
+        final ResultActions result = mockMvc.perform(delete(DELETE_ENDPOINT, PARENT_COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .header("X-DELTA-AT", DELTA_AT)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+
+        assertNull(parentDocument);
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, PARENT_COMPANY_NUMBER, document.getCompanyProfile());
+    }
+
+    @Test
+    void shouldDeleteBRChildUkEstablishmentIfDeleteDeltaReceivedAndParentNotPresent() throws Exception {
+        // given
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setId(CHILD_COMPANY_NUMBER)
+                .setCompanyProfile(makeBRPutRequest(DELTA_AT).getData())
+                .setDeltaAt(LocalDateTime.parse(DELTA_AT, DELTA_AT_FORMATTER));
+        document.setHasMortgages(false);
+        document.version(0L);
+
+        companyProfileRepository.insert(document);
+
+        // when
+        final ResultActions result = mockMvc.perform(delete(DELETE_ENDPOINT, CHILD_COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .header("X-DELTA-AT", NEW_DELTA_AT)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+
+        assertNull(childDocument);
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, CHILD_COMPANY_NUMBER, document.getCompanyProfile());
+    }
+
+    @Test
+    void shouldDeleteBRChildUkEstablishmentAndLinkFromParentIfDeleteDeltaReceivedAndParentStillPresent() throws Exception {
+        // given
+        VersionedCompanyProfileDocument parentDocument = new VersionedCompanyProfileDocument();
+        parentDocument.setId(PARENT_COMPANY_NUMBER)
+                .setCompanyProfile(makeFCPutRequest(DELTA_AT).getData())
+                .setDeltaAt(LocalDateTime.parse(DELTA_AT, DELTA_AT_FORMATTER));
+        parentDocument.setHasMortgages(false);
+        parentDocument.version(0L);
+
+        VersionedCompanyProfileDocument document = new VersionedCompanyProfileDocument();
+        document.setId(CHILD_COMPANY_NUMBER)
+                .setCompanyProfile(makeBRPutRequest(DELTA_AT).getData())
+                .setDeltaAt(LocalDateTime.parse(DELTA_AT, DELTA_AT_FORMATTER));
+        document.setHasMortgages(false);
+        document.version(0L);
+
+        companyProfileRepository.insert(parentDocument);
+        companyProfileRepository.insert(document);
+
+        // when
+        final ResultActions result = mockMvc.perform(delete(DELETE_ENDPOINT, CHILD_COMPANY_NUMBER)
+                .header("ERIC-Identity", "123")
+                .header("ERIC-Identity-Type", "key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("x-request-id", CONTEXT_ID)
+                .header("X-DELTA-AT", NEW_DELTA_AT)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        result.andExpect(MockMvcResultMatchers.status().isOk());
+
+        final VersionedCompanyProfileDocument parentRetrieved = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+
+        assertNotNull(parentRetrieved);
+        assertNotNull(parentRetrieved.getCompanyProfile().getLinks().getSelf());
+        assertNull(parentRetrieved.getCompanyProfile().getLinks().getUkEstablishments());
+        assertNull(childDocument);
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, CHILD_COMPANY_NUMBER, document.getCompanyProfile());
     }
 
     private CompanyProfile makeBRPutRequest(String deltaAt) {

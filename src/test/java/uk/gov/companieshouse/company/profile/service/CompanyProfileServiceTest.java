@@ -95,6 +95,7 @@ class CompanyProfileServiceTest {
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
     private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
     private static final String MOCK_DELTA_AT = "20241129123010123789";
+    private static final String UK_ESTABLISHMENT_COMPANY_NUMBER = "BR765432";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -2210,17 +2211,33 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("Check delete link should be called when deleting Uk establishments")
-    public void testDeleteCompanyProfileUkEstablishments() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).
+    void testDeleteCompanyProfileUkEstablishments() {
+        when(companyProfileRepository.findById(UK_ESTABLISHMENT_COMPANY_NUMBER)).
                 thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
+        companyProfileService.deleteCompanyProfile("123456", UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
 
-        verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
+        verify(companyProfileRepository, times(1)).findById(UK_ESTABLISHMENT_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
+        verify(companyProfileService, times(1)).checkForDeleteLinkUkEstablishmentParent(any());
         verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
-        verify(companyProfileService, times(1)).checkForDeleteLink(any());
+    }
+
+    @Test
+    @DisplayName("Check that child Uk establishment should still be deleted when parent is not found")
+    void shouldStillDeleteChildUkEstablishmentWhenParentNotFound() {
+        when(companyProfileRepository.findById(UK_ESTABLISHMENT_COMPANY_NUMBER))
+                .thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
+        when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
+                .thenReturn(Optional.empty());
+
+        companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
+
+        verify(companyProfileRepository).findById(UK_ESTABLISHMENT_COMPANY_NUMBER);
+        verify(companyProfileRepository).findById(ANOTHER_PARENT_COMPANY_NUMBER);
+        verify(companyProfileService).checkForDeleteLinkUkEstablishmentParent(any());
+        verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
     }
 
     @Test
