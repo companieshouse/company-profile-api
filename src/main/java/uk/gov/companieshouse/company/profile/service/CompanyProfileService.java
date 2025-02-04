@@ -400,6 +400,9 @@ public class CompanyProfileService {
 
         Data profileData = companyProfileDocument.getCompanyProfile();
         if (profileData != null) {
+            // Do not output proof status
+            profileData.setProofStatus(null);
+
             //SuperSecureManagingOfficerCount should not be returned on a Get request
             profileData.setSuperSecureManagingOfficerCount(null);
             List<PreviousCompanyNames> previousCompanyNames = profileData.getPreviousCompanyNames();
