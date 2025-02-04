@@ -2190,6 +2190,24 @@ class CompanyProfileServiceTest {
     }
 
     @Test
+    @DisplayName("Retrieve company should not return proof status")
+    void testRetrieveCompanyNumberRemoveProofStatus() throws ResourceNotFoundException {
+        Data companyData = new Data();
+        companyData.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        companyData.setProofStatus("paper");
+
+        VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
+        doc.setCompanyProfile(companyData);
+
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(doc));
+
+        Data result = companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
+
+        assertNull(result.getProofStatus());
+        verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
     @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
     public void testRetrieveCompanyNumberResourceNotFoundException(){
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
