@@ -3,7 +3,6 @@ package uk.gov.companieshouse.company.profile.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
