@@ -6,6 +6,7 @@ Feature: Delete company profile
     When a DELETE request is sent to the company profile endpoint for "<company_number>"
     And the company profile does not exist for "<company_number>"
     Then I should receive 200 status code
+    And the CHS Kafka API is invoked successfully for delete for "<data_file>"
 
     Examples:
       | data_file               | company_number |

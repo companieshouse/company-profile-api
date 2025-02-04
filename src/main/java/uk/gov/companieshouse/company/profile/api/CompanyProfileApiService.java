@@ -1,6 +1,9 @@
 package uk.gov.companieshouse.company.profile.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
@@ -10,6 +13,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.company.profile.exception.SerDesException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.util.DateUtils;
 import uk.gov.companieshouse.logging.Logger;
@@ -23,13 +27,15 @@ public class CompanyProfileApiService {
 
     private final Logger logger;
     private final ApiClientService apiClientService;
+    private final ObjectMapper objectMapper;
 
     /**
      * Invoke Insolvency API.
      */
-    public CompanyProfileApiService(ApiClientService apiClientService, Logger logger) {
+    public CompanyProfileApiService(ApiClientService apiClientService, Logger logger, ObjectMapper objectMapper) {
         this.apiClientService = apiClientService;
         this.logger = logger;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -73,7 +79,16 @@ public class CompanyProfileApiService {
         ChangedResourceEvent event = new ChangedResourceEvent();
         event.setType(eventType);
         if (eventType.equals(DELETED_EVENT_TYPE)) {
-            changedResource.setDeletedData(companyProfile);
+            try {
+                Object dataAsObject = objectMapper.readValue(
+                        objectMapper.writeValueAsString(companyProfile), Object.class
+                );
+                changedResource.setDeletedData(dataAsObject);
+            } catch (JsonProcessingException ex) {
+                final String msg = "Failed to serialise/deserialise deleted data";
+                logger.error(msg);
+                throw new SerDesException(msg, ex);
+            }
         }
         event.publishedAt(DateUtils.publishedAtString(Instant.now()));
 
