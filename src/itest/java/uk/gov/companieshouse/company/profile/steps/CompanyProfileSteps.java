@@ -5,6 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
@@ -27,9 +29,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +43,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -103,6 +108,7 @@ public class CompanyProfileSteps {
     public void chs_kafka_service_unavailable() {
         WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
     }
+
     @When("I send PATCH request with payload {string} and company number {string}")
     public void i_send_put_request_with_payload(String dataFile, String companyNumber) throws IOException {
         WiremockTestConfig.stubKafkaApi(HttpStatus.OK.value());
@@ -276,6 +282,27 @@ public class CompanyProfileSteps {
         verify(0, postRequestedFor(urlEqualTo("/private/resource-changed")));
         List<ServeEvent> serverEvents = WiremockTestConfig.getServeEvents();
         assertTrue(serverEvents.isEmpty());
+    }
+
+    @Then("the CHS Kafka API is invoked successfully for delete for {string}")
+    public void chs_kafka_api_invoked_delete(String dataFile) throws IOException {
+        verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/private/resource-changed")));
+
+        File file = new FileSystemResource("src/itest/resources/json/output/" + dataFile + "-resourceChanged.json").getFile();
+        ChangedResource expectedChangedResource = objectMapper.readValue(file, ChangedResource.class);
+
+        List<ServeEvent> serverEvents = WiremockTestConfig.getServeEvents();
+        assertThat(serverEvents).hasSize(1);
+        String requestReceived = serverEvents.getFirst().getRequest().getBodyAsString();
+        ChangedResource actualChangedResource = objectMapper.convertValue(Document.parse(requestReceived), ChangedResource.class);
+
+        assertEquals(expectedChangedResource.getDeletedData(), actualChangedResource.getDeletedData());
+        assertEquals(expectedChangedResource.getResourceUri(), actualChangedResource.getResourceUri());
+        assertEquals(expectedChangedResource.getResourceKind(), actualChangedResource.getResourceKind());
+        assertEquals(expectedChangedResource.getEvent().getType(), actualChangedResource.getEvent().getType());
+
+        String actualDeletedData = actualChangedResource.getDeletedData().toString();
+        assertFalse(actualDeletedData.contains("null"));
     }
 
     @Then("nothing is persisted in the database")

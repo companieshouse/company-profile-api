@@ -30,7 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -100,7 +100,7 @@ class CompanyProfileControllerTest {
     private static final String ERIC_PRIVILEGES = "*";
     private static final String ERIC_AUTH = "internal-app";
 
-    @MockBean
+    @MockitoBean
     private Logger logger;
 
     @Autowired
@@ -109,7 +109,7 @@ class CompanyProfileControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private CompanyProfileService companyProfileService;
 
     @InjectMocks
@@ -179,7 +179,7 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(get(COMPANY_DETAILS_URL).header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
-                .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyDetailsOP)))
+                .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyDetailsOP.get())))
                 .andExpect(status().isOk());
 
     }

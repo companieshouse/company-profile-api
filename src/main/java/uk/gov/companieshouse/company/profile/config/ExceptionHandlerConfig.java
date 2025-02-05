@@ -22,6 +22,7 @@ import uk.gov.companieshouse.api.exception.MethodNotAllowedException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ConflictException;
+import uk.gov.companieshouse.company.profile.exception.SerDesException;
 import uk.gov.companieshouse.logging.Logger;
 
 
@@ -68,7 +69,7 @@ public class ExceptionHandlerConfig {
      * @param request request.
      * @return error response to return.
      */
-    @ExceptionHandler(value = {Exception.class})
+    @ExceptionHandler(value = {Exception.class, SerDesException.class})
     public ResponseEntity<Object> handleException(Exception ex,
                                                   WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
