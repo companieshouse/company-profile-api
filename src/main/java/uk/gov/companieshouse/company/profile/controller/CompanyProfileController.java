@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -59,17 +58,13 @@ public class CompanyProfileController {
                 .companyNumber(companyNumber);
         LOGGER.info(String.format("Request received on GET endpoint for company number %s",
                 companyNumber), DataMapHolder.getLogMap());
-        try {
-            return companyProfileService.get(companyNumber)
-                    .map(document ->
-                            new ResponseEntity<>(
-                                    new CompanyProfile().data(document.companyProfile),
-                                    HttpStatus.OK))
-                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            LOGGER.info("Forbidden request");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+
+        return companyProfileService.get(companyNumber)
+                .map(document ->
+                        new ResponseEntity<>(
+                                new CompanyProfile().data(document.companyProfile),
+                                HttpStatus.OK))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     /**
@@ -91,9 +86,6 @@ public class CompanyProfileController {
         try {
             companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
             return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (HttpClientErrorException.Forbidden ex) {
-            LOGGER.errorContext(contextId, ex, DataMapHolder.getLogMap());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (ServiceUnavailableException | MongoTimeoutException ex) {
             LOGGER.errorContext(contextId, ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
@@ -180,9 +172,6 @@ public class CompanyProfileController {
         try {
             Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
             return new ResponseEntity<>(data, HttpStatus.OK);
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            LOGGER.info("Forbidden request");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (ResourceNotFoundException resourceNotFoundException) {
             LOGGER.error("Error while trying to retrieve company profile: "
                     + resourceNotFoundException.getMessage());
@@ -220,9 +209,6 @@ public class CompanyProfileController {
             LOGGER.error("Error while trying to delete company profile.",
                     ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            LOGGER.info("Forbidden request");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 

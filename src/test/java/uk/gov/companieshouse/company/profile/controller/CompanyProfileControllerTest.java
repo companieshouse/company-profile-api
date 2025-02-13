@@ -42,7 +42,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -147,18 +146,6 @@ class CompanyProfileControllerTest {
 
         mockMvc.perform(get(COMPANY_LINKS_URL))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test()
-    @DisplayName("Company Profile GET request returns a 403 Forbidden request")
-    void getCompanyProfileForbiddenRequest() throws Exception {
-        when(companyProfileService.get(any()))
-                .thenThrow(HttpClientErrorException.Forbidden.class);
-
-        mockMvc.perform(get(COMPANY_LINKS_URL)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
-                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -1019,22 +1006,6 @@ class CompanyProfileControllerTest {
     }
 
     @Test
-    @DisplayName("Put Company Profile and throw 403")
-    void callPutCompanyProfileAndReturn403() throws Exception {
-        doThrow(HttpClientErrorException.Forbidden.class).when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
-
-        mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                        .content(testHelper.createJsonCompanyProfilePayload()))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
     @DisplayName("Put Company Profile and throw 409")
     void callPutCompanyProfileAndThrow409() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
@@ -1104,26 +1075,6 @@ class CompanyProfileControllerTest {
     }
 
     @Test
-    @DisplayName("Retrieve a company profile when sending a GET request and throw 403")
-    void testSearchCompanyProfileAndThrow403() throws Exception {
-        Data mockData = new Data();
-        mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
-
-        doThrow(HttpClientErrorException.Forbidden.class)
-                .when(companyProfileService).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
-
-        mockMvc.perform(MockMvcRequestBuilders.get(COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isForbidden());
-
-        verify(companyProfileService, times(1)).retrieveCompanyNumber(MOCK_COMPANY_NUMBER);
-    }
-
-    @Test
     @DisplayName("Retrieve a company profile when sending a GET request and throw 404")
     void testSearchCompanyProfileAndThrow404() throws Exception {
         Data mockData = new Data();
@@ -1183,25 +1134,6 @@ class CompanyProfileControllerTest {
                         .header("X-DELTA-AT", MOCK_DELTA_AT)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
-    }
-
-    @Test
-    @DisplayName("Return 403 for forbidden request exception")
-    void deleteCompanyProfileForbiddenRequest() throws Exception {
-
-        doThrow(HttpClientErrorException.Forbidden.class)
-                .when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
-
-        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("X-DELTA-AT", MOCK_DELTA_AT)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isForbidden());
 
         verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
