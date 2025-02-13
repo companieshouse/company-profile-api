@@ -59,7 +59,6 @@ import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
-import uk.gov.companieshouse.logging.Logger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -99,9 +98,6 @@ class CompanyProfileControllerTest {
     private static final String ERIC_IDENTITY_TYPE = "key";
     private static final String ERIC_PRIVILEGES = "*";
     private static final String ERIC_AUTH = "internal-app";
-
-    @MockitoBean
-    private Logger logger;
 
     @Autowired
     private MockMvc mockMvc;

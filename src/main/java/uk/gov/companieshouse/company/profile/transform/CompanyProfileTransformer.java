@@ -1,7 +1,8 @@
 package uk.gov.companieshouse.company.profile.transform;
 
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
+
 import jakarta.annotation.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
@@ -14,16 +15,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 @Component
 public class CompanyProfileTransformer {
 
-    private final Logger logger;
-
-    @Autowired
-    CompanyProfileTransformer(Logger logger) {
-        this.logger = logger;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     /**
      * transforms links in accordance with existing links in db.
@@ -87,7 +84,7 @@ public class CompanyProfileTransformer {
                         }
                     }
                 } catch (Exception ex) {
-                    logger.error("Error with links reflection: " + ex.getMessage());
+                    LOGGER.error("Error with links reflection: " + ex.getMessage());
                 }
             }
         } else {

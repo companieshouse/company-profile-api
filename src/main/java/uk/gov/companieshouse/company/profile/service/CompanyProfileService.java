@@ -2,6 +2,7 @@ package uk.gov.companieshouse.company.profile.service;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
 import static uk.gov.companieshouse.company.profile.util.DateUtils.isDeltaStale;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_LINK_TYPE;
@@ -52,13 +53,15 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 @Service
 public class CompanyProfileService {
 
     private static final String RELATED_COMPANIES_KIND = "related-companies";
     private static final String COMPANY_SELF_LINK = "/company/%s";
-    private final Logger logger;
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
     private final CompanyProfileApiService companyProfileApiService;
@@ -69,13 +72,11 @@ public class CompanyProfileService {
      * Constructor.
      */
     @Autowired
-    public CompanyProfileService(Logger logger,
-            CompanyProfileRepository companyProfileRepository,
+    public CompanyProfileService(CompanyProfileRepository companyProfileRepository,
             MongoTemplate mongoTemplate,
             CompanyProfileApiService companyProfileApiService,
             LinkRequestFactory linkRequestFactory,
             CompanyProfileTransformer companyProfileTransformer) {
-        this.logger = logger;
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
         this.companyProfileApiService = companyProfileApiService;
@@ -90,7 +91,7 @@ public class CompanyProfileService {
      * @return a company profile if one with given company number exists, otherwise - empty optional
      */
     public Optional<VersionedCompanyProfileDocument> get(String companyNumber) {
-        logger.trace(String.format("Call to retrieve company profile with company number %s",
+        LOGGER.trace(String.format("Call to retrieve company profile with company number %s",
                 companyNumber), DataMapHolder.getLogMap());
         Optional<VersionedCompanyProfileDocument> companyProfileDocument;
         try {
@@ -102,10 +103,10 @@ public class CompanyProfileService {
         }
 
         companyProfileDocument.ifPresentOrElse(
-                companyProfile -> logger.trace(
+                companyProfile -> LOGGER.trace(
                         String.format("Successfully retrieved company profile with company "
                                 + "number %s", companyNumber), DataMapHolder.getLogMap()),
-                () -> logger.trace(
+                () -> LOGGER.trace(
                         String.format("No company profile with company number %s found",
                                 companyNumber), DataMapHolder.getLogMap())
         );
@@ -184,7 +185,7 @@ public class CompanyProfileService {
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
             if (statusCode.is2xxSuccessful()) {
-                logger.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
+                LOGGER.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
                                 + "invoked successfully for company number %s", companyNumber),
                         DataMapHolder.getLogMap());
                 if (cpDocument.getVersion() == null) { // Update a legacy document
@@ -192,11 +193,11 @@ public class CompanyProfileService {
                 } else { // Update a versioned document
                     companyProfileRepository.save(cpDocument);
                 }
-                logger.infoContext(contextId, String.format("Company profile is updated "
+                LOGGER.infoContext(contextId, String.format("Company profile is updated "
                                 + "in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
             } else {
-                logger.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked "
+                LOGGER.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked "
                                         + "successfully for company number %s. Response code %s.", companyNumber,
                                 statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
                         DataMapHolder.getLogMap());
@@ -235,7 +236,7 @@ public class CompanyProfileService {
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (!isBlank(linkData)) {
-            logger.error(linkRequest.getLinkType() + " link for company profile already exists",
+            LOGGER.error(linkRequest.getLinkType() + " link for company profile already exists",
                     DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already exists");
@@ -259,7 +260,7 @@ public class CompanyProfileService {
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (isBlank(linkData)) {
-            logger.error(linkRequest.getLinkType() + " link for company profile already"
+            LOGGER.error(linkRequest.getLinkType() + " link for company profile already"
                     + " does not exist", DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already does not exist");
@@ -283,7 +284,7 @@ public class CompanyProfileService {
             String linkData = linkRequest.getCheckLink().apply(links);
 
             if (isBlank(linkData)) {
-                logger.error(linkRequest.getLinkType() + " link for company profile already"
+                LOGGER.error(linkRequest.getLinkType() + " link for company profile already"
                         + " does not exist", DataMapHolder.getLogMap());
                 throw new ResourceStateConflictException("Resource state conflict; "
                         + linkRequest.getLinkType() + " link already does not exist");
@@ -291,7 +292,7 @@ public class CompanyProfileService {
                 deleteLink(linkRequest, existingDocumentOptional.get());
             }
         } else {
-            logger.info("No document found for parent profile, continuing to delete child Uk establishment");
+            LOGGER.info("No document found for parent profile, continuing to delete child Uk establishment");
         }
     }
 
@@ -307,7 +308,7 @@ public class CompanyProfileService {
                         .orElse(new VersionedCompanyProfileDocument());
 
         if (isDeltaStale(companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt())) {
-            logger.error("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
+            LOGGER.error("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
                     companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt()), DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Stale delta for upsert");
         }
@@ -338,7 +339,7 @@ public class CompanyProfileService {
                         companyProfileApiService.invokeChsKafkaApi(
                                 contextId, parentCompanyNumber);
                     } catch (ResourceStateConflictException resourceStateConflictException) {
-                        logger.info("Parent company link already exists");
+                        LOGGER.info("Parent company link already exists");
                     }
 
                 });
@@ -382,7 +383,7 @@ public class CompanyProfileService {
             }
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
 
-            logger.infoContext(contextId, String.format("Company profile is updated in "
+            LOGGER.infoContext(contextId, String.format("Company profile is updated in "
                     + "MongoDb for company number: %s", companyNumber), DataMapHolder.getLogMap());
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
@@ -437,7 +438,7 @@ public class CompanyProfileService {
      */
     public void deleteCompanyProfile(String contextId, String companyNumber, String requestDeltaAt) {
         if (StringUtils.isBlank(requestDeltaAt)) {
-            logger.error("deltaAt missing from delete request", DataMapHolder.getLogMap());
+            LOGGER.error("deltaAt missing from delete request", DataMapHolder.getLogMap());
             throw new BadRequestException("deltaAt is null or empty");
         }
         companyProfileRepository.findById(companyNumber).ifPresentOrElse(
@@ -445,7 +446,7 @@ public class CompanyProfileService {
                     Data companyProfile = companyProfileDocument.getCompanyProfile();
                     LocalDateTime existingDeltaAt = companyProfileDocument.getDeltaAt();
                     if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
-                        logger.error(String.format(
+                        LOGGER.error(String.format(
                                 "Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
                                 requestDeltaAt, existingDeltaAt), DataMapHolder.getLogMap());
                         throw new ConflictException("Stale delta received");
@@ -462,13 +463,13 @@ public class CompanyProfileService {
                     }
 
                     companyProfileRepository.delete(companyProfileDocument);
-                    logger.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
+                    LOGGER.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
                             companyNumber), DataMapHolder.getLogMap());
                     companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
                             companyProfile);
                 },
                 () -> {
-                    logger.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
+                    LOGGER.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
                             companyNumber), DataMapHolder.getLogMap());
                     companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
                             null);
@@ -488,7 +489,7 @@ public class CompanyProfileService {
             companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
             return Optional.of(companyDetails);
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error(resourceNotFoundException.getMessage(), DataMapHolder.getLogMap());
+            LOGGER.error(resourceNotFoundException.getMessage(), DataMapHolder.getLogMap());
             return Optional.empty();
         }
     }
@@ -529,7 +530,7 @@ public class CompanyProfileService {
                 companyProfile.setCanFile(false);
             }
         } catch (Exception exception) {
-            logger.error("Error determining can file status " + exception.getMessage(),
+            LOGGER.error("Error determining can file status " + exception.getMessage(),
                     DataMapHolder.getLogMap());
         }
 
@@ -568,7 +569,7 @@ public class CompanyProfileService {
                                 .setOverdue(nextDue.isBefore(currentDate));
                     });
         } catch (Exception exception) {
-            logger.error("Error determining overdue status " + exception.getMessage());
+            LOGGER.error("Error determining overdue status " + exception.getMessage());
         }
         companyProfileDocument.setCompanyProfile(companyProfile);
         return companyProfileDocument;
@@ -597,16 +598,16 @@ public class CompanyProfileService {
             } else { // Update a versioned document with links
                 companyProfileRepository.save(existingDocument);
             }
-            logger.info(String.format("Company %s link inserted in Company Profile", linkRequest.getLinkType()),
+            LOGGER.info(String.format("Company %s link inserted in Company Profile", linkRequest.getLinkType()),
                     DataMapHolder.getLogMap());
 
             companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
-            logger.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
+            LOGGER.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
-            logger.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
+            LOGGER.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB", exception, DataMapHolder.getLogMap());
+            LOGGER.error("Error accessing MongoDB", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
@@ -616,7 +617,7 @@ public class CompanyProfileService {
             int ukEstablishmentsCount = retrieveUkEstablishments(linkRequest.getCompanyNumber())
                     .getItems().size();
             if (ukEstablishmentsCount > 1) {
-                logger.info("Link not deleted, UK establishments still exists",
+                LOGGER.info("Link not deleted, UK establishments still exists",
                         DataMapHolder.getLogMap());
                 return;
             }
@@ -635,18 +636,18 @@ public class CompanyProfileService {
             } else { // Update a versioned document
                 companyProfileRepository.save(existingDocument);
             }
-            logger.info(String.format("Company %s link deleted in Company Profile",
+            LOGGER.info(String.format("Company %s link deleted in Company Profile",
                     linkRequest.getLinkType()), DataMapHolder.getLogMap());
 
             companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
-            logger.info("chs-kafka-api DELETED invoked successfully",
+            LOGGER.info("chs-kafka-api DELETED invoked successfully",
                     DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
-            logger.error("Error calling chs-kafka-api", exception,
+            LOGGER.error("Error calling chs-kafka-api", exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB", exception,
+            LOGGER.error("Error accessing MongoDB", exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
@@ -659,7 +660,7 @@ public class CompanyProfileService {
                             String.format("No company profile with company number %s found",
                                     companyNumber)));
         } catch (DataAccessException exception) {
-            logger.error("Error accessing MongoDB", DataMapHolder.getLogMap());
+            LOGGER.error("Error accessing MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }

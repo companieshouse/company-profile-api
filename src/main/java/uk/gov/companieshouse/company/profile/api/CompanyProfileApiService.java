@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.company.profile.api;
 
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -16,6 +18,7 @@ import uk.gov.companieshouse.company.profile.exception.SerDesException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.util.DateUtils;
 import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 @Service
 public class CompanyProfileApiService {
@@ -23,17 +26,16 @@ public class CompanyProfileApiService {
     public static final String CHANGED_EVENT_TYPE = "changed";
     public static final String DELETED_EVENT_TYPE = "deleted";
     private static final String CHANGED_RESOURCE_URI = "/private/resource-changed";
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
-    private final Logger logger;
     private final ApiClientService apiClientService;
     private final ObjectMapper objectMapper;
 
     /**
      * Invoke Insolvency API.
      */
-    public CompanyProfileApiService(ApiClientService apiClientService, Logger logger, ObjectMapper objectMapper) {
+    public CompanyProfileApiService(ApiClientService apiClientService, ObjectMapper objectMapper) {
         this.apiClientService = apiClientService;
-        this.logger = logger;
         this.objectMapper = objectMapper;
     }
 
@@ -85,7 +87,7 @@ public class CompanyProfileApiService {
                 changedResource.setDeletedData(dataAsObject);
             } catch (JsonProcessingException ex) {
                 final String msg = "Failed to serialise/deserialise deleted data";
-                logger.error(msg);
+                LOGGER.error(msg);
                 throw new SerDesException(msg, ex);
             }
         }
@@ -103,12 +105,12 @@ public class CompanyProfileApiService {
         try {
             return post.execute();
         } catch (ApiErrorResponseException exception) {
-            logger.errorContext(contextId,
+            LOGGER.errorContext(contextId,
                     "Unsuccessful call to /private/resource-changed endpoint",
                     exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (RuntimeException exception) {
-            logger.errorContext(contextId, "Error occurred while calling /private/resource-changed"
+            LOGGER.errorContext(contextId, "Error occurred while calling /private/resource-changed"
                     + " endpoint", exception, DataMapHolder.getLogMap());
             throw exception;
         }

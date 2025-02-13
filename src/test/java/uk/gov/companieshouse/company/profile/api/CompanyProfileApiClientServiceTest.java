@@ -32,7 +32,6 @@ import uk.gov.companieshouse.api.handler.chskafka.PrivateChangedResourceHandler;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.exception.SerDesException;
-import uk.gov.companieshouse.logging.Logger;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileApiClientServiceTest {
@@ -54,9 +53,6 @@ class CompanyProfileApiClientServiceTest {
 
     @Mock
     private ApiResponse<Void> response;
-
-    @Mock
-    private Logger logger;
 
     @Mock
     private ObjectMapper objectMapper;

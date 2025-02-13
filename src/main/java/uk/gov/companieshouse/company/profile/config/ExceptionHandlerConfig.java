@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.company.profile.config;
 
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
@@ -7,7 +9,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -24,19 +25,13 @@ import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.company.profile.exception.SerDesException;
 import uk.gov.companieshouse.logging.Logger;
-
-
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 @ControllerAdvice
 public class ExceptionHandlerConfig {
 
     private static final String X_REQUEST_ID_HEADER = "x-request-id";
-    private final Logger logger;
-
-    @Autowired
-    public ExceptionHandlerConfig(Logger logger) {
-        this.logger = logger;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     private void populateResponseBody(Map<String, Object> responseBody , String correlationId) {
         responseBody.put("timestamp", LocalDateTime.now());
@@ -45,7 +40,7 @@ public class ExceptionHandlerConfig {
     }
 
     private void errorLogException(Exception ex, String correlationId) {
-        logger.errorContext(null, String.format("Exception occurred while processing the "
+        LOGGER.errorContext(null, String.format("Exception occurred while processing the "
                 + "API request with Correlation ID: %s", correlationId), ex, null);
     }
 
