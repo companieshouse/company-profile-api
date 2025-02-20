@@ -9,14 +9,15 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
 
 public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(
             CompanyProfileApiApplication.APPLICATION_NAME_SPACE);
 
@@ -53,7 +54,7 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
              */
             return parsedDate;
         } catch (Exception exception) {
-            LOGGER.error("Deserialization failed.", exception);
+            LOGGER.error("Deserialization failed.", exception, DataMapHolder.getLogMap());
             throw new BadRequestException(exception.getMessage());
         }
     }

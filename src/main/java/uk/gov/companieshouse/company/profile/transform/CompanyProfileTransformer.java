@@ -3,18 +3,19 @@ package uk.gov.companieshouse.company.profile.transform;
 import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
 
 import jakarta.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.logging.Logger;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
 @Component
@@ -26,8 +27,8 @@ public class CompanyProfileTransformer {
      * transforms links in accordance with existing links in db.
      */
     public VersionedCompanyProfileDocument transform(VersionedCompanyProfileDocument companyProfileDocument,
-                                            CompanyProfile companyProfile,
-                                            @Nullable Links existinglinks) {
+            CompanyProfile companyProfile,
+            @Nullable Links existinglinks) {
 
         companyProfileDocument.setCompanyProfile(companyProfile.getData());
         if (companyProfile.getData() != null) {
@@ -61,7 +62,7 @@ public class CompanyProfileTransformer {
     }
 
     private void transformLinks(CompanyProfile companyProfile, Links existinglinks,
-                                VersionedCompanyProfileDocument companyProfileDocument) {
+            VersionedCompanyProfileDocument companyProfileDocument) {
         Links links = new Links();
         if (companyProfile.getData().getLinks() != null) {
             // Iterating through each link in the Links class and calling the getter and setter
@@ -84,7 +85,7 @@ public class CompanyProfileTransformer {
                         }
                     }
                 } catch (Exception ex) {
-                    LOGGER.error("Error with links reflection: " + ex.getMessage());
+                    LOGGER.error("Error with links reflection: " + ex.getMessage(), DataMapHolder.getLogMap());
                 }
             }
         } else {

@@ -91,8 +91,6 @@ public class CompanyProfileService {
      * @return a company profile if one with given company number exists, otherwise - empty optional
      */
     public Optional<VersionedCompanyProfileDocument> get(String companyNumber) {
-        LOGGER.trace(String.format("Call to retrieve company profile with company number %s",
-                companyNumber), DataMapHolder.getLogMap());
         Optional<VersionedCompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
@@ -103,12 +101,12 @@ public class CompanyProfileService {
         }
 
         companyProfileDocument.ifPresentOrElse(
-                companyProfile -> LOGGER.trace(
-                        String.format("Successfully retrieved company profile with company "
-                                + "number %s", companyNumber), DataMapHolder.getLogMap()),
-                () -> LOGGER.trace(
-                        String.format("No company profile with company number %s found",
-                                companyNumber), DataMapHolder.getLogMap())
+                companyProfile -> LOGGER.info(
+                        String.format("Successfully retrieved company profile with company number %s", companyNumber),
+                        DataMapHolder.getLogMap()),
+                () -> LOGGER.info(
+                        String.format("No company profile with company number %s found", companyNumber),
+                        DataMapHolder.getLogMap())
         );
 
         //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
@@ -185,7 +183,7 @@ public class CompanyProfileService {
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
             if (statusCode.is2xxSuccessful()) {
-                LOGGER.infoContext(contextId, String.format("Chs-kafka-api CHANGED "
+                LOGGER.info(String.format("Chs-kafka-api CHANGED "
                                 + "invoked successfully for company number %s", companyNumber),
                         DataMapHolder.getLogMap());
                 if (cpDocument.getVersion() == null) { // Update a legacy document
@@ -193,11 +191,11 @@ public class CompanyProfileService {
                 } else { // Update a versioned document
                     companyProfileRepository.save(cpDocument);
                 }
-                LOGGER.infoContext(contextId, String.format("Company profile is updated "
+                LOGGER.info(String.format("Company profile is updated "
                                 + "in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
             } else {
-                LOGGER.errorContext(contextId, String.format("Chs-kafka-api CHANGED NOT invoked "
+                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked "
                                         + "successfully for company number %s. Response code %s.", companyNumber,
                                 statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
                         DataMapHolder.getLogMap());
@@ -260,8 +258,8 @@ public class CompanyProfileService {
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (isBlank(linkData)) {
-            LOGGER.error(linkRequest.getLinkType() + " link for company profile already"
-                    + " does not exist", DataMapHolder.getLogMap());
+            LOGGER.error(linkRequest.getLinkType() + " link for company profile already does not exist",
+                    DataMapHolder.getLogMap());
             throw new ResourceStateConflictException("Resource state conflict; "
                     + linkRequest.getLinkType() + " link already does not exist");
         } else {
@@ -284,15 +282,16 @@ public class CompanyProfileService {
             String linkData = linkRequest.getCheckLink().apply(links);
 
             if (isBlank(linkData)) {
-                LOGGER.error(linkRequest.getLinkType() + " link for company profile already"
-                        + " does not exist", DataMapHolder.getLogMap());
+                LOGGER.error(linkRequest.getLinkType() + " link for company profile already does not exist",
+                        DataMapHolder.getLogMap());
                 throw new ResourceStateConflictException("Resource state conflict; "
                         + linkRequest.getLinkType() + " link already does not exist");
             } else {
                 deleteLink(linkRequest, existingDocumentOptional.get());
             }
         } else {
-            LOGGER.info("No document found for parent profile, continuing to delete child Uk establishment");
+            LOGGER.info("No document found for parent profile, continuing to delete child Uk establishment",
+                    DataMapHolder.getLogMap());
         }
     }
 
@@ -339,7 +338,7 @@ public class CompanyProfileService {
                         companyProfileApiService.invokeChsKafkaApi(
                                 contextId, parentCompanyNumber);
                     } catch (ResourceStateConflictException resourceStateConflictException) {
-                        LOGGER.info("Parent company link already exists");
+                        LOGGER.info("Parent company link already exists", DataMapHolder.getLogMap());
                     }
 
                 });
@@ -383,8 +382,8 @@ public class CompanyProfileService {
             }
             companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
 
-            LOGGER.infoContext(contextId, String.format("Company profile is updated in "
-                    + "MongoDb for company number: %s", companyNumber), DataMapHolder.getLogMap());
+            LOGGER.info(String.format("Company profile is updated in MongoDb for company number: %s", companyNumber),
+                    DataMapHolder.getLogMap());
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
         }
@@ -569,7 +568,7 @@ public class CompanyProfileService {
                                 .setOverdue(nextDue.isBefore(currentDate));
                     });
         } catch (Exception exception) {
-            LOGGER.error("Error determining overdue status " + exception.getMessage());
+            LOGGER.error("Error determining overdue status " + exception.getMessage(), DataMapHolder.getLogMap());
         }
         companyProfileDocument.setCompanyProfile(companyProfile);
         return companyProfileDocument;
@@ -744,8 +743,7 @@ public class CompanyProfileService {
             case "insolvency" -> links.setInsolvency(null);
             case "officers" -> links.setOfficers(null);
             case "persons-with-significant-control" -> links.setPersonsWithSignificantControl(null);
-            case "persons-with-significant-control-statements" ->
-                    links.setPersonsWithSignificantControlStatements(null);
+            case "persons-with-significant-control-statements" -> links.setPersonsWithSignificantControlStatements(null);
             case "uk-establishments" -> links.setUkEstablishments(null);
             case "registers" -> links.setRegisters(null);
             default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");

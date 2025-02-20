@@ -7,6 +7,7 @@ import uk.gov.companieshouse.api.converter.WriteConverter;
 
 @WritingConverter
 public class CompanyProfileDataWriteConverter extends WriteConverter<Data> {
+
     public CompanyProfileDataWriteConverter(ObjectMapper objectMapper) {
         super(objectMapper);
     }

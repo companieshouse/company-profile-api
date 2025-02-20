@@ -8,6 +8,7 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 
 @Repository
 public interface CompanyProfileRepository extends MongoRepository<VersionedCompanyProfileDocument, String> {
+
     @Query("{'parent_company_number' : '?0'}")
     List<VersionedCompanyProfileDocument> findAllByParentCompanyNumber(String parentCompanyNumber);
 }

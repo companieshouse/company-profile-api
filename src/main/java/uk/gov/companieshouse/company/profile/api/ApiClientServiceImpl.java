@@ -9,9 +9,11 @@ import uk.gov.companieshouse.api.http.HttpClient;
 @Component
 public class ApiClientServiceImpl implements ApiClientService {
 
-    @Value("${chs.kafka.api.key}") String chsApiKey;
+    @Value("${chs.kafka.api.key}")
+    String chsApiKey;
 
-    @Value("${chs.kafka.api.endpoint}") String internalApiUrl;
+    @Value("${chs.kafka.api.endpoint}")
+    String internalApiUrl;
 
 
     @Override

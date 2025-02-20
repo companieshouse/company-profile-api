@@ -49,7 +49,7 @@ public class MongoCompanyProfileConfig extends AbstractMongoClientConfiguration 
         final ConnectionString connectionString =
                 new ConnectionString(getDatabaseUri());
         final MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
-                        .applyConnectionString(connectionString).build();
+                .applyConnectionString(connectionString).build();
         return MongoClients.create(mongoClientSettings);
     }
 }

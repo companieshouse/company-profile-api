@@ -34,7 +34,6 @@ import uk.gov.companieshouse.company.profile.serialization.LocalDateDeSerializer
 import uk.gov.companieshouse.company.profile.serialization.LocalDateSerializer;
 import uk.gov.companieshouse.environment.EnvironmentReader;
 import uk.gov.companieshouse.environment.impl.EnvironmentReaderImpl;
-import uk.gov.companieshouse.logging.Logger;
 
 @Configuration
 @EnableWebSecurity
@@ -117,6 +116,6 @@ public class ApplicationConfig {
 
     @Bean
     public List<String> externalMethods() {
-        return Arrays.asList(HttpMethod.GET.name());
+        return List.of(HttpMethod.GET.name());
     }
 }

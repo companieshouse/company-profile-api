@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
@@ -21,14 +22,14 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         String ericIdentity = request.getHeader("ERIC-Identity");
 
         if (StringUtils.isBlank(ericIdentity)) {
-            LOGGER.error("Request received without eric identity");
+            LOGGER.error("Request received without eric identity", DataMapHolder.getLogMap());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -37,13 +38,13 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
 
         if (!("key".equalsIgnoreCase(ericIdentityType)
                 || ("oauth2".equalsIgnoreCase(ericIdentityType)))) {
-            LOGGER.error("Request received without correct eric identity type");
+            LOGGER.error("Request received without correct eric identity type", DataMapHolder.getLogMap());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         if (!isKeyAuthorised(request, ericIdentityType)) {
-            LOGGER.info("Supplied key does not have sufficient privilege for the action");
+            LOGGER.info("Supplied key does not have sufficient privilege for the action", DataMapHolder.getLogMap());
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

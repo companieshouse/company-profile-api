@@ -31,6 +31,7 @@ import uk.gov.companieshouse.api.exception.BadRequestException;
 
 @Component
 public class LinkRequestFactory {
+
     final Map<String, LinkTypeData> linkRequestMap = Map.of(
             CHARGES_LINK_TYPE,
             new LinkTypeData(CHARGES_DELTA_TYPE, CHARGES_GET),

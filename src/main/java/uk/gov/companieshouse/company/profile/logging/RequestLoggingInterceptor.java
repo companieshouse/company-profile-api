@@ -20,8 +20,8 @@ public class RequestLoggingInterceptor implements HandlerInterceptor, RequestLog
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request,
-                             @NonNull HttpServletResponse response,
-                             @NonNull Object handler) {
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler) {
         logStartRequestProcessing(request, LOGGER);
         DataMapHolder.initialise(Optional
                 .ofNullable(request.getHeader(REQUEST_ID.value()))
@@ -31,9 +31,9 @@ public class RequestLoggingInterceptor implements HandlerInterceptor, RequestLog
 
     @Override
     public void postHandle(@NonNull HttpServletRequest request,
-                           @NonNull HttpServletResponse response,
-                           @NonNull Object handler,
-                           ModelAndView modelAndView) {
+            @NonNull HttpServletResponse response,
+            @NonNull Object handler,
+            ModelAndView modelAndView) {
         logEndRequestProcessing(request, response, LOGGER);
         DataMapHolder.clear();
     }

@@ -7,7 +7,6 @@ import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +23,7 @@ import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.company.profile.exception.SerDesException;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
@@ -33,15 +33,15 @@ public class ExceptionHandlerConfig {
     private static final String X_REQUEST_ID_HEADER = "x-request-id";
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
-    private void populateResponseBody(Map<String, Object> responseBody , String correlationId) {
+    private void populateResponseBody(Map<String, Object> responseBody, String correlationId) {
         responseBody.put("timestamp", LocalDateTime.now());
         responseBody.put("message", String.format("Exception occurred while processing the API"
                 + " request with Correlation ID: %s", correlationId));
     }
 
     private void errorLogException(Exception ex, String correlationId) {
-        LOGGER.errorContext(null, String.format("Exception occurred while processing the "
-                + "API request with Correlation ID: %s", correlationId), ex, null);
+        LOGGER.error(String.format("Exception occurred while processing the "
+                + "API request with Correlation ID: %s", correlationId), ex, DataMapHolder.getLogMap());
     }
 
     private Map<String, Object> responseAndLogBuilderHandler(Exception ex, WebRequest request) {
@@ -66,14 +66,14 @@ public class ExceptionHandlerConfig {
      */
     @ExceptionHandler(value = {Exception.class, SerDesException.class})
     public ResponseEntity<Object> handleException(Exception ex,
-                                                  WebRequest request) {
+            WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
-     * DocumentNotFoundException exception handler.
-     * Thrown when the requested document could not be found in the DB in place of status code 404.
+     * DocumentNotFoundException exception handler. Thrown when the requested document could not be found in the DB in place of
+     * status code 404.
      *
      * @param ex      exception to handle.
      * @param request request.
@@ -81,14 +81,13 @@ public class ExceptionHandlerConfig {
      */
     @ExceptionHandler(value = {DocumentNotFoundException.class})
     public ResponseEntity<Object> handleDocumentNotFoundException(Exception ex,
-                                                              WebRequest request) {
+            WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.NOT_FOUND);
     }
 
     /**
-     * BadRequestException exception handler.
-     * Thrown when data is given in the wrong format.
+     * BadRequestException exception handler. Thrown when data is given in the wrong format.
      *
      * @param ex      exception to handle.
      * @param request request.
@@ -97,7 +96,7 @@ public class ExceptionHandlerConfig {
     @ExceptionHandler(value = {BadRequestException.class, DateTimeParseException.class,
             HttpMessageNotReadableException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Object> handleBadRequestException(Exception ex,
-                                                            WebRequest request) {
+            WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.BAD_REQUEST);
 
@@ -113,14 +112,13 @@ public class ExceptionHandlerConfig {
     @ExceptionHandler(value = {MethodNotAllowedException.class,
             HttpRequestMethodNotSupportedException.class})
     public ResponseEntity<Object> handleMethodNotAllowedException(Exception ex,
-                                                                  WebRequest request) {
+            WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     /**
-     * ServiceUnavailableException exception handler.
-     * To be thrown when there are connection issues.
+     * ServiceUnavailableException exception handler. To be thrown when there are connection issues.
      *
      * @param ex      exception to handle.
      * @param request request.
@@ -128,14 +126,13 @@ public class ExceptionHandlerConfig {
      */
     @ExceptionHandler(value = {ServiceUnavailableException.class})
     public ResponseEntity<Object> handleServiceUnavailableException(Exception ex,
-                                                                    WebRequest request) {
+            WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     /**
-     * ResourceStateConflictException handler.
-     * Thrown when the requested document already has a resource link.
+     * ResourceStateConflictException handler. Thrown when the requested document already has a resource link.
      *
      * @return error response to return.
      */
@@ -146,7 +143,7 @@ public class ExceptionHandlerConfig {
 
     @ExceptionHandler(value = {ConflictException.class})
     public ResponseEntity<Object> handleConflictException(Exception ex,
-                                                          WebRequest request) {
+            WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.CONFLICT);
     }

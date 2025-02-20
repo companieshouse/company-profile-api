@@ -57,7 +57,7 @@ public class LinkRequest {
      * @param linksGet      The get method for link
      */
     public LinkRequest(String contextId, String companyNumber, String linkType,
-                       String deltaType, Function<Links, String> linksGet) {
+            String deltaType, Function<Links, String> linksGet) {
         this.contextId = contextId;
         this.companyNumber = companyNumber;
         this.linkType = linkType;

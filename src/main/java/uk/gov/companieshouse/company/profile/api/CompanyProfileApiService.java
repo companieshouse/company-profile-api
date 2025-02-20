@@ -87,7 +87,7 @@ public class CompanyProfileApiService {
                 changedResource.setDeletedData(dataAsObject);
             } catch (JsonProcessingException ex) {
                 final String msg = "Failed to serialise/deserialise deleted data";
-                LOGGER.error(msg);
+                LOGGER.error(msg, DataMapHolder.getLogMap());
                 throw new SerDesException(msg, ex);
             }
         }
@@ -105,12 +105,11 @@ public class CompanyProfileApiService {
         try {
             return post.execute();
         } catch (ApiErrorResponseException exception) {
-            LOGGER.errorContext(contextId,
-                    "Unsuccessful call to /private/resource-changed endpoint",
+            LOGGER.error("Unsuccessful call to /private/resource-changed endpoint",
                     exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (RuntimeException exception) {
-            LOGGER.errorContext(contextId, "Error occurred while calling /private/resource-changed"
+            LOGGER.error("Error occurred while calling /private/resource-changed"
                     + " endpoint", exception, DataMapHolder.getLogMap());
             throw exception;
         }

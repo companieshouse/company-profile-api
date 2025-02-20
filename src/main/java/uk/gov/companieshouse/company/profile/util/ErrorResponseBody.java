@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.util;
 
 public class ErrorResponseBody {
+
     private final String type;
     private final String error;
 
@@ -12,14 +13,14 @@ public class ErrorResponseBody {
     @Override
     public String toString() {
         String errorString =
-                  "{\n"
-                + "    \"errors\": [\n"
-                + "        {\n"
-                + "            \"type\": \"%s\",\n"
-                + "            \"error\": \"%s\"\n"
-                + "        }\n"
-                + "    ]\n"
-                + "}";
+                "{\n"
+                        + "    \"errors\": [\n"
+                        + "        {\n"
+                        + "            \"type\": \"%s\",\n"
+                        + "            \"error\": \"%s\"\n"
+                        + "        }\n"
+                        + "    ]\n"
+                        + "}";
         return String.format(errorString, type, error);
     }
 }
