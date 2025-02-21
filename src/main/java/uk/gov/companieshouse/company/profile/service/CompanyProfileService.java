@@ -2,6 +2,7 @@ package uk.gov.companieshouse.company.profile.service;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
 import static uk.gov.companieshouse.company.profile.util.DateUtils.isDeltaStale;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.Accounts;
@@ -101,12 +103,13 @@ public class CompanyProfileService {
         }
 
         companyProfileDocument.ifPresentOrElse(
-                companyProfile -> LOGGER.info(
-                        String.format("Successfully retrieved company profile with company number %s", companyNumber),
-                        DataMapHolder.getLogMap()),
-                () -> LOGGER.info(
-                        String.format("No company profile with company number %s found", companyNumber),
-                        DataMapHolder.getLogMap())
+                companyProfile -> LOGGER.info("Successfully retrieved company profile", DataMapHolder.getLogMap()),
+                () -> {
+                    throw new ResourceNotFoundException(
+                        HttpStatusCode.valueOf(NOT_FOUND.value()),
+                        String.format("Company profile %s not found", companyNumber)
+                    );
+                }
         );
 
         //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
@@ -141,8 +144,7 @@ public class CompanyProfileService {
 
             VersionedCompanyProfileDocument cpDocument = cpDocumentOptional.orElseThrow(() ->
                     new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
+                            String.format("Company profile %s not found", companyNumber)));
 
             Data data = Optional.of(companyProfileRequest)
                     .map(CompanyProfile::getData)
@@ -178,7 +180,7 @@ public class CompanyProfileService {
             }
 
             ApiResponse<Void> response = companyProfileApiService.invokeChsKafkaApi(
-                    contextId, companyNumber);
+                    DataMapHolder.getRequestId(), companyNumber);
 
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
@@ -292,19 +294,14 @@ public class CompanyProfileService {
     /**
      * Finds existing company profile from db if any and updates or saves new record into db.
      */
-    public void processCompanyProfile(String contextId, String companyNumber,
-            CompanyProfile companyProfile)
+    public void processCompanyProfile(String contextId, String companyNumber, CompanyProfile companyProfile)
             throws ServiceUnavailableException, BadRequestException {
 
         VersionedCompanyProfileDocument companyProfileDocument =
                 companyProfileRepository.findById(companyNumber)
                         .orElse(new VersionedCompanyProfileDocument());
 
-        if (isDeltaStale(companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt())) {
-            LOGGER.error("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
-                    companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt()), DataMapHolder.getLogMap());
-            throw new ResourceStateConflictException("Stale delta for upsert");
-        }
+        deltaAtCheck(companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt());
 
         Optional<Links> existingLinks = Optional.of(companyProfileDocument)
                 .map(CompanyProfileDocument::getCompanyProfile)
@@ -330,7 +327,7 @@ public class CompanyProfileService {
                         companyProfileRepository.insert(
                                 createParentCompanyDocument(parentCompanyNumber));
                         companyProfileApiService.invokeChsKafkaApi(
-                                contextId, parentCompanyNumber);
+                                DataMapHolder.getRequestId(), parentCompanyNumber);
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         LOGGER.info("Parent company link already exists", DataMapHolder.getLogMap());
                     }
@@ -374,7 +371,7 @@ public class CompanyProfileService {
             } else {
                 companyProfileRepository.save(transformedDocument);
             }
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(DataMapHolder.getRequestId(), companyNumber);
 
             LOGGER.info(String.format("Company profile is updated in MongoDb for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
@@ -431,19 +428,14 @@ public class CompanyProfileService {
      */
     public void deleteCompanyProfile(String contextId, String companyNumber, String requestDeltaAt) {
         if (StringUtils.isBlank(requestDeltaAt)) {
-            LOGGER.error("deltaAt missing from delete request", DataMapHolder.getLogMap());
-            throw new BadRequestException("deltaAt is null or empty");
+            throw new BadRequestException("delta_at is missing from delete request");
         }
         companyProfileRepository.findById(companyNumber).ifPresentOrElse(
                 companyProfileDocument -> {
                     Data companyProfile = companyProfileDocument.getCompanyProfile();
                     LocalDateTime existingDeltaAt = companyProfileDocument.getDeltaAt();
-                    if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
-                        LOGGER.error(String.format(
-                                "Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
-                                requestDeltaAt, existingDeltaAt), DataMapHolder.getLogMap());
-                        throw new ConflictException("Stale delta received");
-                    }
+
+                    deltaAtCheck(requestDeltaAt, existingDeltaAt);
 
                     String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
                     if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
@@ -456,15 +448,13 @@ public class CompanyProfileService {
                     }
 
                     companyProfileRepository.delete(companyProfileDocument);
-                    LOGGER.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
-                            companyNumber), DataMapHolder.getLogMap());
-                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
+                    LOGGER.info("Company profile is deleted in MongoDb successfully", DataMapHolder.getLogMap());
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(DataMapHolder.getRequestId(), companyNumber,
                             companyProfile);
                 },
                 () -> {
-                    LOGGER.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
-                            companyNumber), DataMapHolder.getLogMap());
-                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
+                    LOGGER.info("Delete for non-existent document", DataMapHolder.getLogMap());
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(DataMapHolder.getRequestId(), companyNumber,
                             null);
                 }
         );
@@ -741,6 +731,13 @@ public class CompanyProfileService {
             case "uk-establishments" -> links.setUkEstablishments(null);
             case "registers" -> links.setRegisters(null);
             default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
+    private void deltaAtCheck(String requestDeltaAt, LocalDateTime existingDeltaAt) {
+        if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
+            throw new ConflictException("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
+                    requestDeltaAt, existingDeltaAt));
         }
     }
 }

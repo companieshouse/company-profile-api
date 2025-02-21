@@ -2060,7 +2060,7 @@ class CompanyProfileServiceTest {
         Executable actual = () -> companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
-        assertThrows(ResourceStateConflictException.class, actual);
+        assertThrows(ConflictException.class, actual);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoMoreInteractions(companyProfileRepository);
         verifyNoInteractions(companyProfileTransformer);

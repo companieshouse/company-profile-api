@@ -22,6 +22,7 @@ import uk.gov.companieshouse.api.exception.MethodNotAllowedException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ConflictException;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.exception.SerDesException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
@@ -33,26 +34,18 @@ public class ExceptionHandlerConfig {
     private static final String X_REQUEST_ID_HEADER = "x-request-id";
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
-    private void populateResponseBody(Map<String, Object> responseBody, String correlationId) {
-        responseBody.put("timestamp", LocalDateTime.now());
-        responseBody.put("message", String.format("Exception occurred while processing the API"
-                + " request with Correlation ID: %s", correlationId));
-    }
-
-    private void errorLogException(Exception ex, String correlationId) {
-        LOGGER.error(String.format("Exception occurred while processing the "
-                + "API request with Correlation ID: %s", correlationId), ex, DataMapHolder.getLogMap());
-    }
-
     private Map<String, Object> responseAndLogBuilderHandler(Exception ex, WebRequest request) {
-        var correlationId = request.getHeader(X_REQUEST_ID_HEADER);
-
-        if (StringUtils.isEmpty(correlationId)) {
-            correlationId = generateShortCorrelationId();
+        var requestId = request.getHeader(X_REQUEST_ID_HEADER);
+        if (StringUtils.isEmpty(requestId)) {
+            requestId = generateShortCorrelationId();
         }
+
         Map<String, Object> responseBody = new LinkedHashMap<>();
-        populateResponseBody(responseBody, correlationId);
-        errorLogException(ex, correlationId);
+        responseBody.put("timestamp", LocalDateTime.now());
+        responseBody.put("message", ex.getMessage());
+        responseBody.put("request_id", requestId);
+
+        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
 
         return responseBody;
     }
@@ -79,7 +72,7 @@ public class ExceptionHandlerConfig {
      * @param request request.
      * @return error response to return.
      */
-    @ExceptionHandler(value = {DocumentNotFoundException.class})
+    @ExceptionHandler(value = {DocumentNotFoundException.class, ResourceNotFoundException.class})
     public ResponseEntity<Object> handleDocumentNotFoundException(Exception ex,
             WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
@@ -132,18 +125,13 @@ public class ExceptionHandlerConfig {
     }
 
     /**
-     * ResourceStateConflictException handler. Thrown when the requested document already has a resource link.
+     * ResourceStateConflictException handler. Thrown when the requested document already has a resource link or
+     * delta at is outdated.
      *
      * @return error response to return.
      */
-    @ExceptionHandler(value = {ResourceStateConflictException.class})
-    public ResponseEntity<Object> handleResourceStateConflictException() {
-        return new ResponseEntity<>(HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(value = {ConflictException.class})
-    public ResponseEntity<Object> handleConflictException(Exception ex,
-            WebRequest request) {
+    @ExceptionHandler(value = {ResourceStateConflictException.class, ConflictException.class})
+    public ResponseEntity<Object> handleResourceStateConflictException(Exception ex, WebRequest request) {
         return new ResponseEntity<>(responseAndLogBuilderHandler(ex, request),
                 HttpStatus.CONFLICT);
     }

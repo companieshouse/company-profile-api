@@ -51,7 +51,7 @@ public class CompanyProfileApiService {
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,
                         mapChangedResource(contextId, companyNumber, CHANGED_EVENT_TYPE, null));
-        return handleApiCall(contextId, changedResourcePost);
+        return handleApiCall(changedResourcePost);
     }
 
     /**
@@ -70,7 +70,7 @@ public class CompanyProfileApiService {
                 .postChangedResource(CHANGED_RESOURCE_URI,
                         mapChangedResource(contextId, companyNumber, DELETED_EVENT_TYPE,
                                 companyProfile));
-        return handleApiCall(contextId, changedResourcePost);
+        return handleApiCall(changedResourcePost);
     }
 
     private ChangedResource mapChangedResource(String contextId, String companyNumber,
@@ -101,7 +101,7 @@ public class CompanyProfileApiService {
         return changedResource;
     }
 
-    private ApiResponse<Void> handleApiCall(String contextId, PrivateChangedResourcePost post) {
+    private ApiResponse<Void> handleApiCall(PrivateChangedResourcePost post) {
         try {
             return post.execute();
         } catch (ApiErrorResponseException exception) {
