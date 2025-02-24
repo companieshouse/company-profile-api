@@ -158,7 +158,7 @@ class CompanyProfileControllerTest {
 
         Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
 
-        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyDetails));
+        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyDetails);
 
         mockMvc.perform(get(COMPANY_DETAILS_URL).header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
@@ -184,7 +184,7 @@ class CompanyProfileControllerTest {
     @DisplayName(
             "Company Detail GET request returns a 404 Resource Not found response when no company profile found")
     void getCompanyDetailsNotFound() throws Exception {
-        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
         mockMvc.perform(get(COMPANY_DETAILS_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)

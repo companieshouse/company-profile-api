@@ -4,6 +4,7 @@ import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication
 
 import com.mongodb.MongoTimeoutException;
 import jakarta.validation.Valid;
+import java.lang.Runtime.Version;
 import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
+import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
@@ -80,12 +82,9 @@ public class CompanyProfileController {
                 .companyNumber(companyNumber);
         LOGGER.info("Processing GET company links", DataMapHolder.getLogMap());
 
-        return companyProfileService.get(companyNumber)
-                .map(document ->
-                        new ResponseEntity<>(
-                                new CompanyProfile().data(document.companyProfile),
-                                HttpStatus.OK))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        VersionedCompanyProfileDocument document = companyProfileService.get(companyNumber);
+
+        return new ResponseEntity<>(new CompanyProfile().data(document.companyProfile), HttpStatus.OK);
     }
 
     /**
@@ -103,11 +102,8 @@ public class CompanyProfileController {
         LOGGER.info("Processing GET company profile detail",
                 DataMapHolder.getLogMap());
         try {
-            Optional<CompanyDetails> companyDetails = companyProfileService
-                    .getCompanyDetails(companyNumber);
-            return companyDetails.map(details -> ResponseEntity.ok().body(details))
-                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-
+            CompanyDetails companyDetails = companyProfileService.getCompanyDetails(companyNumber);
+            return new ResponseEntity<>(companyDetails, HttpStatus.OK);
         } catch (DataAccessException dataAccessException) {
             LOGGER.error("Error while trying to get company details.", dataAccessException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();

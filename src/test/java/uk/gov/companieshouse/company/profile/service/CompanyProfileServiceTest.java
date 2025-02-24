@@ -252,12 +252,12 @@ class CompanyProfileServiceTest {
         mockCompanyDetails.setCompanyStatus("String");
         mockCompanyDetails.setCompanyName("String");
         mockCompanyDetails.setCompanyNumber(MOCK_COMPANY_NUMBER);
-        Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
+        CompanyDetails mockCompanyDetailsOP = mockCompanyDetails;
 
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
-        Optional<CompanyDetails> companyDetailsActual =
+        CompanyDetails companyDetailsActual =
                 companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
 
         assertEquals(mockCompanyDetailsOP,companyDetailsActual);
@@ -275,15 +275,14 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("When no company profile is retrieved then return empty optional")
+    @DisplayName("When no company profile is retrieved then throw ResourceNotFoundException")
     void getNoCompanyDetailsReturned() throws JsonProcessingException {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
-        Optional<CompanyDetails> companyDetailsActual =
-                companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
+        Executable actual = () -> companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
 
-        assertFalse(companyDetailsActual.isPresent());
+        assertThrows(ResourceNotFoundException.class, actual);
     }
 
     @Test

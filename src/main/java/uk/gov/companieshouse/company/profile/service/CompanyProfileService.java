@@ -63,6 +63,7 @@ public class CompanyProfileService {
     private static final String RELATED_COMPANIES_KIND = "related-companies";
     private static final String COMPANY_SELF_LINK = "/company/%s";
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final String RESOURCE_NOT_FOUND_STRING = "Resource not found for company profile %s";
 
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
@@ -90,9 +91,9 @@ public class CompanyProfileService {
      * Retrieve a company profile using its company number.
      *
      * @param companyNumber the company number
-     * @return a company profile if one with given company number exists, otherwise - empty optional
+     * @return a company profile if one with given company number exists, otherwise throw ResourceNotFoundException
      */
-    public Optional<VersionedCompanyProfileDocument> get(String companyNumber) {
+    public VersionedCompanyProfileDocument get(String companyNumber) throws ResourceNotFoundException {
         Optional<VersionedCompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
@@ -101,16 +102,6 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException(illegalArgumentEx.getMessage());
         }
-
-        companyProfileDocument.ifPresentOrElse(
-                companyProfile -> LOGGER.info("Successfully retrieved company profile", DataMapHolder.getLogMap()),
-                () -> {
-                    throw new ResourceNotFoundException(
-                        HttpStatusCode.valueOf(NOT_FOUND.value()),
-                        String.format("Company profile %s not found", companyNumber)
-                    );
-                }
-        );
 
         //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
         if (companyProfileDocument.isPresent()) {
@@ -121,11 +112,14 @@ public class CompanyProfileService {
                     roa.setCareOf(roa.getCareOfName());
                 }
                 roa.setCareOfName(null);
-                companyProfileDocument = Optional.of(document);
             }
+            return document;
+        } else {
+            throw new ResourceNotFoundException(
+                    HttpStatusCode.valueOf(NOT_FOUND.value()),
+                    String.format(RESOURCE_NOT_FOUND_STRING, companyNumber)
+            );
         }
-
-        return companyProfileDocument;
     }
 
     /**
@@ -147,11 +141,11 @@ public class CompanyProfileService {
 
             Data data = Optional.of(companyProfileRequest)
                     .map(CompanyProfile::getData)
-                    .orElseThrow(() -> new BadRequestException("no data within patch request"));
+                    .orElseThrow(() -> new BadRequestException("No data in request body"));
 
             Links links = Optional.of(data)
                     .map(Data::getLinks)
-                    .orElseThrow(() -> new BadRequestException("no links within patch request"));
+                    .orElseThrow(() -> new BadRequestException("No links in request body"));
 
             cpDocument.setHasMortgages(isNotBlank(links.getCharges()));
             Data existingData = cpDocument.getCompanyProfile();
@@ -183,19 +177,15 @@ public class CompanyProfileService {
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
             if (statusCode.is2xxSuccessful()) {
-                LOGGER.info(String.format("Chs-kafka-api CHANGED invoked successfully for company number %s", companyNumber),
-                        DataMapHolder.getLogMap());
                 if (cpDocument.getVersion() == null) { // Update a legacy document
                     mongoTemplate.save(new UnversionedCompanyProfileDocument(cpDocument));
                 } else { // Update a versioned document
                     companyProfileRepository.save(cpDocument);
                 }
-                LOGGER.info(String.format("Company profile is updated in MongoDB with company number %s", companyNumber),
-                        DataMapHolder.getLogMap());
+                LOGGER.info("Company profile is updated in MongoDB", DataMapHolder.getLogMap());
             } else {
-                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for company number %s. Response code %s.",
-                                companyNumber, statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
-                        DataMapHolder.getLogMap());
+                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully. Response code %s.",
+                                statusCode.value()), DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
@@ -223,7 +213,7 @@ public class CompanyProfileService {
         Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
+                                RESOURCE_NOT_FOUND_STRING.formatted(linkRequest.getCompanyNumber())));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
@@ -243,14 +233,12 @@ public class CompanyProfileService {
         Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
+                                RESOURCE_NOT_FOUND_STRING.formatted(linkRequest.getCompanyNumber())));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
-                new ResourceStateConflictException("links data not found"));
+                new ResourceStateConflictException("No links exist for this company profile"));
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (isBlank(linkData)) {
-            LOGGER.error("%s link for company profile already does not exist".formatted(linkRequest.getLinkType()),
-                    DataMapHolder.getLogMap());
             throw new ResourceStateConflictException(
                     "Resource state conflict; %s link already does not exist".formatted(linkRequest.getLinkType()));
         } else {
@@ -266,7 +254,7 @@ public class CompanyProfileService {
             Data data = existingDocumentOptional
                     .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                    "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
+                                    RESOURCE_NOT_FOUND_STRING.formatted(linkRequest.getCompanyNumber())));
             Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                     new ResourceStateConflictException("links data not found"));
             String linkData = linkRequest.getCheckLink().apply(links);
@@ -453,18 +441,15 @@ public class CompanyProfileService {
     /**
      * Get company details.
      */
-    public Optional<CompanyDetails> getCompanyDetails(String companyNumber) {
-        try {
-            Data companyProfile = retrieveCompanyNumber(companyNumber);
-            CompanyDetails companyDetails = new CompanyDetails();
-            companyDetails.setCompanyName(companyProfile.getCompanyName());
-            companyDetails.setCompanyNumber(companyProfile.getCompanyNumber());
-            companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
-            return Optional.of(companyDetails);
-        } catch (ResourceNotFoundException resourceNotFoundException) {
-            LOGGER.error(resourceNotFoundException.getMessage(), DataMapHolder.getLogMap());
-            return Optional.empty();
-        }
+    public CompanyDetails getCompanyDetails(String companyNumber) {
+        Data companyProfile = retrieveCompanyNumber(companyNumber);
+
+        CompanyDetails companyDetails = new CompanyDetails();
+        companyDetails.setCompanyName(companyProfile.getCompanyName());
+        companyDetails.setCompanyNumber(companyProfile.getCompanyNumber());
+        companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
+
+        return companyDetails;
     }
 
     /**
@@ -575,7 +560,6 @@ public class CompanyProfileService {
                     DataMapHolder.getLogMap());
 
             companyProfileApiService.invokeChsKafkaApi(linkRequest.getCompanyNumber());
-            LOGGER.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
             LOGGER.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
@@ -613,8 +597,6 @@ public class CompanyProfileService {
                     linkRequest.getLinkType()), DataMapHolder.getLogMap());
 
             companyProfileApiService.invokeChsKafkaApi(linkRequest.getCompanyNumber());
-            LOGGER.info("chs-kafka-api DELETED invoked successfully",
-                    DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
             LOGGER.error("Error calling chs-kafka-api", exception,
                     DataMapHolder.getLogMap());
@@ -630,8 +612,7 @@ public class CompanyProfileService {
         try {
             return companyProfileRepository.findById(companyNumber)
                     .orElseThrow(() -> new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
+                            String.format("Company profile %s not found", companyNumber)));
         } catch (DataAccessException exception) {
             LOGGER.error("Error accessing MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
@@ -657,7 +638,7 @@ public class CompanyProfileService {
                 companyProfileRepository.findById(companyNumber);
         return companyProfileOptional.orElseThrow(() ->
                 new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
-                        "Resource not found for company number: %s", companyNumber)));
+                        RESOURCE_NOT_FOUND_STRING, companyNumber)));
     }
 
     private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
