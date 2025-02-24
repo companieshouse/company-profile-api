@@ -108,7 +108,7 @@ class CompanyProfileControllerITest {
         CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyProfile.setData(companyData);
-        doNothing().when(companyProfileService).updateInsolvencyLink(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        doNothing().when(companyProfileService).updateInsolvencyLink(COMPANY_NUMBER, companyProfile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -132,7 +132,7 @@ class CompanyProfileControllerITest {
         CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyProfile.setData(companyData);
-        doNothing().when(companyProfileService).updateInsolvencyLink(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        doNothing().when(companyProfileService).updateInsolvencyLink(COMPANY_NUMBER, companyProfile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -156,7 +156,7 @@ class CompanyProfileControllerITest {
         companyProfile.setData(companyData);
         doThrow(new DocumentNotFoundException("Not found"))
                 .when(companyProfileService)
-                .updateInsolvencyLink(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+                .updateInsolvencyLink(COMPANY_NUMBER, companyProfile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

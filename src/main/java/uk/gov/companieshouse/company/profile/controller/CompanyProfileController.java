@@ -172,13 +172,12 @@ public class CompanyProfileController {
      */
     @PatchMapping("/company/{company_number}/links")
     public ResponseEntity<Void> updateCompanyProfile(
-            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @Valid @RequestBody CompanyProfile requestBody) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         LOGGER.info("Processing company links PATCH", DataMapHolder.getLogMap());
-        companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
+        companyProfileService.updateInsolvencyLink(companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -191,13 +190,12 @@ public class CompanyProfileController {
      */
     @PatchMapping("/company/{company_number}/links/{link_type}")
     public ResponseEntity<Void> addLink(
-            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         LOGGER.info("Processing company link type PATCH", DataMapHolder.getLogMap());
-        companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
+        companyProfileService.processLinkRequest(linkType, companyNumber, false);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -210,14 +208,13 @@ public class CompanyProfileController {
      */
     @PatchMapping("/company/{company_number}/links/{link_type}/delete")
     public ResponseEntity<Void> deleteLink(
-            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         LOGGER.info("Processing company link type delete PATCH",
                 DataMapHolder.getLogMap());
-        companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
+        companyProfileService.processLinkRequest(linkType, companyNumber, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -229,14 +226,13 @@ public class CompanyProfileController {
      */
     @DeleteMapping("/company/{company_number}/internal")
     public ResponseEntity<Void> deleteCompanyProfile(
-            @RequestHeader("x-request-id") String contextId,
             @RequestHeader("X-DELTA-AT") String deltaAt,
             @PathVariable("company_number") String companyNumber) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         LOGGER.info("Processing DELETE company profile", DataMapHolder.getLogMap());
         try {
-            companyProfileService.deleteCompanyProfile(contextId, companyNumber, deltaAt);
+            companyProfileService.deleteCompanyProfile(companyNumber, deltaAt);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (DataAccessException | MongoTimeoutException ex) {
             LOGGER.error("Error while trying to delete company profile.", ex, DataMapHolder.getLogMap());

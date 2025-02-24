@@ -337,16 +337,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
         when(apiResponse.getStatusCode()).thenReturn(200);
-        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+        when(companyProfileApiService.invokeChsKafkaApi(anyString())).thenReturn(apiResponse);
 
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
-        companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.updateInsolvencyLink(MOCK_COMPANY_NUMBER,
                 companyProfileWithInsolvency);
 
         verify(mongoTemplate).save(any());
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -366,14 +366,14 @@ class CompanyProfileServiceTest {
                 .thenReturn(Optional.of(mockCompanyProfileDocument));
 
         when(apiResponse.getStatusCode()).thenReturn(200);
-        when(companyProfileApiService.invokeChsKafkaApi(anyString(), anyString())).thenReturn(apiResponse);
+        when(companyProfileApiService.invokeChsKafkaApi(anyString())).thenReturn(apiResponse);
 
         CompanyProfile companyProfileWithInsolvency = mockCompanyProfileWithoutInsolvency();
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
         when(companyProfileRepository.save(any())).thenThrow(new DataAccessResourceFailureException("Connection broken"));
         Assert.assertThrows(ServiceUnavailableException.class,
-                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                () -> companyProfileService.updateInsolvencyLink(MOCK_COMPANY_NUMBER,
                         companyProfileWithInsolvency));
     }
 
@@ -388,11 +388,11 @@ class CompanyProfileServiceTest {
         companyProfileWithInsolvency.getData().getLinks().setInsolvency("INSOLVENCY_LINK");
 
         Assert.assertThrows(DocumentNotFoundException.class,
-                () -> companyProfileService.updateInsolvencyLink(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+                () -> companyProfileService.updateInsolvencyLink(MOCK_COMPANY_NUMBER,
                         companyProfileWithInsolvency));
 
         verify(apiResponse, never()).getStatusCode();
-        verify(companyProfileApiService, never()).invokeChsKafkaApi(anyString(), anyString());
+        verify(companyProfileApiService, never()).invokeChsKafkaApi(anyString());
         verify(companyProfileRepository, never()).save(any());
         verify(companyProfileRepository, times(1)).findById(anyString());
     }
@@ -411,11 +411,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -430,7 +430,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -455,7 +455,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -476,16 +476,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -500,7 +500,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -524,7 +524,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -547,11 +547,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -566,7 +566,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -590,7 +590,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -612,16 +612,16 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getExemptions()).thenReturn(String.format("/company/%s/exemptions", MOCK_COMPANY_NUMBER));
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -636,7 +636,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -661,7 +661,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -681,11 +681,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -698,7 +698,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -721,7 +721,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -740,16 +740,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -762,7 +762,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -784,7 +784,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -805,11 +805,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -822,7 +822,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -844,7 +844,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -864,16 +864,16 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getCharges()).thenReturn(CHARGES_LINK);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -886,7 +886,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -909,7 +909,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(CHARGES_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -929,11 +929,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -946,7 +946,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -969,7 +969,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -988,16 +988,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1010,7 +1010,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1032,7 +1032,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1053,11 +1053,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1070,7 +1070,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1092,7 +1092,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1112,16 +1112,16 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getInsolvency()).thenReturn(INSOLVENCY_LINK);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1134,7 +1134,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1158,7 +1158,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(INSOLVENCY_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1180,11 +1180,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1199,7 +1199,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1224,7 +1224,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1245,16 +1245,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1269,7 +1269,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1293,7 +1293,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1317,11 +1317,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1336,7 +1336,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1360,7 +1360,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1382,16 +1382,16 @@ class CompanyProfileServiceTest {
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
         when(links.getOfficers()).thenReturn(String.format("/company/%s/officers", MOCK_COMPANY_NUMBER));
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1406,7 +1406,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1432,7 +1432,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1455,11 +1455,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1475,7 +1475,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1502,7 +1502,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
 
         // then
@@ -1526,16 +1526,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1551,7 +1551,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1577,7 +1577,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1602,10 +1602,10 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1621,7 +1621,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1646,7 +1646,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1671,16 +1671,16 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControlStatements()).thenReturn(String.format(
                 "/company/%s/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER));
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1696,7 +1696,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1723,7 +1723,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1759,11 +1759,11 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1779,7 +1779,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1806,7 +1806,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
 
         // then
@@ -1830,16 +1830,16 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1855,7 +1855,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1880,7 +1880,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, false);
+                false);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -1905,10 +1905,10 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1924,7 +1924,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -1949,7 +1949,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -1974,16 +1974,16 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
         when(links.getPersonsWithSignificantControl()).thenReturn(String.format(
                 "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -1999,7 +1999,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2025,7 +2025,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2211,7 +2211,7 @@ class CompanyProfileServiceTest {
     @DisplayName("When company number is provided delete company profile")
     void testDeleteCompanyProfile() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
+        companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
@@ -2225,7 +2225,7 @@ class CompanyProfileServiceTest {
                 thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
-        companyProfileService.deleteCompanyProfile("123456", UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
+        companyProfileService.deleteCompanyProfile(UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(UK_ESTABLISHMENT_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
@@ -2241,7 +2241,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.empty());
 
-        companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
+        companyProfileService.deleteCompanyProfile(UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository).findById(UK_ESTABLISHMENT_COMPANY_NUMBER);
         verify(companyProfileRepository).findById(ANOTHER_PARENT_COMPANY_NUMBER);
@@ -2254,12 +2254,12 @@ class CompanyProfileServiceTest {
     void testDeleteCompanyProfileProcessesInvalidCompanyNumber() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
 
-        companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
+        companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
         verifyNoMoreInteractions(companyProfileRepository);
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
-        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent("123456", MOCK_COMPANY_NUMBER, null);
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(MOCK_COMPANY_NUMBER, null);
     }
 
     @Test
@@ -2268,7 +2268,7 @@ class CompanyProfileServiceTest {
         // given
 
         // when
-        Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, null);
+        Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER, null);
 
         // then
         assertThrows(BadRequestException.class, actual);
@@ -2283,7 +2283,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.ofNullable(COMPANY_PROFILE_DOCUMENT));
 
         // when
-        Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, "20001129123010123789");
+        Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER, "20001129123010123789");
 
         // then
         assertThrows(ConflictException.class, actual);
@@ -2305,12 +2305,12 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
 
         // when
-        companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, false);
+        companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER, false);
 
         // then
         verify(linkRequestFactory).createLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -2443,7 +2443,7 @@ class CompanyProfileServiceTest {
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 companyProfile);
 
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_PARENT_COMPANY_NUMBER);
         Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
     }
 
@@ -2498,12 +2498,12 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -2524,7 +2524,7 @@ class CompanyProfileServiceTest {
 
         // when
         companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
-                MOCK_CONTEXT_ID, true);
+                true);
 
         // then
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -2544,7 +2544,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, true);
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
@@ -2569,7 +2569,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, true);
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -2593,17 +2593,17 @@ class CompanyProfileServiceTest {
         when(data.getLinks()).thenReturn(links);
         when(links.getUkEstablishments()).thenReturn(String.format(
                 "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenThrow(IllegalArgumentException.class);
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
     @Test
@@ -2618,7 +2618,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2644,7 +2644,7 @@ class CompanyProfileServiceTest {
 
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_COMPANY_NUMBER, MOCK_CONTEXT_ID, true);
+                MOCK_COMPANY_NUMBER, true);
 
         // then
         assertThrows(ServiceUnavailableException.class, executable);
@@ -2664,8 +2664,8 @@ class CompanyProfileServiceTest {
                 COMPANY_PROFILE);
 
         verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
-        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(MOCK_PARENT_COMPANY_NUMBER);
     }
 
     @Test

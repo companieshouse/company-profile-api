@@ -114,7 +114,7 @@ class CompanyProfileConcurrencyITest {
         assertEquals(0, document.getVersion());
 
         // when
-        companyProfileService.deleteCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, DELTA_AT);
+        companyProfileService.deleteCompanyProfile(COMPANY_NUMBER, DELTA_AT);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -129,7 +129,7 @@ class CompanyProfileConcurrencyITest {
         mongoTemplate.save(document);
 
         // when
-        companyProfileService.deleteCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, DELTA_AT);
+        companyProfileService.deleteCompanyProfile(COMPANY_NUMBER, DELTA_AT);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);

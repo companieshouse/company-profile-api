@@ -131,11 +131,10 @@ public class CompanyProfileService {
     /**
      * Update insolvency links in company profile.
      *
-     * @param contextId             fetched from the headers using the key x-request-id
      * @param companyNumber         company number
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
-    public void updateInsolvencyLink(String contextId, String companyNumber,
+    public void updateInsolvencyLink(String companyNumber,
             final CompanyProfile companyProfileRequest) {
         try {
 
@@ -175,12 +174,11 @@ public class CompanyProfileService {
             } else {
                 Updated updated = new Updated(LocalDateTime
                         .now().truncatedTo(ChronoUnit.SECONDS),
-                        contextId, "company_delta");
+                        DataMapHolder.getRequestId(), "company_delta");
                 cpDocument.setUpdated(updated);
             }
 
-            ApiResponse<Void> response = companyProfileApiService.invokeChsKafkaApi(
-                    DataMapHolder.getRequestId(), companyNumber);
+            ApiResponse<Void> response = companyProfileApiService.invokeChsKafkaApi(companyNumber);
 
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
@@ -207,10 +205,9 @@ public class CompanyProfileService {
     /**
      * func creates a Link Request for a given link type and calls checkAdd or checkDelete.
      */
-    public void processLinkRequest(String linkType, String companyNumber, String contextId,
-            boolean delete) {
+    public void processLinkRequest(String linkType, String companyNumber, boolean delete) {
         LinkRequest linkRequest =
-                linkRequestFactory.createLinkRequest(linkType, contextId, companyNumber);
+                linkRequestFactory.createLinkRequest(linkType, DataMapHolder.getRequestId(), companyNumber);
 
         if (delete) {
             checkForDeleteLink(linkRequest);
@@ -320,11 +317,10 @@ public class CompanyProfileService {
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
-                        LOGGER.info("Parent company does not exist, creating new one", DataMapHolder.getLogMap());
+                        LOGGER.info("Creating new parent company document", DataMapHolder.getLogMap());
                         companyProfileRepository.insert(
                                 createParentCompanyDocument(parentCompanyNumber));
-                        companyProfileApiService.invokeChsKafkaApi(
-                                DataMapHolder.getRequestId(), parentCompanyNumber);
+                        companyProfileApiService.invokeChsKafkaApi(parentCompanyNumber);
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         LOGGER.info("Parent company link already exists", DataMapHolder.getLogMap());
                     }
@@ -368,7 +364,7 @@ public class CompanyProfileService {
             } else {
                 companyProfileRepository.save(transformedDocument);
             }
-            companyProfileApiService.invokeChsKafkaApi(DataMapHolder.getRequestId(), companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(companyNumber);
 
             LOGGER.info(String.format("Company profile is updated in MongoDb for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
@@ -423,7 +419,7 @@ public class CompanyProfileService {
     /**
      * Delete company profile.
      */
-    public void deleteCompanyProfile(String contextId, String companyNumber, String requestDeltaAt) {
+    public void deleteCompanyProfile(String companyNumber, String requestDeltaAt) {
         if (StringUtils.isBlank(requestDeltaAt)) {
             throw new BadRequestException("delta_at is missing from delete request");
         }
@@ -437,7 +433,7 @@ public class CompanyProfileService {
                     String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
                     if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
                         LinkRequest ukEstablishmentLinkRequest =
-                                new LinkRequest(contextId, parentCompanyNumber,
+                                new LinkRequest(DataMapHolder.getRequestId(), parentCompanyNumber,
                                         UK_ESTABLISHMENTS_LINK_TYPE,
                                         UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
                         // Business logic states UK establishments need deletion even if the parent document is not present
@@ -446,13 +442,11 @@ public class CompanyProfileService {
 
                     companyProfileRepository.delete(companyProfileDocument);
                     LOGGER.info("Company profile is deleted in MongoDb successfully", DataMapHolder.getLogMap());
-                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(DataMapHolder.getRequestId(), companyNumber,
-                            companyProfile);
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(companyNumber, companyProfile);
                 },
                 () -> {
                     LOGGER.info("Delete for non-existent document", DataMapHolder.getLogMap());
-                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(DataMapHolder.getRequestId(), companyNumber,
-                            null);
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(companyNumber, null);
                 }
         );
     }
@@ -581,7 +575,7 @@ public class CompanyProfileService {
             LOGGER.info(String.format("Company %s link inserted in Company Profile", linkRequest.getLinkType()),
                     DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getCompanyNumber());
             LOGGER.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {
             LOGGER.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
@@ -619,7 +613,7 @@ public class CompanyProfileService {
             LOGGER.info(String.format("Company %s link deleted in Company Profile",
                     linkRequest.getLinkType()), DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getCompanyNumber());
             LOGGER.info("chs-kafka-api DELETED invoked successfully",
                     DataMapHolder.getLogMap());
         } catch (IllegalArgumentException exception) {

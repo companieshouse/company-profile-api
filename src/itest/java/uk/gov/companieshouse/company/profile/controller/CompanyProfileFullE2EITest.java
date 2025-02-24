@@ -133,7 +133,7 @@ class CompanyProfileFullE2EITest {
         assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
         assertEquals(0L, childDocument.getVersion());
         assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, CHILD_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(CHILD_COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -172,7 +172,7 @@ class CompanyProfileFullE2EITest {
         assertEquals(UK_ESTABLISHMENT_LINK, parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(1L, parentDocument.getVersion());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -200,7 +200,7 @@ class CompanyProfileFullE2EITest {
         assertNull(parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(0L, parentDocument.getVersion());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(PARENT_COMPANY_NUMBER);
     }
 
     @Test
@@ -236,7 +236,7 @@ class CompanyProfileFullE2EITest {
         assertEquals(UK_ESTABLISHMENT_LINK, parentDocument.getCompanyProfile().getLinks().getUkEstablishments());
         assertEquals(OVERSEA_COMPANY_TYPE, parentDocument.getCompanyProfile().getType());
         assertEquals(1L, parentDocument.getVersion());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, PARENT_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(PARENT_COMPANY_NUMBER);
 
 
         final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
@@ -248,7 +248,7 @@ class CompanyProfileFullE2EITest {
         assertEquals(UK_ESTABLISHMENT_TYPE, childCompanyProfile.getType());
         assertEquals(0L, childDocument.getVersion());
         assertNotEquals(OLD_ETAG, childCompanyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, CHILD_COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(CHILD_COMPANY_NUMBER);
     }
 
     @Test
@@ -278,7 +278,7 @@ class CompanyProfileFullE2EITest {
         final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
 
         assertNull(parentDocument);
-        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, PARENT_COMPANY_NUMBER, document.getCompanyProfile());
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(PARENT_COMPANY_NUMBER, document.getCompanyProfile());
     }
 
     @Test
@@ -309,7 +309,7 @@ class CompanyProfileFullE2EITest {
         final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
 
         assertNull(parentDocument);
-        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, PARENT_COMPANY_NUMBER, document.getCompanyProfile());
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(PARENT_COMPANY_NUMBER, document.getCompanyProfile());
     }
 
     @Test
@@ -339,7 +339,7 @@ class CompanyProfileFullE2EITest {
         final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
 
         assertNull(childDocument);
-        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, CHILD_COMPANY_NUMBER, document.getCompanyProfile());
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CHILD_COMPANY_NUMBER, document.getCompanyProfile());
     }
 
     @Test
@@ -381,7 +381,7 @@ class CompanyProfileFullE2EITest {
         assertNotNull(parentRetrieved.getCompanyProfile().getLinks().getSelf());
         assertNull(parentRetrieved.getCompanyProfile().getLinks().getUkEstablishments());
         assertNull(childDocument);
-        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CONTEXT_ID, CHILD_COMPANY_NUMBER, document.getCompanyProfile());
+        verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CHILD_COMPANY_NUMBER, document.getCompanyProfile());
     }
 
     private CompanyProfile makeBRPutRequest(String deltaAt) {
