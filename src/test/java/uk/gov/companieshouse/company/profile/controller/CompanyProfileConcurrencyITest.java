@@ -32,7 +32,7 @@ class CompanyProfileConcurrencyITest {
     private static final String DELTA_AT = "20241129123010123789";
 
     @Container
-    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0.20");
+    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0.19");
 
     @Autowired
     private CompanyProfileService companyProfileService;

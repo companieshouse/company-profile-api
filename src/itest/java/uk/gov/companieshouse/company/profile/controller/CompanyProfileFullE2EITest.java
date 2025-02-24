@@ -75,7 +75,7 @@ class CompanyProfileFullE2EITest {
             .withZone(UTC);
 
     @Container
-    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0.20");
+    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0.19");
 
     @Autowired
     private MongoTemplate mongoTemplate;
