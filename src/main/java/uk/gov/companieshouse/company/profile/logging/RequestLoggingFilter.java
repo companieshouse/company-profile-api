@@ -24,6 +24,7 @@ import uk.gov.companieshouse.logging.util.RequestLogger;
 public class RequestLoggingFilter extends OncePerRequestFilter implements RequestLogger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final String HEALTHCHECK_PATH = "/healthcheck"; // NOSONAR
 
     @Override
     protected void doFilterInternal(@Nonnull HttpServletRequest request,
@@ -35,12 +36,14 @@ public class RequestLoggingFilter extends OncePerRequestFilter implements Reques
                 .orElse(UUID.randomUUID().toString()));
         try {
             filterChain.doFilter(request, response);
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex, DataMapHolder.getLogMap());
-            throw ex;
         } finally {
             logEndRequestProcessing(request, response, LOGGER);
             DataMapHolder.clear();
         }
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return HEALTHCHECK_PATH.equals(request.getRequestURI());
     }
 }
