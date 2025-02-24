@@ -146,14 +146,13 @@ public class CompanyProfileController {
      */
     @PutMapping("/company/{company_number}/internal")
     public ResponseEntity<Void> processCompanyProfile(
-            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
             @RequestBody CompanyProfile companyProfile) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
         LOGGER.info("Processing company profile upsert", DataMapHolder.getLogMap());
         try {
-            companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
+            companyProfileService.processCompanyProfile(companyNumber, companyProfile);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (ServiceUnavailableException | MongoTimeoutException ex) {
             LOGGER.error(ex, DataMapHolder.getLogMap());

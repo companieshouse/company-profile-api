@@ -2042,7 +2042,7 @@ class CompanyProfileServiceTest {
         when(companyProfileTransformer.transform(any(), any(), any()))
                 .thenReturn(COMPANY_PROFILE_DOCUMENT.version(0L));
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
@@ -2057,7 +2057,7 @@ class CompanyProfileServiceTest {
     void putCompanyProfileThrowsConflictExceptionsWhenStaleDelta() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(COMPANY_PROFILE_DOCUMENT));
 
-        Executable actual = () -> companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        Executable actual = () -> companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         assertThrows(ConflictException.class, actual);
@@ -2078,7 +2078,7 @@ class CompanyProfileServiceTest {
         when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
@@ -2440,7 +2440,7 @@ class CompanyProfileServiceTest {
         CompanyProfile companyProfile = COMPANY_PROFILE;
         companyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 companyProfile);
 
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_CONTEXT_ID, MOCK_PARENT_COMPANY_NUMBER);
@@ -2458,7 +2458,7 @@ class CompanyProfileServiceTest {
         when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
                 .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         Assertions.assertNotNull(COMPANY_PROFILE);
@@ -2476,7 +2476,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
 
         assertThrows(ServiceUnavailableException.class, () -> {
-            companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+            companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                     COMPANY_PROFILE);
         });
         verifyNoInteractions(companyProfileApiService);
@@ -2660,7 +2660,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 COMPANY_PROFILE);
 
         verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
@@ -2732,7 +2732,7 @@ class CompanyProfileServiceTest {
         companyProfile.getData().setHasCharges(null);
         companyProfile.getData().setHasBeenLiquidated(null);
         companyProfile.getData().setCompanyNumber("6146287");
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 companyProfile);
         verify(companyProfileTransformer).transform(existingDoc, profileToTransform, null);
 
@@ -2755,7 +2755,7 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 companyProfile);
 
         assertFalse(companyProfile.getData().getHasCharges());
@@ -2776,7 +2776,7 @@ class CompanyProfileServiceTest {
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
 
 
-        companyProfileService.processCompanyProfile(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
+        companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 companyProfile);
 
         assertFalse(companyProfile.getData().getHasCharges());

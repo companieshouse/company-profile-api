@@ -967,7 +967,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile")
     void callPutCompanyProfile() throws Exception {
         doNothing().when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -983,7 +983,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile and throw 400")
     void callPutCompanyProfileAndThrows400() throws Exception {
         doNothing().when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -998,7 +998,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile and throw 401")
     void callPutCompanyProfileAndReturn401() throws Exception {
         doNothing().when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .content(testHelper.createJsonCompanyProfilePayload()))
@@ -1010,7 +1010,7 @@ class CompanyProfileControllerTest {
     void callPutCompanyProfileAndThrow409() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
                 .when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -1027,7 +1027,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile and throw 503")
     void callPutCompanyProfileAndThrow503() throws Exception {
         doThrow(ServiceUnavailableException.class).when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)

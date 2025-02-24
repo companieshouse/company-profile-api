@@ -232,8 +232,6 @@ public class CompanyProfileService {
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (!isBlank(linkData)) {
-            LOGGER.error("%s link for company profile already exists".formatted(linkRequest.getLinkType()),
-                    DataMapHolder.getLogMap());
             throw new ResourceStateConflictException(
                     "Resource state conflict; %s link already exists".formatted(linkRequest.getLinkType()));
         } else {
@@ -278,8 +276,6 @@ public class CompanyProfileService {
             String linkData = linkRequest.getCheckLink().apply(links);
 
             if (isBlank(linkData)) {
-                LOGGER.error("%s link for company profile already does not exist".formatted(linkRequest.getLinkType()),
-                        DataMapHolder.getLogMap());
                 throw new ResourceStateConflictException(
                         "Resource state conflict; %s link already does not exist".formatted(linkRequest.getLinkType()));
             } else {
@@ -294,7 +290,7 @@ public class CompanyProfileService {
     /**
      * Finds existing company profile from db if any and updates or saves new record into db.
      */
-    public void processCompanyProfile(String contextId, String companyNumber, CompanyProfile companyProfile)
+    public void processCompanyProfile(String companyNumber, CompanyProfile companyProfile)
             throws ServiceUnavailableException, BadRequestException {
 
         VersionedCompanyProfileDocument companyProfileDocument =
@@ -311,7 +307,7 @@ public class CompanyProfileService {
                 .map(BranchCompanyDetails::getParentCompanyNumber)
                 .ifPresent(parentCompanyNumber -> {
                     LinkRequest ukEstablishmentLinkRequest =
-                            new LinkRequest(contextId, parentCompanyNumber,
+                            new LinkRequest(DataMapHolder.getRequestId(), parentCompanyNumber,
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
 
@@ -324,6 +320,7 @@ public class CompanyProfileService {
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
+                        LOGGER.info("Parent company does not exist, creating new one", DataMapHolder.getLogMap());
                         companyProfileRepository.insert(
                                 createParentCompanyDocument(parentCompanyNumber));
                         companyProfileApiService.invokeChsKafkaApi(

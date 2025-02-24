@@ -62,7 +62,7 @@ class CompanyProfileConcurrencyITest {
         CompanyProfile companyProfile = makeBaseCompanyProfile();
 
         // when
-        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        companyProfileService.processCompanyProfile(COMPANY_NUMBER, companyProfile);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -79,7 +79,7 @@ class CompanyProfileConcurrencyITest {
         CompanyProfile companyProfile = makeBaseCompanyProfile();
 
         // when
-        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        companyProfileService.processCompanyProfile(COMPANY_NUMBER, companyProfile);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -97,7 +97,7 @@ class CompanyProfileConcurrencyITest {
         CompanyProfile companyProfile = makeBaseCompanyProfile();
 
         // when
-        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        companyProfileService.processCompanyProfile(COMPANY_NUMBER, companyProfile);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
