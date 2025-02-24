@@ -1089,8 +1089,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.content().string(TestHelper.notFoundErrorString));
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test

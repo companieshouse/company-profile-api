@@ -264,15 +264,14 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    @DisplayName("When no company profile is retrieved then return empty optional")
+    @DisplayName("When no company profile is retrieved then throw ResourceNotFoundException")
     void getNoCompanyProfileReturned() {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
-        Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+        Executable actual = () -> companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertTrue(companyProfileActual.isEmpty());
+        assertThrows(ResourceNotFoundException.class, actual);
     }
 
     @Test
@@ -404,7 +403,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -425,7 +424,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -447,7 +446,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -472,7 +471,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -495,7 +494,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -516,7 +515,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -539,7 +538,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -561,7 +560,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -583,7 +582,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -607,7 +606,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -631,7 +630,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -652,7 +651,7 @@ class CompanyProfileServiceTest {
         LinkRequest exemptionsLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 EXEMPTIONS_LINK_TYPE, EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         when(linkRequestFactory.createLinkRequest(EXEMPTIONS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(exemptionsLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -674,7 +673,7 @@ class CompanyProfileServiceTest {
     void addChargesLink() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -693,7 +692,7 @@ class CompanyProfileServiceTest {
     void addChargesLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -713,7 +712,7 @@ class CompanyProfileServiceTest {
     void addChargesLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -736,7 +735,7 @@ class CompanyProfileServiceTest {
     void addChargesLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -757,7 +756,7 @@ class CompanyProfileServiceTest {
     void addChargesLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -776,7 +775,7 @@ class CompanyProfileServiceTest {
     void addChargesLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -797,7 +796,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLink() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -817,7 +816,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -837,7 +836,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -859,7 +858,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -881,7 +880,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -900,7 +899,7 @@ class CompanyProfileServiceTest {
     void deleteChargesLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(CHARGES_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(chargesLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -922,7 +921,7 @@ class CompanyProfileServiceTest {
     void addInsolvencyLink() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -941,7 +940,7 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -961,7 +960,7 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -984,7 +983,7 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1005,7 +1004,7 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1024,7 +1023,7 @@ class CompanyProfileServiceTest {
     void addInsolvencyLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1045,7 +1044,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLink() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1065,7 +1064,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkNotFound() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1085,7 +1084,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkConflict() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1107,7 +1106,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkIllegalArgument() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1129,7 +1128,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkDataAccessExceptionFindById() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1148,7 +1147,7 @@ class CompanyProfileServiceTest {
     void deleteInsolvencyLinkDataAccessExceptionUpdate() {
         // given
         when(linkRequestFactory.createLinkRequest(INSOLVENCY_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(insolvencyLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1173,7 +1172,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1194,7 +1193,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1216,7 +1215,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1241,7 +1240,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1264,7 +1263,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1285,7 +1284,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1309,7 +1308,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1331,7 +1330,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1353,7 +1352,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1377,7 +1376,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1401,7 +1400,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1422,7 +1421,7 @@ class CompanyProfileServiceTest {
         LinkRequest officersLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 OFFICERS_LINK_TYPE, OFFICERS_DELTA_TYPE, Links::getOfficers);
         when(linkRequestFactory.createLinkRequest(OFFICERS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1448,7 +1447,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1470,7 +1469,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1493,7 +1492,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1522,7 +1521,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1546,7 +1545,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1568,7 +1567,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1593,7 +1592,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1616,7 +1615,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1639,7 +1638,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1665,7 +1664,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1691,7 +1690,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1713,7 +1712,7 @@ class CompanyProfileServiceTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         when(linkRequestFactory.createLinkRequest(PSC_STATEMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1752,7 +1751,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1774,7 +1773,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1797,7 +1796,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1826,7 +1825,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1850,7 +1849,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -1872,7 +1871,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1896,7 +1895,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1919,7 +1918,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -1942,7 +1941,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1968,7 +1967,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -1994,7 +1993,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -2016,7 +2015,7 @@ class CompanyProfileServiceTest {
                 PSC_LINK_TYPE, PSC_DELTA_TYPE,
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
-                MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
         EXISTING_COMPANY_PROFILE_DOCUMENT.version(null);
         EXISTING_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setPersonsWithSignificantControl(String.format(
@@ -2299,7 +2298,7 @@ class CompanyProfileServiceTest {
         LinkRequest filingHistoryLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 FILING_HISTORY_LINK_TYPE, FILING_HISTORY_DELTA_TYPE, Links::getFilingHistory);
 
-        when(linkRequestFactory.createLinkRequest(anyString(), anyString(), anyString())).thenReturn(filingHistoryLinkRequest);
+        when(linkRequestFactory.createLinkRequest(anyString(), anyString())).thenReturn(filingHistoryLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -2308,7 +2307,7 @@ class CompanyProfileServiceTest {
         companyProfileService.processLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER, false);
 
         // then
-        verify(linkRequestFactory).createLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER);
+        verify(linkRequestFactory).createLinkRequest(FILING_HISTORY_LINK_TYPE, MOCK_COMPANY_NUMBER);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
@@ -2489,7 +2488,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -2513,7 +2512,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -2539,7 +2538,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.empty());
 
         // when
@@ -2562,7 +2561,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -2587,7 +2586,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);
@@ -2613,7 +2612,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
@@ -2634,7 +2633,7 @@ class CompanyProfileServiceTest {
         LinkRequest ukEstablishmentLinkRequest = new LinkRequest("123456", MOCK_COMPANY_NUMBER,
                 UK_ESTABLISHMENTS_LINK_TYPE, UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
         when(linkRequestFactory.createLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE,
-                MOCK_CONTEXT_ID,MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
+                MOCK_COMPANY_NUMBER)).thenReturn(ukEstablishmentLinkRequest);
         when(companyProfileRepository.findById(any())).thenReturn(Optional.of(document));
         when(document.getCompanyProfile()).thenReturn(data);
         when(data.getLinks()).thenReturn(links);

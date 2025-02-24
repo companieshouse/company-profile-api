@@ -28,6 +28,7 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLIS
 import java.util.Map;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.exception.BadRequestException;
+import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 
 @Component
 public class LinkRequestFactory {
@@ -53,12 +54,12 @@ public class LinkRequestFactory {
     /**
      * Creates linkRequest object.
      */
-    public LinkRequest createLinkRequest(String linkType, String contextId, String companyNumber) {
+    public LinkRequest createLinkRequest(String linkType, String companyNumber) {
         if (!linkRequestMap.containsKey(linkType)) {
             throw new BadRequestException("invalid link type");
         }
         LinkTypeData linkTypeData = linkRequestMap.get(linkType);
-        return new LinkRequest(contextId, companyNumber, linkType,
+        return new LinkRequest(DataMapHolder.getRequestId(), companyNumber, linkType,
                 linkTypeData.getDeltaType(), linkTypeData.getLinkGetter());
     }
 }

@@ -206,8 +206,7 @@ public class CompanyProfileService {
      * func creates a Link Request for a given link type and calls checkAdd or checkDelete.
      */
     public void processLinkRequest(String linkType, String companyNumber, boolean delete) {
-        LinkRequest linkRequest =
-                linkRequestFactory.createLinkRequest(linkType, DataMapHolder.getRequestId(), companyNumber);
+        LinkRequest linkRequest = linkRequestFactory.createLinkRequest(linkType, companyNumber);
 
         if (delete) {
             checkForDeleteLink(linkRequest);
