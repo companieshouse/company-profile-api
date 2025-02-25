@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.company.profile.serialization;
 
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.*;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -18,8 +20,7 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 
 public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-            CompanyProfileApiApplication.APPLICATION_NAME_SPACE);
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     @Override
     public LocalDate deserialize(JsonParser jsonParser, DeserializationContext

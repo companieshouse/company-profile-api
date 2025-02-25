@@ -183,21 +183,18 @@ public class CompanyProfileService {
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
             if (statusCode.is2xxSuccessful()) {
-                LOGGER.info(String.format("Chs-kafka-api CHANGED "
-                                + "invoked successfully for company number %s", companyNumber),
+                LOGGER.info(String.format("Chs-kafka-api CHANGED invoked successfully for company number %s", companyNumber),
                         DataMapHolder.getLogMap());
                 if (cpDocument.getVersion() == null) { // Update a legacy document
                     mongoTemplate.save(new UnversionedCompanyProfileDocument(cpDocument));
                 } else { // Update a versioned document
                     companyProfileRepository.save(cpDocument);
                 }
-                LOGGER.info(String.format("Company profile is updated "
-                                + "in MongoDB with company number %s", companyNumber),
+                LOGGER.info(String.format("Company profile is updated in MongoDB with company number %s", companyNumber),
                         DataMapHolder.getLogMap());
             } else {
-                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked "
-                                        + "successfully for company number %s. Response code %s.", companyNumber,
-                                statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
+                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for company number %s. Response code %s.",
+                                companyNumber, statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
                         DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
@@ -228,16 +225,15 @@ public class CompanyProfileService {
         Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                "no data for company profile: "
-                                        + linkRequest.getCompanyNumber()));
+                                "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (!isBlank(linkData)) {
-            LOGGER.error(linkRequest.getLinkType() + " link for company profile already exists",
+            LOGGER.error("%s link for company profile already exists".formatted(linkRequest.getLinkType()),
                     DataMapHolder.getLogMap());
-            throw new ResourceStateConflictException("Resource state conflict; "
-                    + linkRequest.getLinkType() + " link already exists");
+            throw new ResourceStateConflictException(
+                    "Resource state conflict; %s link already exists".formatted(linkRequest.getLinkType()));
         } else {
             addLink(linkRequest, existingDocument);
         }
@@ -251,17 +247,16 @@ public class CompanyProfileService {
         Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                "no data for company profile: "
-                                        + linkRequest.getCompanyNumber()));
+                                "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                 new ResourceStateConflictException("links data not found"));
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (isBlank(linkData)) {
-            LOGGER.error(linkRequest.getLinkType() + " link for company profile already does not exist",
+            LOGGER.error("%s link for company profile already does not exist".formatted(linkRequest.getLinkType()),
                     DataMapHolder.getLogMap());
-            throw new ResourceStateConflictException("Resource state conflict; "
-                    + linkRequest.getLinkType() + " link already does not exist");
+            throw new ResourceStateConflictException(
+                    "Resource state conflict; %s link already does not exist".formatted(linkRequest.getLinkType()));
         } else {
             deleteLink(linkRequest, existingDocument);
         }
@@ -275,17 +270,16 @@ public class CompanyProfileService {
             Data data = existingDocumentOptional
                     .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                    "no data for company profile: "
-                                            + linkRequest.getCompanyNumber()));
+                                    "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
             Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                     new ResourceStateConflictException("links data not found"));
             String linkData = linkRequest.getCheckLink().apply(links);
 
             if (isBlank(linkData)) {
-                LOGGER.error(linkRequest.getLinkType() + " link for company profile already does not exist",
+                LOGGER.error("%s link for company profile already does not exist".formatted(linkRequest.getLinkType()),
                         DataMapHolder.getLogMap());
-                throw new ResourceStateConflictException("Resource state conflict; "
-                        + linkRequest.getLinkType() + " link already does not exist");
+                throw new ResourceStateConflictException(
+                        "Resource state conflict; %s link already does not exist".formatted(linkRequest.getLinkType()));
             } else {
                 deleteLink(linkRequest, existingDocumentOptional.get());
             }
@@ -529,7 +523,7 @@ public class CompanyProfileService {
                 companyProfile.setCanFile(false);
             }
         } catch (Exception exception) {
-            LOGGER.error("Error determining can file status " + exception.getMessage(),
+            LOGGER.error("Error determining can file status %s".formatted(exception.getMessage()),
                     DataMapHolder.getLogMap());
         }
 
@@ -568,7 +562,7 @@ public class CompanyProfileService {
                                 .setOverdue(nextDue.isBefore(currentDate));
                     });
         } catch (Exception exception) {
-            LOGGER.error("Error determining overdue status " + exception.getMessage(), DataMapHolder.getLogMap());
+            LOGGER.error("Error determining overdue status %s".formatted(exception.getMessage()), DataMapHolder.getLogMap());
         }
         companyProfileDocument.setCompanyProfile(companyProfile);
         return companyProfileDocument;
