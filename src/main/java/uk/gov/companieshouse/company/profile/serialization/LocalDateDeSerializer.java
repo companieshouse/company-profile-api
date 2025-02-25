@@ -1,6 +1,6 @@
 package uk.gov.companieshouse.company.profile.serialization;
 
-import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.*;
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -12,7 +12,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import uk.gov.companieshouse.api.exception.BadRequestException;
-import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
