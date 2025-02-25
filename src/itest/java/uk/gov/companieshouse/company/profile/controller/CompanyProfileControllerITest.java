@@ -21,6 +21,7 @@ import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import java.time.LocalDateTime;
@@ -49,7 +50,7 @@ class CompanyProfileControllerITest {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         companyProfileDocument.setId(COMPANY_NUMBER);
 
-        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(Optional.of(companyProfileDocument));
+        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(companyProfileDocument);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ERIC-Identity", "SOME_IDENTITY");
@@ -72,7 +73,7 @@ class CompanyProfileControllerITest {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         companyProfileDocument.setId(COMPANY_NUMBER);
 
-        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(Optional.of(companyProfileDocument));
+        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(companyProfileDocument);
 
         HttpHeaders headers = new HttpHeaders();
         //Not setting Eric headers
@@ -87,7 +88,7 @@ class CompanyProfileControllerITest {
     @Test
     @DisplayName("Return a Resource Not found response when company profile does not exist")
     void getCompanyProfileWhenDoesNotExist() {
-        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileService.get(COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ERIC-Identity", "SOME_IDENTITY");
@@ -98,7 +99,6 @@ class CompanyProfileControllerITest {
                 CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(companyProfileResponse.getBody()).isNull();
     }
 
     @Test

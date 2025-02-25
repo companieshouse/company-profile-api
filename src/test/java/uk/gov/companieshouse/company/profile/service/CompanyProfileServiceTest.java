@@ -95,6 +95,7 @@ class CompanyProfileServiceTest {
     private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
     private static final String MOCK_DELTA_AT = "20241129123010123789";
     private static final String UK_ESTABLISHMENT_COMPANY_NUMBER = "BR765432";
+    private static final String EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE = "Company profile %s not found";
 
     @Mock
     CompanyProfileRepository companyProfileRepository;
@@ -181,10 +182,9 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(companyProfileDocument));
 
-        Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+        VersionedCompanyProfileDocument companyProfileActual = companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertThat(companyProfileActual).containsSame(companyProfileDocument);
+        assertEquals(companyProfileDocument, companyProfileActual);
     }
 
     @Test
@@ -205,12 +205,11 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(companyProfileDocument));
 
-        Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+        VersionedCompanyProfileDocument companyProfileActual = companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertThat(companyProfileActual).containsSame(companyProfileDocument);
-        assertEquals("careOf", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
-        assertNull(companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
+        assertEquals(companyProfileDocument, companyProfileActual);
+        assertEquals("careOf", companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
+        assertNull(companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
     }
 
     @Test
@@ -230,12 +229,11 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.of(companyProfileDocument));
 
-        Optional<VersionedCompanyProfileDocument> companyProfileActual =
-                companyProfileService.get(MOCK_COMPANY_NUMBER);
+        VersionedCompanyProfileDocument companyProfileActual = companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertThat(companyProfileActual).containsSame(companyProfileDocument);
-        assertEquals("careOfName", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
-        assertNull(companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
+        assertEquals(companyProfileDocument, companyProfileActual);
+        assertEquals("careOfName", companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
+        assertNull(companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
     }
 
     @Test
@@ -432,7 +430,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -568,7 +566,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -700,7 +698,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -824,7 +822,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -948,7 +946,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1072,7 +1070,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1201,7 +1199,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1338,7 +1336,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1477,7 +1475,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1623,7 +1621,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1781,7 +1779,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -1926,7 +1924,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found", MOCK_COMPANY_NUMBER), exception.getMessage());
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE, MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);
         verifyNoInteractions(mongoTemplate);
@@ -2546,7 +2544,7 @@ class CompanyProfileServiceTest {
 
         // then
         Exception exception = assertThrows(DocumentNotFoundException.class, executable);
-        assertEquals(String.format("No company profile with company number %s found",
+        assertEquals(String.format(EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE,
                 MOCK_COMPANY_NUMBER), exception.getMessage());
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
         verifyNoInteractions(companyProfileApiService);

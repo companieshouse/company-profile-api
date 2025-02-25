@@ -124,7 +124,7 @@ class CompanyProfileControllerTest {
 
         VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
 
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyProfileDocument);
 
         mockMvc.perform(get(COMPANY_LINKS_URL).header("ERIC-Identity", ERIC_IDENTITY).header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isOk())
@@ -142,7 +142,7 @@ class CompanyProfileControllerTest {
 
         VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
 
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyProfileDocument);
 
         mockMvc.perform(get(COMPANY_LINKS_URL))
                 .andExpect(status().isUnauthorized());
@@ -171,13 +171,12 @@ class CompanyProfileControllerTest {
     @DisplayName(
             "Company Profile GET request returns a 404 Resource Not found response when no company profile found")
     void getCompanyProfileNotFound() throws Exception {
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
         mockMvc.perform(get(COMPANY_LINKS_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -189,8 +188,7 @@ class CompanyProfileControllerTest {
         mockMvc.perform(get(COMPANY_DETAILS_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(status().isNotFound());
     }
 
     @Test()
