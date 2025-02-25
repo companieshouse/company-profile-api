@@ -26,7 +26,6 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Optional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CompanyProfileControllerITest {

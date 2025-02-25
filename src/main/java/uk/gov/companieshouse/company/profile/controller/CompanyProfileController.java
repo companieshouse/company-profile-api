@@ -4,8 +4,6 @@ import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication
 
 import com.mongodb.MongoTimeoutException;
 import jakarta.validation.Valid;
-import java.lang.Runtime.Version;
-import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
