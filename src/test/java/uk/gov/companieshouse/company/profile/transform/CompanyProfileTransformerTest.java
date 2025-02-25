@@ -20,8 +20,6 @@ import java.time.format.DateTimeFormatter;
 
 class CompanyProfileTransformerTest {
 
-    Logger logger = new StructuredLogger("CompanyProfileTransformerTest");
-
     private CompanyProfileTransformer transformer;
     private CompanyProfile COMPANY_PROFILE;
     private CompanyProfile COMPANY_PROFILE_WITHOUT_LINKS;
@@ -32,7 +30,7 @@ class CompanyProfileTransformerTest {
 
     @BeforeEach
     public void setUp() throws IOException {
-        transformer = new CompanyProfileTransformer(logger);
+        transformer = new CompanyProfileTransformer();
         TestHelper testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         EXISTING_LINKS = createExistingLinks();

@@ -79,7 +79,6 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
-import uk.gov.companieshouse.logging.Logger;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -101,8 +100,6 @@ class CompanyProfileServiceTest {
     CompanyProfileRepository companyProfileRepository;
     @Mock
     MongoTemplate mongoTemplate;
-    @Mock
-    Logger logger;
     @Mock
     ApiResponse<Void> apiResponse;
     @Mock
@@ -188,7 +185,6 @@ class CompanyProfileServiceTest {
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertThat(companyProfileActual).containsSame(companyProfileDocument);
-        verify(logger, times(2)).trace(anyString(), any());
     }
 
     @Test
@@ -215,7 +211,6 @@ class CompanyProfileServiceTest {
         assertThat(companyProfileActual).containsSame(companyProfileDocument);
         assertEquals("careOf", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
         assertNull(companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
-        verify(logger, times(2)).trace(anyString(), any());
     }
 
     @Test
@@ -241,7 +236,6 @@ class CompanyProfileServiceTest {
         assertThat(companyProfileActual).containsSame(companyProfileDocument);
         assertEquals("careOfName", companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
         assertNull(companyProfileActual.get().getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
-        verify(logger, times(2)).trace(anyString(), any());
     }
 
     @Test
@@ -279,7 +273,6 @@ class CompanyProfileServiceTest {
                 companyProfileService.get(MOCK_COMPANY_NUMBER);
 
         assertTrue(companyProfileActual.isEmpty());
-        verify(logger, times(2)).trace(anyString(), any());
     }
 
     @Test
@@ -303,7 +296,6 @@ class CompanyProfileServiceTest {
 
         Assert.assertThrows(ServiceUnavailableException.class,
                 () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
-        verify(logger, times(1)).trace(anyString(), any());
     }
 
     @Test
@@ -328,7 +320,6 @@ class CompanyProfileServiceTest {
 
         Assert.assertThrows(BadRequestException.class,
                 () -> companyProfileService.get(MOCK_COMPANY_NUMBER));
-        verify(logger, times(1)).trace(anyString(), any());
     }
 
     @Test
@@ -2100,7 +2091,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When a company number is provided to retrieve company profile successfully then it is returned")
-    public void testRetrieveCompanyNumber() throws ResourceNotFoundException, JsonProcessingException {
+    void testRetrieveCompanyNumber() throws ResourceNotFoundException, JsonProcessingException {
         document.setCompanyProfile(new Data());
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
@@ -2113,7 +2104,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("An empty list of company names or corporate annotations stored in Mongo should not be returned")
-    public void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException, JsonProcessingException {
+    void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException, JsonProcessingException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
         Data data = new Data();
         data.setCompanyNumber(MOCK_COMPANY_NUMBER);
@@ -2133,7 +2124,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When retrieving company profile then it is returned with careOf")
-    public void testRetrieveCompanyNumberCareOf() throws ResourceNotFoundException {
+    void testRetrieveCompanyNumberCareOf() throws ResourceNotFoundException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
         Data data = new Data();
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
@@ -2154,7 +2145,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When retrieving company profile without careOf then it is returned with careOf populated by careOfName")
-    public void testRetrieveCompanyNumberCareOfName() throws ResourceNotFoundException {
+    void testRetrieveCompanyNumberCareOfName() throws ResourceNotFoundException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
         Data data = new Data();
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
@@ -2174,7 +2165,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("Retrieve date of cessation on a company number with dissolution date")
-    public void testRetrieveCompanyNumberCessationDate() throws ResourceNotFoundException, JsonProcessingException {
+    void testRetrieveCompanyNumberCessationDate() throws ResourceNotFoundException, JsonProcessingException {
         VersionedCompanyProfileDocument profileDocument = new VersionedCompanyProfileDocument();
         Data profileData = new Data();
         profileData.setDateOfDissolution(LocalDate.of(2019, 1, 1));
@@ -2209,7 +2200,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
-    public void testRetrieveCompanyNumberResourceNotFoundException(){
+    void testRetrieveCompanyNumberResourceNotFoundException(){
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER));
@@ -2218,7 +2209,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When company number is provided delete company profile")
-    public void testDeleteCompanyProfile() {
+    void testDeleteCompanyProfile() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
         companyProfileService.deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 

@@ -7,6 +7,7 @@ import uk.gov.companieshouse.api.converter.ReadConverter;
 
 @ReadingConverter
 public class CompanyProfileDataReadConverter extends ReadConverter<Data> {
+
     public CompanyProfileDataReadConverter(ObjectMapper objectMapper, Class<Data> objectClass) {
         super(objectMapper, objectClass);
     }

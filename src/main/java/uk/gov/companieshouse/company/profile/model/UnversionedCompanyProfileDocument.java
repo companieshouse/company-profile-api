@@ -32,9 +32,15 @@ public class UnversionedCompanyProfileDocument extends CompanyProfileDocument {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         UnversionedCompanyProfileDocument that = (UnversionedCompanyProfileDocument) o;
         return version.equals(that.version);

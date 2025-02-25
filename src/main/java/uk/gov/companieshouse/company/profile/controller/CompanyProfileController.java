@@ -1,7 +1,10 @@
 package uk.gov.companieshouse.company.profile.controller;
 
+import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
+
 import com.mongodb.MongoTimeoutException;
 import jakarta.validation.Valid;
+import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +16,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -25,22 +27,21 @@ import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.ErrorResponseBody;
 import uk.gov.companieshouse.logging.Logger;
-import java.util.Optional;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 @RestController
 public class CompanyProfileController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+
     private final CompanyProfileService companyProfileService;
-    private final Logger logger;
 
     /**
      * Constructor.
      *
-     * @param logger                logs messages to the console
      * @param companyProfileService Company Profile Service
      */
-    public CompanyProfileController(Logger logger, CompanyProfileService companyProfileService) {
-        this.logger = logger;
+    public CompanyProfileController(CompanyProfileService companyProfileService) {
         this.companyProfileService = companyProfileService;
     }
 
@@ -55,19 +56,15 @@ public class CompanyProfileController {
             @PathVariable("company_number") String companyNumber) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.info(String.format("Request received on GET endpoint for company number %s",
-                companyNumber), DataMapHolder.getLogMap());
-        try {
-            return companyProfileService.get(companyNumber)
-                    .map(document ->
-                            new ResponseEntity<>(
-                                    new CompanyProfile().data(document.companyProfile),
-                                    HttpStatus.OK))
-                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            logger.info("Forbidden request");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        LOGGER.info(String.format("Request received on GET endpoint for company number %s", companyNumber),
+                DataMapHolder.getLogMap());
+
+        return companyProfileService.get(companyNumber)
+                .map(document ->
+                        new ResponseEntity<>(
+                                new CompanyProfile().data(document.companyProfile),
+                                HttpStatus.OK))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     /**
@@ -84,19 +81,16 @@ public class CompanyProfileController {
             @RequestBody CompanyProfile companyProfile) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Request received on PUT endpoint "
-                + "for company number %s", companyNumber), DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Request received on PUT endpoint for company number %s", companyNumber),
+                DataMapHolder.getLogMap());
         try {
             companyProfileService.processCompanyProfile(contextId, companyNumber, companyProfile);
             return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (HttpClientErrorException.Forbidden ex) {
-            logger.errorContext(contextId, ex, DataMapHolder.getLogMap());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (ServiceUnavailableException | MongoTimeoutException ex) {
-            logger.errorContext(contextId, ex, DataMapHolder.getLogMap());
+            LOGGER.error(ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         } catch (BadRequestException ex) {
-            logger.errorContext(contextId, ex, DataMapHolder.getLogMap());
+            LOGGER.error(ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -115,8 +109,8 @@ public class CompanyProfileController {
             @Valid @RequestBody CompanyProfile requestBody) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on PATCH links endpoint "
-                + "for company number %s", companyNumber), DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Payload received on PATCH links endpoint for company number %s", companyNumber),
+                DataMapHolder.getLogMap());
         companyProfileService.updateInsolvencyLink(contextId, companyNumber, requestBody);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -125,7 +119,7 @@ public class CompanyProfileController {
      * Add a link on a company profile for the given company number.
      *
      * @param companyNumber The number of the company
-     * @param linkType The type of link
+     * @param linkType      The type of link
      * @return no response
      */
     @PatchMapping("/company/{company_number}/links/{link_type}")
@@ -135,8 +129,8 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received for the PATCH links endpoint "
-                + "with company number %s", companyNumber), DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Payload received for the PATCH links endpoint with company number %s", companyNumber),
+                DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, false);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -145,7 +139,7 @@ public class CompanyProfileController {
      * Delete a link on a company profile for the given company number.
      *
      * @param companyNumber The number of the company
-     * @param linkType The type of link
+     * @param linkType      The type of link
      * @return no response
      */
     @PatchMapping("/company/{company_number}/links/{link_type}/delete")
@@ -155,8 +149,8 @@ public class CompanyProfileController {
             @PathVariable("link_type") String linkType) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.infoContext(contextId, String.format("Payload received on the DELETE links endpoint "
-                + "with company number %s", companyNumber), DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Payload received on the DELETE links endpoint with company number %s", companyNumber),
+                DataMapHolder.getLogMap());
         companyProfileService.processLinkRequest(linkType, companyNumber, contextId, true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -173,23 +167,19 @@ public class CompanyProfileController {
             throws ResourceNotFoundException {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.info(String.format("Received get request for Company Number %s", companyNumber),
-                DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Received get request for Company Number %s", companyNumber), DataMapHolder.getLogMap());
         try {
             Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
             return new ResponseEntity<>(data, HttpStatus.OK);
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            logger.info("Forbidden request");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error("Error while trying to retrieve company profile: "
-                    + resourceNotFoundException.getMessage());
+            LOGGER.error("Error while trying to retrieve company profile: " + resourceNotFoundException.getMessage(),
+                    DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseBody(
                             "ch:service", "company-profile-not-found").toString());
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to retrieve company profile: "
-                    + dataAccessException.getMessage());
+            LOGGER.error("Error while trying to retrieve company profile: " + dataAccessException.getMessage(),
+                    DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
     }
@@ -207,20 +197,14 @@ public class CompanyProfileController {
             @PathVariable("company_number") String companyNumber) {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.info(String.format("Deleting company profile with company number %s", companyNumber),
-                DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Deleting company profile with company number %s", companyNumber), DataMapHolder.getLogMap());
         try {
             companyProfileService.deleteCompanyProfile(contextId, companyNumber, deltaAt);
-            logger.info("Successfully deleted company profile with company number: "
-                    + companyNumber, DataMapHolder.getLogMap());
+            LOGGER.info("Successfully deleted company profile with company number: " + companyNumber, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (DataAccessException | MongoTimeoutException ex) {
-            logger.error("Error while trying to delete company profile.",
-                    ex, DataMapHolder.getLogMap());
+            LOGGER.error("Error while trying to delete company profile.", ex, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        } catch (HttpClientErrorException.Forbidden forbidden) {
-            logger.info("Forbidden request");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
@@ -236,8 +220,8 @@ public class CompanyProfileController {
             throws ResourceNotFoundException {
         DataMapHolder.get()
                 .companyNumber(companyNumber);
-        logger.info(String.format("Received get request for company details"
-                + " for Company Number %s", companyNumber), DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Received get request for company details for Company Number %s", companyNumber),
+                DataMapHolder.getLogMap());
         try {
             Optional<CompanyDetails> companyDetails = companyProfileService
                     .getCompanyDetails(companyNumber);
@@ -245,8 +229,7 @@ public class CompanyProfileController {
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error while trying to get company details.", dataAccessException,
-                    DataMapHolder.getLogMap());
+            LOGGER.error("Error while trying to get company details.", dataAccessException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
     }
@@ -261,20 +244,18 @@ public class CompanyProfileController {
     public ResponseEntity<UkEstablishmentsList> getUkEstablishments(
             @PathVariable("company_number") String parentCompanyNumber) {
         DataMapHolder.get().companyNumber(parentCompanyNumber);
-        logger.info(String.format("Received get request for uk establishments "
-                        + "given parent company number %s",
-                parentCompanyNumber), DataMapHolder.getLogMap());
+        LOGGER.info(
+                String.format("Received get request for uk establishments given parent company number %s", parentCompanyNumber),
+                DataMapHolder.getLogMap());
         try {
             UkEstablishmentsList data = companyProfileService
                     .getUkEstablishments(parentCompanyNumber);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (ResourceNotFoundException resourceNotFoundException) {
-            logger.error("Unable to locate company profile for company in context.",
-                    resourceNotFoundException, DataMapHolder.getLogMap());
+            LOGGER.error("Unable to locate company profile for company.", resourceNotFoundException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (DataAccessException dataAccessException) {
-            logger.error("Error accessing MongoDB for company in context.", dataAccessException,
-                    DataMapHolder.getLogMap());
+            LOGGER.error("Error accessing MongoDB for company.", dataAccessException, DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
     }

@@ -1,11 +1,11 @@
 package uk.gov.companieshouse.company.profile.model;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
 import org.springframework.data.annotation.Version;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 public class VersionedCompanyProfileDocument extends CompanyProfileDocument {
 
@@ -30,9 +30,15 @@ public class VersionedCompanyProfileDocument extends CompanyProfileDocument {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         VersionedCompanyProfileDocument that = (VersionedCompanyProfileDocument) o;
         return Objects.equals(version, that.version);

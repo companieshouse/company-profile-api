@@ -4,6 +4,7 @@ import java.util.function.Function;
 import uk.gov.companieshouse.api.company.Links;
 
 public class LinkTypeData {
+
     private final String deltaType;
     private final Function<Links, String> linkGetter;
 

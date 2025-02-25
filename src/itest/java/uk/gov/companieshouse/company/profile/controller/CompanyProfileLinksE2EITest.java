@@ -64,7 +64,7 @@ class CompanyProfileLinksE2EITest {
 
 
     @Container
-    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:5.0.12");
+    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0.19");
 
     @Autowired
     private MongoTemplate mongoTemplate;

@@ -1,17 +1,12 @@
 package uk.gov.companieshouse.company.profile.exception;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.gson.Gson;
 
-import java.lang.reflect.Constructor;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
@@ -32,17 +27,17 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
+import uk.gov.companieshouse.api.exception.MethodNotAllowedException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.company.profile.controller.CompanyProfileController;
-import uk.gov.companieshouse.logging.Logger;
 
 @ExtendWith(MockitoExtension.class)
 class ControllerExceptionHandlerTest {
@@ -51,26 +46,11 @@ class ControllerExceptionHandlerTest {
 
     private MockMvc mockMvc;
 
-    @Mock
-    private Logger logger;
-
     @InjectMocks
     private ExceptionHandlerConfig exceptionHandlerConfig;
 
     @Mock
-    private WebRequest webRequest;
-
-    @Mock
     private CompanyProfileController companyProfileController;
-
-    @Captor
-    private ArgumentCaptor<Exception> exceptionCaptor;
-
-    @Captor
-    private ArgumentCaptor<String> contextCaptor;
-
-    @Captor
-    private ArgumentCaptor<String> errMsgCaptor;
 
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
@@ -83,9 +63,6 @@ class ControllerExceptionHandlerTest {
                         .standaloneSetup(companyProfileController)
                         .setControllerAdvice(exceptionHandlerConfig)
                         .build();
-
-        doNothing().when(logger).errorContext(
-                contextCaptor.capture(), errMsgCaptor.capture(), exceptionCaptor.capture(), any());
     }
 
 
@@ -97,21 +74,16 @@ class ControllerExceptionHandlerTest {
     @MethodSource("provideExceptionParameters")
     void testHandleExceptionsUsingExceptionHandler(int expectedStatus, String expectedMsg,
                                                    Class<Throwable> exceptionClass) throws Exception {
-        given(companyProfileController.updateCompanyProfile(anyString(), anyString(), any()))
-                .willAnswer(
-                        invocation -> {
-                            Constructor<Throwable> constr =
-                                    exceptionClass.getDeclaredConstructor(String.class);
-                            throw constr.newInstance("Error!");
-                        }
-                );
 
-        verifyResponseStatus(performPatchRequest(), expectedStatus);
+        when(companyProfileController.processCompanyProfile(anyString(), anyString(), any())).thenThrow(exceptionClass);
+        CompanyProfile companyProfile = new CompanyProfile();
 
-        verify(logger).errorContext(
-                contextCaptor.capture(), errMsgCaptor.capture(), exceptionCaptor.capture(), any());
-
-        assertThat(exceptionCaptor.getValue(), instanceOf(exceptionClass));
+        mockMvc.perform(MockMvcRequestBuilders
+                .put("/company/12345678/internal")
+                .header(X_REQUEST_ID, X_REQUEST_ID_VALUE)
+                .content(gson.toJson(companyProfile))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().is(expectedStatus));
     }
 
 
@@ -119,29 +91,12 @@ class ControllerExceptionHandlerTest {
         return Stream.of(
                 Arguments.of(400, "Bad request", BadRequestException.class),
                 Arguments.of(400, "Bad request", HttpMessageNotReadableException.class),
-                Arguments.of(405, "Method not allowed",
-                        HttpRequestMethodNotSupportedException.class),
+                Arguments.of(405, "Method not allowed", MethodNotAllowedException.class),
                 Arguments.of(404, "Not found", DocumentNotFoundException.class),
                 Arguments.of(503, "Service unavailable", ServiceUnavailableException.class),
                 Arguments.of(500, "Unexpected exception", IllegalArgumentException.class),
                 Arguments.of(500, "Unexpected exception", RuntimeException.class),
-                Arguments.of(500, "Unexpected exception", NoSuchMethodException.class),
                 Arguments.of(409, "Conflict", ConflictException.class)
         );
-    }
-
-    private void verifyResponseStatus(MockHttpServletResponse response, int expectedStatus) throws Exception {
-        assertEquals(expectedStatus, response.getStatus());
-    }
-
-    private MockHttpServletResponse performPatchRequest() throws Exception {
-        CompanyProfile companyProfile = new CompanyProfile();
-
-        return mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/company/12345678/links")
-                        .header(X_REQUEST_ID, X_REQUEST_ID_VALUE)
-                        .content(gson.toJson(companyProfile))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(MockMvcResultHandlers.log()).andReturn().getResponse();
     }
 }

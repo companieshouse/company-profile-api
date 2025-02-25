@@ -8,9 +8,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -35,15 +33,11 @@ import uk.gov.companieshouse.company.profile.serialization.LocalDateDeSerializer
 import uk.gov.companieshouse.company.profile.serialization.LocalDateSerializer;
 import uk.gov.companieshouse.environment.EnvironmentReader;
 import uk.gov.companieshouse.environment.impl.EnvironmentReaderImpl;
-import uk.gov.companieshouse.logging.Logger;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class ApplicationConfig {
-
-    @Autowired
-    private Logger logger;
 
     @Bean
     EnvironmentReader environmentReader() {
@@ -54,14 +48,14 @@ public class ApplicationConfig {
      * Configure Http Security.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, Logger logger) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.httpBasic(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterAt(new EricTokenAuthenticationFilter(logger),
+                .addFilterAt(new EricTokenAuthenticationFilter(),
                         BasicAuthenticationFilter.class)
                 .addFilterBefore(new CustomCorsFilter(externalMethods()), CsrfFilter.class)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
@@ -121,6 +115,6 @@ public class ApplicationConfig {
 
     @Bean
     public List<String> externalMethods() {
-        return Arrays.asList(HttpMethod.GET.name());
+        return List.of(HttpMethod.GET.name());
     }
 }
