@@ -184,7 +184,7 @@ public class CompanyProfileService {
                 }
                 LOGGER.info("Company profile is updated in MongoDB", DataMapHolder.getLogMap());
             } else {
-                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully. Response code %s.",
+                LOGGER.error(String.format("Chs-kafka-api CHANGED invocation failed. Response code %s.",
                                 statusCode.value()), DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {

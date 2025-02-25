@@ -47,6 +47,7 @@ public class CompanyProfileApiService {
      */
     public ApiResponse<Void> invokeChsKafkaApi(String companyNumber) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
+        internalApiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
         PrivateChangedResourcePost changedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,
@@ -63,6 +64,7 @@ public class CompanyProfileApiService {
      */
     public ApiResponse<Void> invokeChsKafkaApiWithDeleteEvent(String companyNumber, Data companyProfile) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
+        internalApiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
         PrivateChangedResourcePost changedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,

@@ -30,6 +30,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.handler.chskafka.PrivateChangedResourceHandler;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
+import uk.gov.companieshouse.api.http.HttpClient;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.company.profile.exception.SerDesException;
 
@@ -57,6 +58,9 @@ class CompanyProfileApiClientServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private HttpClient httpClient;
+
     @InjectMocks
     private CompanyProfileApiService companyProfileApiService;
 
@@ -65,6 +69,7 @@ class CompanyProfileApiClientServiceTest {
 
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
 
@@ -83,6 +88,7 @@ class CompanyProfileApiClientServiceTest {
 
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(objectMapper.writeValueAsString(any())).thenReturn("serialisedData");
         when(objectMapper.readValue(anyString(), eq(Object.class))).thenReturn(mappedData);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
@@ -107,6 +113,7 @@ class CompanyProfileApiClientServiceTest {
             throws ApiErrorResponseException {
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
 
         HttpResponseException.Builder builder =
@@ -136,6 +143,7 @@ class CompanyProfileApiClientServiceTest {
 
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenThrow(apiErrorResponseException);
 
@@ -153,6 +161,7 @@ class CompanyProfileApiClientServiceTest {
     void should_handle_exception_when_object_mapper_read_throws_exception() throws JsonProcessingException {
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(objectMapper.writeValueAsString(any())).thenReturn("serialisedData");
         when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JsonProcessingException.class);
 
@@ -171,6 +180,7 @@ class CompanyProfileApiClientServiceTest {
     void should_handle_exception_when_object_mapper_write_throws_exception() throws JsonProcessingException {
         when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
 
         Assert.assertThrows(SerDesException.class,

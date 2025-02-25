@@ -61,7 +61,7 @@ public class CompanyProfileController {
             Data data = companyProfileService.retrieveCompanyNumber(companyNumber);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (DataAccessException dataAccessException) {
-            LOGGER.error("Error while trying to retrieve company profile: " + dataAccessException.getMessage(),
+            LOGGER.error("Error while trying to retrieve company profile", dataAccessException,
                     DataMapHolder.getLogMap());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
