@@ -11,8 +11,6 @@ import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
-import uk.gov.companieshouse.logging.Logger;
-import uk.gov.companieshouse.logging.StructuredLogger;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;

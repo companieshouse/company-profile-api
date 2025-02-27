@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,24 +16,24 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Optional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CompanyProfileControllerITest {
     private static final String COMPANY_NUMBER = "6146287";
-    private static final String CONTEXT_ID = "123456";
     private static final String COMPANY_URL = String.format("/company/%s/links",
             COMPANY_NUMBER);
 
-    @MockBean
+    @MockitoBean
     private CompanyProfileService companyProfileService;
 
     @Autowired
@@ -50,7 +49,7 @@ class CompanyProfileControllerITest {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         companyProfileDocument.setId(COMPANY_NUMBER);
 
-        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(Optional.of(companyProfileDocument));
+        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(companyProfileDocument);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ERIC-Identity", "SOME_IDENTITY");
@@ -73,7 +72,7 @@ class CompanyProfileControllerITest {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         companyProfileDocument.setId(COMPANY_NUMBER);
 
-        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(Optional.of(companyProfileDocument));
+        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(companyProfileDocument);
 
         HttpHeaders headers = new HttpHeaders();
         //Not setting Eric headers
@@ -88,7 +87,7 @@ class CompanyProfileControllerITest {
     @Test
     @DisplayName("Return a Resource Not found response when company profile does not exist")
     void getCompanyProfileWhenDoesNotExist() {
-        when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileService.get(COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ERIC-Identity", "SOME_IDENTITY");
@@ -99,7 +98,6 @@ class CompanyProfileControllerITest {
                 CompanyProfile.class);
 
         assertThat(companyProfileResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(companyProfileResponse.getBody()).isNull();
     }
 
     @Test
@@ -108,7 +106,7 @@ class CompanyProfileControllerITest {
         CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyProfile.setData(companyData);
-        doNothing().when(companyProfileService).updateInsolvencyLink(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        doNothing().when(companyProfileService).updateInsolvencyLink(COMPANY_NUMBER, companyProfile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -132,7 +130,7 @@ class CompanyProfileControllerITest {
         CompanyProfile companyProfile = new CompanyProfile();
         Data companyData = new Data().companyNumber(COMPANY_NUMBER);
         companyProfile.setData(companyData);
-        doNothing().when(companyProfileService).updateInsolvencyLink(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        doNothing().when(companyProfileService).updateInsolvencyLink(COMPANY_NUMBER, companyProfile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -156,7 +154,7 @@ class CompanyProfileControllerITest {
         companyProfile.setData(companyData);
         doThrow(new DocumentNotFoundException("Not found"))
                 .when(companyProfileService)
-                .updateInsolvencyLink(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+                .updateInsolvencyLink(COMPANY_NUMBER, companyProfile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

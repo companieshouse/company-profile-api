@@ -45,36 +45,34 @@ public class CompanyProfileApiService {
      * @param companyNumber company insolvency number
      * @return response returned from chs-kafka api
      */
-    public ApiResponse<Void> invokeChsKafkaApi(String contextId, String companyNumber) {
+    public ApiResponse<Void> invokeChsKafkaApi(String companyNumber) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
+        internalApiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
         PrivateChangedResourcePost changedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,
-                        mapChangedResource(contextId, companyNumber, CHANGED_EVENT_TYPE, null));
-        return handleApiCall(contextId, changedResourcePost);
+                        mapChangedResource(companyNumber, CHANGED_EVENT_TYPE, null));
+        return handleApiCall(changedResourcePost);
     }
 
     /**
      * Invoke chs-kafka api with delete event.
      *
      * @param companyNumber  company insolvency number
-     * @param contextId      context ID
      * @param companyProfile the company profile being deleted
      * @return response returned from chs-kafka api
      */
-    public ApiResponse<Void> invokeChsKafkaApiWithDeleteEvent(String contextId,
-            String companyNumber, Data companyProfile) {
+    public ApiResponse<Void> invokeChsKafkaApiWithDeleteEvent(String companyNumber, Data companyProfile) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
+        internalApiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
         PrivateChangedResourcePost changedResourcePost = internalApiClient
                 .privateChangedResourceHandler()
                 .postChangedResource(CHANGED_RESOURCE_URI,
-                        mapChangedResource(contextId, companyNumber, DELETED_EVENT_TYPE,
-                                companyProfile));
-        return handleApiCall(contextId, changedResourcePost);
+                        mapChangedResource(companyNumber, DELETED_EVENT_TYPE, companyProfile));
+        return handleApiCall(changedResourcePost);
     }
 
-    private ChangedResource mapChangedResource(String contextId, String companyNumber,
-            String eventType, Data companyProfile) {
+    private ChangedResource mapChangedResource(String companyNumber, String eventType, Data companyProfile) {
         ChangedResource changedResource = new ChangedResource();
 
         ChangedResourceEvent event = new ChangedResourceEvent();
@@ -96,12 +94,12 @@ public class CompanyProfileApiService {
         changedResource.setResourceUri("/company/" + companyNumber);
         changedResource.event(event);
         changedResource.setResourceKind("company-profile");
-        changedResource.setContextId(contextId);
+        changedResource.setContextId(DataMapHolder.getRequestId());
 
         return changedResource;
     }
 
-    private ApiResponse<Void> handleApiCall(String contextId, PrivateChangedResourcePost post) {
+    private ApiResponse<Void> handleApiCall(PrivateChangedResourcePost post) {
         try {
             return post.execute();
         } catch (ApiErrorResponseException exception) {

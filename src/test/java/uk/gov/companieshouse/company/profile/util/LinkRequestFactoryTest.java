@@ -22,7 +22,7 @@ import uk.gov.companieshouse.api.exception.BadRequestException;
 public class LinkRequestFactoryTest {
 
     private LinkRequestFactory linkRequestFactory;
-    private static final String MOCK_CONTEXT_ID = "12456";
+    private static final String MOCK_CONTEXT_ID = "uninitialised";
     private static final String MOCK_COMPANY_NUMBER = "123456";
 
     @Before
@@ -35,7 +35,7 @@ public class LinkRequestFactoryTest {
         LinkRequest expectedLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, EXEMPTIONS_LINK_TYPE,
                 EXEMPTIONS_DELTA_TYPE, Links::getExemptions);
         LinkRequest linkRequest = linkRequestFactory
-                .createLinkRequest(EXEMPTIONS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+                .createLinkRequest(EXEMPTIONS_LINK_TYPE, MOCK_COMPANY_NUMBER);
         assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
     }
 
@@ -44,7 +44,7 @@ public class LinkRequestFactoryTest {
         LinkRequest expectedLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER, OFFICERS_LINK_TYPE,
                 OFFICERS_DELTA_TYPE, Links::getOfficers);
         LinkRequest linkRequest = linkRequestFactory
-                .createLinkRequest(OFFICERS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+                .createLinkRequest(OFFICERS_LINK_TYPE, MOCK_COMPANY_NUMBER);
         assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
     }
 
@@ -54,14 +54,14 @@ public class LinkRequestFactoryTest {
                 PSC_STATEMENTS_LINK_TYPE, PSC_STATEMENTS_DELTA_TYPE,
                 Links::getPersonsWithSignificantControlStatements);
         LinkRequest linkRequest = linkRequestFactory
-                .createLinkRequest(PSC_STATEMENTS_LINK_TYPE,MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+                .createLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER);
         assertThat(expectedLinkRequest).usingRecursiveComparison().isEqualTo(linkRequest);
     }
 
     @Test
     public void createLinkRequestThrows() {
         Executable executable  = () -> linkRequestFactory
-                .createLinkRequest("office", MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER);
+                .createLinkRequest("office", MOCK_COMPANY_NUMBER);
         assertThrows(BadRequestException.class,executable);
     }
 }

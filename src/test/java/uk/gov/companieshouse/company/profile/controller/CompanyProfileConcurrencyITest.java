@@ -8,8 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -28,7 +28,6 @@ import java.util.Optional;
 class CompanyProfileConcurrencyITest {
 
     private static final String COMPANY_NUMBER = "6146287";
-    private static final String CONTEXT_ID = "123456";
     private static final String DELTA_AT = "20241129123010123789";
 
     @Container
@@ -43,7 +42,7 @@ class CompanyProfileConcurrencyITest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @MockBean
+    @MockitoBean
     private CompanyProfileApiService companyProfileApiService;
 
     @BeforeAll
@@ -62,7 +61,7 @@ class CompanyProfileConcurrencyITest {
         CompanyProfile companyProfile = makeBaseCompanyProfile();
 
         // when
-        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        companyProfileService.processCompanyProfile(COMPANY_NUMBER, companyProfile);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -79,7 +78,7 @@ class CompanyProfileConcurrencyITest {
         CompanyProfile companyProfile = makeBaseCompanyProfile();
 
         // when
-        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        companyProfileService.processCompanyProfile(COMPANY_NUMBER, companyProfile);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -97,7 +96,7 @@ class CompanyProfileConcurrencyITest {
         CompanyProfile companyProfile = makeBaseCompanyProfile();
 
         // when
-        companyProfileService.processCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, companyProfile);
+        companyProfileService.processCompanyProfile(COMPANY_NUMBER, companyProfile);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -114,7 +113,7 @@ class CompanyProfileConcurrencyITest {
         assertEquals(0, document.getVersion());
 
         // when
-        companyProfileService.deleteCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, DELTA_AT);
+        companyProfileService.deleteCompanyProfile(COMPANY_NUMBER, DELTA_AT);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);
@@ -129,7 +128,7 @@ class CompanyProfileConcurrencyITest {
         mongoTemplate.save(document);
 
         // when
-        companyProfileService.deleteCompanyProfile(CONTEXT_ID, COMPANY_NUMBER, DELTA_AT);
+        companyProfileService.deleteCompanyProfile(COMPANY_NUMBER, DELTA_AT);
 
         // then
         Optional<VersionedCompanyProfileDocument> actual = companyProfileRepository.findById(COMPANY_NUMBER);

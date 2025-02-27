@@ -75,7 +75,7 @@ class ControllerExceptionHandlerTest {
     void testHandleExceptionsUsingExceptionHandler(int expectedStatus, String expectedMsg,
                                                    Class<Throwable> exceptionClass) throws Exception {
 
-        when(companyProfileController.processCompanyProfile(anyString(), anyString(), any())).thenThrow(exceptionClass);
+        when(companyProfileController.processCompanyProfile(anyString(), any())).thenThrow(exceptionClass);
         CompanyProfile companyProfile = new CompanyProfile();
 
         mockMvc.perform(MockMvcRequestBuilders

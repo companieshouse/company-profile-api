@@ -20,9 +20,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -75,12 +77,12 @@ class CompanyProfileLinksE2EITest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private CompanyProfileApiService companyProfileApiService;
 
-    @BeforeAll
-    static void start() {
-        System.setProperty("spring.data.mongodb.uri", mongoDBContainer.getReplicaSetUrl());
+    @DynamicPropertySource
+    static void setProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
     }
 
     @BeforeEach
@@ -138,7 +140,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -189,7 +191,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -213,7 +215,7 @@ class CompanyProfileLinksE2EITest {
 
         companyProfileRepository.insert(document);
 
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
         final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
@@ -238,7 +240,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -260,7 +262,7 @@ class CompanyProfileLinksE2EITest {
 
         mongoTemplate.save(companyProfileDocument);
 
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
         final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
@@ -285,7 +287,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -345,7 +347,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -404,7 +406,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -430,7 +432,7 @@ class CompanyProfileLinksE2EITest {
 
         companyProfileRepository.insert(document);
 
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
         final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
@@ -456,7 +458,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -481,7 +483,7 @@ class CompanyProfileLinksE2EITest {
 
         mongoTemplate.save(document);
 
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
         final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
@@ -507,7 +509,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -557,7 +559,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -606,7 +608,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -628,7 +630,7 @@ class CompanyProfileLinksE2EITest {
 
         companyProfileRepository.insert(document);
 
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
         final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
@@ -653,7 +655,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(1L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest
@@ -674,7 +676,7 @@ class CompanyProfileLinksE2EITest {
 
         mongoTemplate.save(document);
 
-        when(companyProfileApiService.invokeChsKafkaApi(any(), any())).thenReturn(new ApiResponse<>(200, null));
+        when(companyProfileApiService.invokeChsKafkaApi(any())).thenReturn(new ApiResponse<>(200, null));
 
         // when
         final ResultActions result = mockMvc.perform(patch(LINK_ENDPOINT_LEGACY, COMPANY_NUMBER)
@@ -699,7 +701,7 @@ class CompanyProfileLinksE2EITest {
         assertEquals(CONTEXT_ID, updated.getBy());
         assertEquals(0L, actualDocument.getVersion());
         assertNotEquals(oldEtag, companyProfile.getEtag());
-        verify(companyProfileApiService).invokeChsKafkaApi(CONTEXT_ID, COMPANY_NUMBER);
+        verify(companyProfileApiService).invokeChsKafkaApi(COMPANY_NUMBER);
     }
 
     @ParameterizedTest

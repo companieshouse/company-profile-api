@@ -2,6 +2,7 @@ package uk.gov.companieshouse.company.profile.service;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uk.gov.companieshouse.company.profile.CompanyProfileApiApplication.APPLICATION_NAME_SPACE;
 import static uk.gov.companieshouse.company.profile.util.DateUtils.isDeltaStale;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLISHMENTS_DELTA_TYPE;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.Accounts;
@@ -61,6 +63,7 @@ public class CompanyProfileService {
     private static final String RELATED_COMPANIES_KIND = "related-companies";
     private static final String COMPANY_SELF_LINK = "/company/%s";
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final String RESOURCE_NOT_FOUND_STRING = "Resource not found for company profile %s";
 
     private final CompanyProfileRepository companyProfileRepository;
     private final MongoTemplate mongoTemplate;
@@ -88,9 +91,9 @@ public class CompanyProfileService {
      * Retrieve a company profile using its company number.
      *
      * @param companyNumber the company number
-     * @return a company profile if one with given company number exists, otherwise - empty optional
+     * @return a company profile if one with given company number exists, otherwise throw ResourceNotFoundException
      */
-    public Optional<VersionedCompanyProfileDocument> get(String companyNumber) {
+    public VersionedCompanyProfileDocument get(String companyNumber) throws ResourceNotFoundException {
         Optional<VersionedCompanyProfileDocument> companyProfileDocument;
         try {
             companyProfileDocument = companyProfileRepository.findById(companyNumber);
@@ -99,15 +102,6 @@ public class CompanyProfileService {
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException(illegalArgumentEx.getMessage());
         }
-
-        companyProfileDocument.ifPresentOrElse(
-                companyProfile -> LOGGER.info(
-                        String.format("Successfully retrieved company profile with company number %s", companyNumber),
-                        DataMapHolder.getLogMap()),
-                () -> LOGGER.info(
-                        String.format("No company profile with company number %s found", companyNumber),
-                        DataMapHolder.getLogMap())
-        );
 
         //Stored as 'care_of_name' in Mongo, returned as 'care_of' in the GET endpoint
         if (companyProfileDocument.isPresent()) {
@@ -118,21 +112,23 @@ public class CompanyProfileService {
                     roa.setCareOf(roa.getCareOfName());
                 }
                 roa.setCareOfName(null);
-                companyProfileDocument = Optional.of(document);
             }
+            return document;
+        } else {
+            throw new ResourceNotFoundException(
+                    HttpStatusCode.valueOf(NOT_FOUND.value()),
+                    String.format(RESOURCE_NOT_FOUND_STRING, companyNumber)
+            );
         }
-
-        return companyProfileDocument;
     }
 
     /**
      * Update insolvency links in company profile.
      *
-     * @param contextId             fetched from the headers using the key x-request-id
      * @param companyNumber         company number
      * @param companyProfileRequest company Profile information {@link CompanyProfile}
      */
-    public void updateInsolvencyLink(String contextId, String companyNumber,
+    public void updateInsolvencyLink(String companyNumber,
             final CompanyProfile companyProfileRequest) {
         try {
 
@@ -141,16 +137,15 @@ public class CompanyProfileService {
 
             VersionedCompanyProfileDocument cpDocument = cpDocumentOptional.orElseThrow(() ->
                     new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
+                            String.format("Company profile %s not found", companyNumber)));
 
             Data data = Optional.of(companyProfileRequest)
                     .map(CompanyProfile::getData)
-                    .orElseThrow(() -> new BadRequestException("no data within patch request"));
+                    .orElseThrow(() -> new BadRequestException("No data in request body"));
 
             Links links = Optional.of(data)
                     .map(Data::getLinks)
-                    .orElseThrow(() -> new BadRequestException("no links within patch request"));
+                    .orElseThrow(() -> new BadRequestException("No links in request body"));
 
             cpDocument.setHasMortgages(isNotBlank(links.getCharges()));
             Data existingData = cpDocument.getCompanyProfile();
@@ -173,29 +168,24 @@ public class CompanyProfileService {
             } else {
                 Updated updated = new Updated(LocalDateTime
                         .now().truncatedTo(ChronoUnit.SECONDS),
-                        contextId, "company_delta");
+                        DataMapHolder.getRequestId(), "company_delta");
                 cpDocument.setUpdated(updated);
             }
 
-            ApiResponse<Void> response = companyProfileApiService.invokeChsKafkaApi(
-                    contextId, companyNumber);
+            ApiResponse<Void> response = companyProfileApiService.invokeChsKafkaApi(companyNumber);
 
             HttpStatus statusCode = HttpStatus.valueOf(response.getStatusCode());
 
             if (statusCode.is2xxSuccessful()) {
-                LOGGER.info(String.format("Chs-kafka-api CHANGED invoked successfully for company number %s", companyNumber),
-                        DataMapHolder.getLogMap());
                 if (cpDocument.getVersion() == null) { // Update a legacy document
                     mongoTemplate.save(new UnversionedCompanyProfileDocument(cpDocument));
                 } else { // Update a versioned document
                     companyProfileRepository.save(cpDocument);
                 }
-                LOGGER.info(String.format("Company profile is updated in MongoDB with company number %s", companyNumber),
-                        DataMapHolder.getLogMap());
+                LOGGER.info("Company profile is updated in MongoDB", DataMapHolder.getLogMap());
             } else {
-                LOGGER.error(String.format("Chs-kafka-api CHANGED NOT invoked successfully for company number %s. Response code %s.",
-                                companyNumber, statusCode.value()), new Exception("Chs-kafka-api CHANGED NOT invoked"),
-                        DataMapHolder.getLogMap());
+                LOGGER.error(String.format("Chs-kafka-api CHANGED invocation failed. Response code %s.",
+                                statusCode.value()), DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
@@ -205,10 +195,8 @@ public class CompanyProfileService {
     /**
      * func creates a Link Request for a given link type and calls checkAdd or checkDelete.
      */
-    public void processLinkRequest(String linkType, String companyNumber, String contextId,
-            boolean delete) {
-        LinkRequest linkRequest =
-                linkRequestFactory.createLinkRequest(linkType, contextId, companyNumber);
+    public void processLinkRequest(String linkType, String companyNumber, boolean delete) {
+        LinkRequest linkRequest = linkRequestFactory.createLinkRequest(linkType, companyNumber);
 
         if (delete) {
             checkForDeleteLink(linkRequest);
@@ -225,13 +213,11 @@ public class CompanyProfileService {
         Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
+                                RESOURCE_NOT_FOUND_STRING.formatted(linkRequest.getCompanyNumber())));
         Links links = Optional.ofNullable(data.getLinks()).orElse(new Links());
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (!isBlank(linkData)) {
-            LOGGER.error("%s link for company profile already exists".formatted(linkRequest.getLinkType()),
-                    DataMapHolder.getLogMap());
             throw new ResourceStateConflictException(
                     "Resource state conflict; %s link already exists".formatted(linkRequest.getLinkType()));
         } else {
@@ -247,14 +233,12 @@ public class CompanyProfileService {
         Data data = Optional.of(existingDocument)
                 .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                         new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
+                                RESOURCE_NOT_FOUND_STRING.formatted(linkRequest.getCompanyNumber())));
         Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
-                new ResourceStateConflictException("links data not found"));
+                new ResourceStateConflictException("No links exist for this company profile"));
         String linkData = linkRequest.getCheckLink().apply(links);
 
         if (isBlank(linkData)) {
-            LOGGER.error("%s link for company profile already does not exist".formatted(linkRequest.getLinkType()),
-                    DataMapHolder.getLogMap());
             throw new ResourceStateConflictException(
                     "Resource state conflict; %s link already does not exist".formatted(linkRequest.getLinkType()));
         } else {
@@ -270,14 +254,12 @@ public class CompanyProfileService {
             Data data = existingDocumentOptional
                     .map(CompanyProfileDocument::getCompanyProfile).orElseThrow(() ->
                             new ResourceNotFoundException(HttpStatus.NOT_FOUND,
-                                    "no data for company profile: %s".formatted(linkRequest.getCompanyNumber())));
+                                    RESOURCE_NOT_FOUND_STRING.formatted(linkRequest.getCompanyNumber())));
             Links links = Optional.ofNullable(data.getLinks()).orElseThrow(() ->
                     new ResourceStateConflictException("links data not found"));
             String linkData = linkRequest.getCheckLink().apply(links);
 
             if (isBlank(linkData)) {
-                LOGGER.error("%s link for company profile already does not exist".formatted(linkRequest.getLinkType()),
-                        DataMapHolder.getLogMap());
                 throw new ResourceStateConflictException(
                         "Resource state conflict; %s link already does not exist".formatted(linkRequest.getLinkType()));
             } else {
@@ -292,19 +274,14 @@ public class CompanyProfileService {
     /**
      * Finds existing company profile from db if any and updates or saves new record into db.
      */
-    public void processCompanyProfile(String contextId, String companyNumber,
-            CompanyProfile companyProfile)
+    public void processCompanyProfile(String companyNumber, CompanyProfile companyProfile)
             throws ServiceUnavailableException, BadRequestException {
 
         VersionedCompanyProfileDocument companyProfileDocument =
                 companyProfileRepository.findById(companyNumber)
                         .orElse(new VersionedCompanyProfileDocument());
 
-        if (isDeltaStale(companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt())) {
-            LOGGER.error("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
-                    companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt()), DataMapHolder.getLogMap());
-            throw new ResourceStateConflictException("Stale delta for upsert");
-        }
+        deltaAtCheck(companyProfile.getDeltaAt(), companyProfileDocument.getDeltaAt());
 
         Optional<Links> existingLinks = Optional.of(companyProfileDocument)
                 .map(CompanyProfileDocument::getCompanyProfile)
@@ -314,7 +291,7 @@ public class CompanyProfileService {
                 .map(BranchCompanyDetails::getParentCompanyNumber)
                 .ifPresent(parentCompanyNumber -> {
                     LinkRequest ukEstablishmentLinkRequest =
-                            new LinkRequest(contextId, parentCompanyNumber,
+                            new LinkRequest(DataMapHolder.getRequestId(), parentCompanyNumber,
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
 
@@ -327,10 +304,10 @@ public class CompanyProfileService {
                         }
                     } catch (DocumentNotFoundException documentNotFoundException) {
                         // create parent company if not present
+                        LOGGER.info("Creating new parent company document", DataMapHolder.getLogMap());
                         companyProfileRepository.insert(
                                 createParentCompanyDocument(parentCompanyNumber));
-                        companyProfileApiService.invokeChsKafkaApi(
-                                contextId, parentCompanyNumber);
+                        companyProfileApiService.invokeChsKafkaApi(parentCompanyNumber);
                     } catch (ResourceStateConflictException resourceStateConflictException) {
                         LOGGER.info("Parent company link already exists", DataMapHolder.getLogMap());
                     }
@@ -374,7 +351,7 @@ public class CompanyProfileService {
             } else {
                 companyProfileRepository.save(transformedDocument);
             }
-            companyProfileApiService.invokeChsKafkaApi(contextId, companyNumber);
+            companyProfileApiService.invokeChsKafkaApi(companyNumber);
 
             LOGGER.info(String.format("Company profile is updated in MongoDb for company number: %s", companyNumber),
                     DataMapHolder.getLogMap());
@@ -429,26 +406,21 @@ public class CompanyProfileService {
     /**
      * Delete company profile.
      */
-    public void deleteCompanyProfile(String contextId, String companyNumber, String requestDeltaAt) {
+    public void deleteCompanyProfile(String companyNumber, String requestDeltaAt) {
         if (StringUtils.isBlank(requestDeltaAt)) {
-            LOGGER.error("deltaAt missing from delete request", DataMapHolder.getLogMap());
-            throw new BadRequestException("deltaAt is null or empty");
+            throw new BadRequestException("delta_at is missing from delete request");
         }
         companyProfileRepository.findById(companyNumber).ifPresentOrElse(
                 companyProfileDocument -> {
                     Data companyProfile = companyProfileDocument.getCompanyProfile();
                     LocalDateTime existingDeltaAt = companyProfileDocument.getDeltaAt();
-                    if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
-                        LOGGER.error(String.format(
-                                "Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
-                                requestDeltaAt, existingDeltaAt), DataMapHolder.getLogMap());
-                        throw new ConflictException("Stale delta received");
-                    }
+
+                    deltaAtCheck(requestDeltaAt, existingDeltaAt);
 
                     String parentCompanyNumber = companyProfileDocument.getParentCompanyNumber();
                     if (parentCompanyNumber != null && companyProfile.getType().equals("uk-establishment")) {
                         LinkRequest ukEstablishmentLinkRequest =
-                                new LinkRequest(contextId, parentCompanyNumber,
+                                new LinkRequest(DataMapHolder.getRequestId(), parentCompanyNumber,
                                         UK_ESTABLISHMENTS_LINK_TYPE,
                                         UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
                         // Business logic states UK establishments need deletion even if the parent document is not present
@@ -456,16 +428,12 @@ public class CompanyProfileService {
                     }
 
                     companyProfileRepository.delete(companyProfileDocument);
-                    LOGGER.info(String.format("Company profile is deleted in MongoDb with companyNumber %s",
-                            companyNumber), DataMapHolder.getLogMap());
-                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
-                            companyProfile);
+                    LOGGER.info("Company profile is deleted in MongoDb successfully", DataMapHolder.getLogMap());
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(companyNumber, companyProfile);
                 },
                 () -> {
-                    LOGGER.info(String.format("Delete for non-existent document in MongoDb with companyNumber %s",
-                            companyNumber), DataMapHolder.getLogMap());
-                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(contextId, companyNumber,
-                            null);
+                    LOGGER.info("Delete for non-existent document", DataMapHolder.getLogMap());
+                    companyProfileApiService.invokeChsKafkaApiWithDeleteEvent(companyNumber, null);
                 }
         );
     }
@@ -473,18 +441,15 @@ public class CompanyProfileService {
     /**
      * Get company details.
      */
-    public Optional<CompanyDetails> getCompanyDetails(String companyNumber) {
-        try {
-            Data companyProfile = retrieveCompanyNumber(companyNumber);
-            CompanyDetails companyDetails = new CompanyDetails();
-            companyDetails.setCompanyName(companyProfile.getCompanyName());
-            companyDetails.setCompanyNumber(companyProfile.getCompanyNumber());
-            companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
-            return Optional.of(companyDetails);
-        } catch (ResourceNotFoundException resourceNotFoundException) {
-            LOGGER.error(resourceNotFoundException.getMessage(), DataMapHolder.getLogMap());
-            return Optional.empty();
-        }
+    public CompanyDetails getCompanyDetails(String companyNumber) {
+        Data companyProfile = retrieveCompanyNumber(companyNumber);
+
+        CompanyDetails companyDetails = new CompanyDetails();
+        companyDetails.setCompanyName(companyProfile.getCompanyName());
+        companyDetails.setCompanyNumber(companyProfile.getCompanyNumber());
+        companyDetails.setCompanyStatus(companyProfile.getCompanyStatus());
+
+        return companyDetails;
     }
 
     /**
@@ -594,8 +559,7 @@ public class CompanyProfileService {
             LOGGER.info(String.format("Company %s link inserted in Company Profile", linkRequest.getLinkType()),
                     DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
-            LOGGER.info("chs-kafka-api CHANGED invoked successfully", DataMapHolder.getLogMap());
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getCompanyNumber());
         } catch (IllegalArgumentException exception) {
             LOGGER.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
@@ -632,9 +596,7 @@ public class CompanyProfileService {
             LOGGER.info(String.format("Company %s link deleted in Company Profile",
                     linkRequest.getLinkType()), DataMapHolder.getLogMap());
 
-            companyProfileApiService.invokeChsKafkaApi(linkRequest.getContextId(), linkRequest.getCompanyNumber());
-            LOGGER.info("chs-kafka-api DELETED invoked successfully",
-                    DataMapHolder.getLogMap());
+            companyProfileApiService.invokeChsKafkaApi(linkRequest.getCompanyNumber());
         } catch (IllegalArgumentException exception) {
             LOGGER.error("Error calling chs-kafka-api", exception,
                     DataMapHolder.getLogMap());
@@ -650,8 +612,7 @@ public class CompanyProfileService {
         try {
             return companyProfileRepository.findById(companyNumber)
                     .orElseThrow(() -> new DocumentNotFoundException(
-                            String.format("No company profile with company number %s found",
-                                    companyNumber)));
+                            String.format("Company profile %s not found", companyNumber)));
         } catch (DataAccessException exception) {
             LOGGER.error("Error accessing MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
@@ -677,7 +638,7 @@ public class CompanyProfileService {
                 companyProfileRepository.findById(companyNumber);
         return companyProfileOptional.orElseThrow(() ->
                 new ResourceNotFoundException(HttpStatus.NOT_FOUND, String.format(
-                        "Resource not found for company number: %s", companyNumber)));
+                        RESOURCE_NOT_FOUND_STRING, companyNumber)));
     }
 
     private UkEstablishmentsList retrieveUkEstablishments(String companyNumber) {
@@ -741,6 +702,13 @@ public class CompanyProfileService {
             case "uk-establishments" -> links.setUkEstablishments(null);
             case "registers" -> links.setRegisters(null);
             default -> throw new BadRequestException("DID NOT MATCH KNOWN LINK TYPE");
+        }
+    }
+
+    private void deltaAtCheck(String requestDeltaAt, LocalDateTime existingDeltaAt) {
+        if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
+            throw new ConflictException("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
+                    requestDeltaAt, existingDeltaAt));
         }
     }
 }

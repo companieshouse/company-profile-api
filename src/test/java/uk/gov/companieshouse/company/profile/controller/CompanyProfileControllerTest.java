@@ -124,7 +124,7 @@ class CompanyProfileControllerTest {
 
         VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
 
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyProfileDocument);
 
         mockMvc.perform(get(COMPANY_LINKS_URL).header("ERIC-Identity", ERIC_IDENTITY).header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isOk())
@@ -142,7 +142,7 @@ class CompanyProfileControllerTest {
 
         VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
 
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyProfileDocument));
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyProfileDocument);
 
         mockMvc.perform(get(COMPANY_LINKS_URL))
                 .andExpect(status().isUnauthorized());
@@ -158,7 +158,7 @@ class CompanyProfileControllerTest {
 
         Optional<CompanyDetails> mockCompanyDetailsOP = Optional.of(mockCompanyDetails);
 
-        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(mockCompanyDetails));
+        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyDetails);
 
         mockMvc.perform(get(COMPANY_DETAILS_URL).header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
@@ -171,26 +171,24 @@ class CompanyProfileControllerTest {
     @DisplayName(
             "Company Profile GET request returns a 404 Resource Not found response when no company profile found")
     void getCompanyProfileNotFound() throws Exception {
-        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
         mockMvc.perform(get(COMPANY_LINKS_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName(
             "Company Detail GET request returns a 404 Resource Not found response when no company profile found")
     void getCompanyDetailsNotFound() throws Exception {
-        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER)).thenThrow(ResourceNotFoundException.class);
 
         mockMvc.perform(get(COMPANY_DETAILS_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(status().isNotFound());
     }
 
     @Test()
@@ -245,7 +243,7 @@ class CompanyProfileControllerTest {
     void callCompanyProfilePatch() throws Exception {
         CompanyProfile request = new CompanyProfile();
 
-        doNothing().when(companyProfileService).updateInsolvencyLink(anyString(), anyString(),
+        doNothing().when(companyProfileService).updateInsolvencyLink(anyString(),
                 isA(CompanyProfile.class));
 
         mockMvc.perform(patch(COMPANY_LINKS_URL)
@@ -262,7 +260,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Company Profile PATCH request returns a 404 Not Found when company profile not found")
     void callCompanyProfilePatchNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+                .when(companyProfileService).updateInsolvencyLink(anyString(), any());
 
         mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
@@ -278,7 +276,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Company Profile PATCH request returns a 400 Bad Request Exception")
     void patchCompanyProfileBadRequest() throws Exception {
         doThrow(new BadRequestException("Bad request - data in wrong format"))
-                .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+                .when(companyProfileService).updateInsolvencyLink(anyString(), any());
 
         mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
@@ -294,7 +292,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Company Profile PATCH request returns a 503 Service Unavailable")
     void patchCompanyProfileServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+                .when(companyProfileService).updateInsolvencyLink(anyString(), any());
 
         mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
@@ -309,7 +307,7 @@ class CompanyProfileControllerTest {
     @Test()
     @DisplayName("Company Profile PATCH request returns a 500 Internal Server Error")
     void patchCompanyProfileInternalServerError() throws Exception {
-        doThrow(new RuntimeException()).when(companyProfileService).updateInsolvencyLink(anyString(), anyString(), any());
+        doThrow(new RuntimeException()).when(companyProfileService).updateInsolvencyLink(anyString(), any());
 
         mockMvc.perform(patch(COMPANY_LINKS_URL)
                         .contentType(APPLICATION_JSON)
@@ -324,7 +322,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Add company exemptions link")
     void addExemptionsLink() throws Exception {
-        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -333,14 +331,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .header("x-request-id", X_REQUEST_ID))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add exemptions link request returns 404 not found when document not found exception is thrown")
     void addExemptionsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -349,14 +347,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add exemptions link request returns 409 not found when resource state conflict exception is thrown")
     void addExemptionsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -365,14 +363,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Add exemptions link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addExemptionsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -381,14 +379,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Add exemptions link request returns 500 internal server error when a runtime exception is thrown")
     void addExemptionsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException()).when(companyProfileService)
-                .processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -397,14 +395,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete company exemptions link")
     void deleteExemptionsLink() throws Exception {
         doNothing()
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -413,14 +411,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete exemptions link request returns 404 not found when document not found exception is thrown")
     void deleteExemptionsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -429,14 +427,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete exemptions link request returns 409 not found when resource state conflict exception is thrown")
     void deleteExemptionsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -445,14 +443,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Delete exemptions link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deleteExemptionsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -461,14 +459,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Delete exemptions link request returns 500 internal server error when a runtime exception is thrown")
     void deleteExemptionsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_EXEMPTIONS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -477,13 +475,13 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add officers link")
     void addOfficersLink() throws Exception {
-        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -492,14 +490,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add officers link request returns 404 not found when document not found exception is thrown")
     void addOfficersLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                 .contentType(APPLICATION_JSON)
@@ -508,14 +506,14 @@ class CompanyProfileControllerTest {
                 .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                 .header("ERIC-Authorised-Key-Privileges", "internal-app")
         ).andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add officers link request returns 409 not found when resource state conflict exception is thrown")
     void addOfficersLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -524,14 +522,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Add officers link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addOfficersLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -540,13 +538,13 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Add officers link request returns 500 internal server error when a runtime exception is thrown")
     void addOfficersLinkInternalServerError() throws Exception {
-        doThrow(new RuntimeException()).when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        doThrow(new RuntimeException()).when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -555,13 +553,13 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete company officers link")
     void deleteOfficersLink() throws Exception {
-        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -570,14 +568,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete officers link request returns 404 not found when document not found exception is thrown")
     void deleteOfficersLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -586,14 +584,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete officers link request returns 409 not found when resource state conflict exception is thrown")
     void deleteOfficersLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -602,14 +600,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Delete officers link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deleteOfficersLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -618,14 +616,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Delete officers link request returns 500 internal server error when a runtime exception is thrown")
     void deleteOfficersLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_OFFICERS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -634,13 +632,13 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("add PSC Statements link")
     void addPscStatementsLink() throws Exception {
-        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -649,7 +647,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -663,14 +661,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
 
-        verify(companyProfileService).processLinkRequest("filing-history", MOCK_COMPANY_NUMBER, "123456", false);
+        verify(companyProfileService).processLinkRequest("filing-history", MOCK_COMPANY_NUMBER, false);
     }
 
     @Test
     @DisplayName("add PSC Statements request returns 404 not found when document not found exception is thrown")
     void addPscStatementsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -679,14 +677,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("add PSC Statements request returns 409 not found when resource state conflict exception is thrown")
     void addPscStatementsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -695,14 +693,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("add PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addPscStatementsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -711,14 +709,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("add PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addPscStatementsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -727,13 +725,13 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete PSC Statements link")
     void deletePscStatementsLink() throws Exception {
-        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        doNothing().when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -742,14 +740,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete PSC Statements request returns 404 not found when document not found exception is thrown")
     void deletePscStatementsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -758,14 +756,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete PSC Statements request returns 409 not found when resource state conflict exception is thrown")
     void deletePscStatementsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -774,14 +772,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deletePscStatementsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -790,14 +788,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete PSC Statements link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deletePscStatementsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(DELETE_PSC_STATEMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -806,7 +804,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -819,14 +817,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .header("x-request-id", X_REQUEST_ID))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add uk establishments link request returns 404 not found when document not found exception is thrown")
     void addUkEstablishmentLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -835,14 +833,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Add uk establishments link request returns 409 not found when resource state conflict exception is thrown")
     void addUkEstablishmentsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -851,14 +849,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Add uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addUkEstablishmentsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -867,14 +865,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Add uk establishments link request returns 500 internal server error when a runtime exception is thrown")
     void addUkEstablishmentsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException()).when(companyProfileService)
-                .processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -883,7 +881,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -896,14 +894,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete uk establishments link request returns 404 not found when document not found exception is thrown")
     void deleteUkEstablishmentsLinkNotFound() throws Exception {
         doThrow(new DocumentNotFoundException("Not Found"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -912,14 +910,14 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Delete uk establishments link request returns 409 not found when resource state conflict exception is thrown")
     void deleteUkEstablishmentsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -928,14 +926,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Delete uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deleteUkEstablishmentsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -944,14 +942,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test()
     @DisplayName("Delete uk establishments link request returns 500 internal server error when a runtime exception is thrown")
     void deleteUkEstablishmentsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
         mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
                         .contentType(APPLICATION_JSON)
@@ -960,14 +958,14 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyString(), anyBoolean());
+        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
     }
 
     @Test
     @DisplayName("Put Company Profile")
     void callPutCompanyProfile() throws Exception {
         doNothing().when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -983,7 +981,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile and throw 400")
     void callPutCompanyProfileAndThrows400() throws Exception {
         doNothing().when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -998,7 +996,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile and throw 401")
     void callPutCompanyProfileAndReturn401() throws Exception {
         doNothing().when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .content(testHelper.createJsonCompanyProfilePayload()))
@@ -1010,7 +1008,7 @@ class CompanyProfileControllerTest {
     void callPutCompanyProfileAndThrow409() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
                 .when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -1027,7 +1025,7 @@ class CompanyProfileControllerTest {
     @DisplayName("Put Company Profile and throw 503")
     void callPutCompanyProfileAndThrow503() throws Exception {
         doThrow(ServiceUnavailableException.class).when(companyProfileService)
-                .processCompanyProfile(anyString(), anyString(), isA(CompanyProfile.class));
+                .processCompanyProfile(anyString(), isA(CompanyProfile.class));
 
         mockMvc.perform(put(PUT_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -1089,8 +1087,7 @@ class CompanyProfileControllerTest {
                         .header("x-request-id", X_REQUEST_ID)
                         .header("ERIC-Authorised-Key-Privileges", "internal-app")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.content().string(TestHelper.notFoundErrorString));
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test
@@ -1124,7 +1121,7 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Return 200 and delete company profile")
     void deleteCompanyProfile() throws Exception {
-        doNothing().when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
+        doNothing().when(companyProfileService).deleteCompanyProfile(anyString(), anyString());
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -1135,13 +1132,13 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
 
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
+        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
 
     @Test
     @DisplayName("Return 503 when service is unavailable")
     void deleteCompanyProfileWhenServiceIsUnavailable() throws Exception {
-        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile(anyString(), anyString(), anyString());
+        doThrow(ServiceUnavailableException.class).when(companyProfileService).deleteCompanyProfile(anyString(), anyString());
 
         mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL)
                         .header("ERIC-Identity", ERIC_IDENTITY)
@@ -1152,7 +1149,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
 
-        verify(companyProfileService).deleteCompanyProfile("123456", MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
+        verify(companyProfileService).deleteCompanyProfile(MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
     }
 
     @Test
