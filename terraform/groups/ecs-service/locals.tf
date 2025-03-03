@@ -10,9 +10,9 @@ locals {
   eric_port                       = "10000"
   docker_repo                     = "company-profile-api"
   kms_alias                       = "alias/${var.aws_profile}/environment-services-kms"
-  lb_listener_rule_priority_links = 40
+  lb_listener_rule_priority_links = 9
   lb_listener_paths_links         = ["/company/*/links","/company/*/links/*","/company/*/links/*/delete"]
-  lb_listener_rule_priority       = 250
+  lb_listener_rule_priority       = 25
   lb_listener_paths               = ["/company/*","/company/*/company-detail","/company/*/uk-establishments"]
   healthcheck_path                = "/company-profile-api/healthcheck" ##healthcheck path for company profile api
   healthcheck_matcher             = "200"
