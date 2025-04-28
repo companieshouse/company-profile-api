@@ -13,7 +13,7 @@
     <version>unversioned</version>
     <name>company-profile-api</name>
     <description>Company Profile Api</description>
-
+    <!-- Temp change to test sbom changes-->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
