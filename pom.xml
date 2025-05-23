@@ -18,7 +18,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>21</java.version>
-        <spring.boot.version>3.4.2</spring.boot.version>
+        <spring-boot-starter.version>3.4.5</spring-boot-starter.version>
+        <spring-boot-dependencies.version>${spring-boot-starter.version}</spring-boot-dependencies.version>
+        <spring-boot-maven-plugin.version>${spring-boot-starter.version}</spring-boot-maven-plugin.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
@@ -54,18 +56,42 @@
             ${project.basedir}/target/site/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.jacoco.reports>${project.basedir}/target/site</sonar.jacoco.reports>
+        <sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
+        <sonar.login></sonar.login>
+        <sonar.password></sonar.password>
+        <sonar.projectName>registered-email-address-api</sonar.projectName>
+
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>sonar-pr-analysis</id>
+            <properties>
+                <sonar.pullrequest.base>main</sonar.pullrequest.base>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
+                <version>${spring-boot-starter.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>6.2.7</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>6.5.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -239,7 +265,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring.boot.version}</version>
+                <version>${spring-boot-starter.version}</version>
                 <configuration>
                     <mainClass>${main.class}</mainClass>
                 </configuration>
