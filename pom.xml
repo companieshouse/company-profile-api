@@ -60,7 +60,7 @@
         <sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
         <sonar.login></sonar.login>
         <sonar.password></sonar.password>
-        <sonar.projectName>registered-email-address-api</sonar.projectName>
+        <sonar.projectName>company-profile-api</sonar.projectName>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
