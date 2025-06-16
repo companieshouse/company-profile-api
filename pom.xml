@@ -23,6 +23,7 @@
         <spring-security-core.version>6.5.0</spring-security-core.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <tomcat-embed-core.version>11.0.7</tomcat-embed-core.version>
+        <spring-web.version>6.2.8</spring-web.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
@@ -104,6 +105,11 @@
                 <groupId>org.apache.tomcat.embed</groupId>
                 <artifactId>tomcat-embed-core</artifactId>
                 <version>${tomcat-embed-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring-web.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
