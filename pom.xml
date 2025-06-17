@@ -22,7 +22,7 @@
         <spring-context.version>6.2.7</spring-context.version>
         <spring-security-core.version>6.5.0</spring-security-core.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
-        <tomcat-embed-core.version>11.0.7</tomcat-embed-core.version>
+        <tomcat-embed-core.version>11.0.8</tomcat-embed-core.version>
         <spring-web.version>6.2.8</spring-web.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
