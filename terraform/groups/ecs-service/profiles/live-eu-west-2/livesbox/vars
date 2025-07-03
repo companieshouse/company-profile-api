@@ -1,0 +1,13 @@
+environment = "livesbox"
+aws_profile = "live-eu-west-2"
+# service configs
+use_set_environment_files = true
+
+required_cpus = 768
+required_memory = 1536
+
+desired_task_count = 3
+max_task_count = 6
+
+desired_task_count_links = 2
+max_task_count_links = 3
