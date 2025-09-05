@@ -46,6 +46,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -2309,12 +2311,19 @@ class CompanyProfileServiceTest {
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
-    @Test
-    @DisplayName("Can file set to true when company type ltd and status active")
-    void testDetermineCanFileLtdActiveTrue() {
+    @ParameterizedTest
+    @DisplayName("Can file is correctly set for various company types and statuses")
+    @CsvSource({
+            "ltd",
+            "llp",
+            "plc",
+            "oversea-company",
+            "private-limited-shares-section-30-exemption"
+    })
+    void testDetermineCanFileLtdActiveTrue(String companyType) {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
-        companyData.setType("ltd");
+        companyData.setType(companyType);
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
@@ -2323,12 +2332,19 @@ class CompanyProfileServiceTest {
         assertEquals(companyData.getCanFile(), true);
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("Can file set to false when company type ltd and status dissolved")
-    void testDetermineCanFileLtdDissolvedFalse() {
+    @CsvSource({
+        "ltd",
+        "llp",
+        "plc",
+        "oversea-company",
+        "private-limited-shares-section-30-exemption"
+    })
+    void testDetermineCanFileLtdDissolvedFalse(String companyType) {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("dissolved");
-        companyData.setType("ltd");
+        companyData.setType(companyType);
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
