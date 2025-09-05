@@ -2311,60 +2311,31 @@ class CompanyProfileServiceTest {
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
     }
 
-    @ParameterizedTest
-    @DisplayName("Can file is correctly set for various company types and statuses")
+    @ParameterizedTest(name = "Can file is correctly set for company type: {0} and status: {1} to {2}")
     @CsvSource({
-            "ltd",
-            "llp",
-            "plc",
-            "oversea-company",
-            "private-limited-shares-section-30-exemption"
+            "ltd,active,true",
+            "llp,active,true",
+            "plc,active,true",
+            "oversea-company,active,true",
+            "private-limited-shares-section-30-exemption,active,true",
+            "ltd,dissolved,false",
+            "llp,dissolved,false",
+            "plc,dissolved,false",
+            "oversea-company,dissolved,false",
+            "private-limited-shares-section-30-exemption,dissolved,false",
+            "other,active,false",
+            "other,dissolved,false"
     })
-    void testDetermineCanFileLtdActiveTrue(String companyType) {
+    void testDetermineCanFileLtd(String companyType, String companyStatus, boolean expectedCanFile) {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        companyData.setCompanyStatus("active");
+        companyData.setCompanyStatus(companyStatus);
         companyData.setType(companyType);
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
         companyProfileDocument.setCompanyProfile(companyData);
 
         companyProfileService.determineCanFile(companyProfileDocument);
 
-        assertEquals(companyData.getCanFile(), true);
-    }
-
-    @ParameterizedTest
-    @DisplayName("Can file set to false when company type ltd and status dissolved")
-    @CsvSource({
-        "ltd",
-        "llp",
-        "plc",
-        "oversea-company",
-        "private-limited-shares-section-30-exemption"
-    })
-    void testDetermineCanFileLtdDissolvedFalse(String companyType) {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        companyData.setCompanyStatus("dissolved");
-        companyData.setType(companyType);
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
-
-        companyProfileService.determineCanFile(companyProfileDocument);
-
-        assertEquals(companyData.getCanFile(), false);
-    }
-
-    @Test
-    @DisplayName("Can file set to false when company type ltd and status dissolved")
-    void testDetermineCanFileOtherActiveFalse() {
-        Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
-        companyData.setCompanyStatus("active");
-        companyData.setType("other");
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
-
-        companyProfileService.determineCanFile(companyProfileDocument);
-
-        assertEquals(companyData.getCanFile(), false);
+        assertEquals(companyData.getCanFile(), expectedCanFile);
     }
 
     @Test
