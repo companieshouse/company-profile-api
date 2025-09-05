@@ -480,7 +480,8 @@ public class CompanyProfileService {
             } else if (companyType.equals("ltd")
                     || companyType.equals("llp")
                     || companyType.equals("plc")
-                    || companyType.contains("private")) {
+                    || companyType.contains("private")
+                    || companyType.equals("oversea-company")) {
                 companyProfile.setCanFile(!companyStatus.equals("dissolved")
                         && !companyStatus.equals("converted-closed")
                         && !companyStatus.equals("petition-to-restore-dissolved"));
