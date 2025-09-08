@@ -35,3 +35,6 @@ management:
     health:
       show-details: never
       enabled: true
+
+feature:
+  overseas-company-filing-allowed: ${OVERSEAS_COMPANY_FILING_ALLOWED:false}
