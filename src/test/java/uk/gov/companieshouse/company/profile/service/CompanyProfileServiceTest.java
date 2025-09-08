@@ -172,7 +172,7 @@ class CompanyProfileServiceTest {
     }
 
     @BeforeEach
-    void beforeEach() throws Exception {
+    void beforeEach() {
         companyProfileService = Mockito.spy(new CompanyProfileService(
                 companyProfileRepository, 
                 mongoTemplate, 
