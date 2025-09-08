@@ -42,18 +42,19 @@ import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
 import uk.gov.companieshouse.api.company.BranchCompanyDetails;
@@ -91,6 +92,7 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
+    private static final boolean IS_OVERSEAS_COMPANY_FILE_ALLOWED = true;
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
@@ -130,7 +132,6 @@ class CompanyProfileServiceTest {
     @Mock
     private CompanyProfileTransformer companyProfileTransformer;
 
-    @InjectMocks @Spy
     CompanyProfileService companyProfileService;
 
     private final Gson gson = new Gson();
@@ -168,6 +169,17 @@ class CompanyProfileServiceTest {
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 2));
         EXISTING_UK_ESTABLISHMENT_COMPANY = testHelper.createCompanyProfileTypeUkEstablishment(MOCK_COMPANY_NUMBER);
         EXISTING_PARENT_COMPANY = testHelper.createParentCompanyProfile(ANOTHER_PARENT_COMPANY_NUMBER);
+    }
+
+    @BeforeEach
+    void beforeEach() throws Exception {
+        companyProfileService = Mockito.spy(new CompanyProfileService(
+                companyProfileRepository, 
+                mongoTemplate, 
+                companyProfileApiService, 
+                linkRequestFactory, 
+                companyProfileTransformer, 
+                IS_OVERSEAS_COMPANY_FILE_ALLOWED));
     }
 
     @Test
@@ -2327,6 +2339,7 @@ class CompanyProfileServiceTest {
             "other,dissolved,false"
     })
     void testDetermineCanFileLtd(String companyType, String companyStatus, boolean expectedCanFile) {
+
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus(companyStatus);
         companyData.setType(companyType);

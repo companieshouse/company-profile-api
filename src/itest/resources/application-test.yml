@@ -9,3 +9,6 @@ chs:
     api:
       endpoint: ${CHS_KAFKA_API_URL:http://localhost:8888}
       key: ${CHS_API_KEY:chsApiKey}
+
+feature:
+  overseas-company-filing-allowed: ${OVERSEAS_COMPANY_FILING_ALLOWED:true}
