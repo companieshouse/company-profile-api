@@ -49,8 +49,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -92,6 +93,7 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
+    private static final String IS_OVERSEAS_COMPANY_FILE_ALLOWED_FIELD = "isOverseasCompanyFileAllowed";
     private static final boolean IS_OVERSEAS_COMPANY_FILE_ALLOWED = true;
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
@@ -132,6 +134,7 @@ class CompanyProfileServiceTest {
     @Mock
     private CompanyProfileTransformer companyProfileTransformer;
 
+    @InjectMocks @Spy
     CompanyProfileService companyProfileService;
 
     private final Gson gson = new Gson();
@@ -172,14 +175,10 @@ class CompanyProfileServiceTest {
     }
 
     @BeforeEach
-    void beforeEach() {
-        companyProfileService = Mockito.spy(new CompanyProfileService(
-                companyProfileRepository, 
-                mongoTemplate, 
-                companyProfileApiService, 
-                linkRequestFactory, 
-                companyProfileTransformer, 
-                IS_OVERSEAS_COMPANY_FILE_ALLOWED));
+    void beforeEach() throws NoSuchFieldException, IllegalAccessException {
+        var field = CompanyProfileService.class.getDeclaredField(IS_OVERSEAS_COMPANY_FILE_ALLOWED_FIELD);
+        field.setAccessible(true);
+        field.set(companyProfileService, IS_OVERSEAS_COMPANY_FILE_ALLOWED);
     }
 
     @Test

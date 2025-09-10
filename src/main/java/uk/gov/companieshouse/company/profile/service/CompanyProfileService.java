@@ -72,7 +72,8 @@ public class CompanyProfileService {
     private final LinkRequestFactory linkRequestFactory;
     private final CompanyProfileTransformer companyProfileTransformer;
 
-    private final boolean isOverseasCompanyFileAllowed;
+    @Value("${feature.overseas-company-filing-allowed}")
+    private boolean isOverseasCompanyFileAllowed;
 
     /**
      * Constructor.
@@ -82,14 +83,12 @@ public class CompanyProfileService {
             MongoTemplate mongoTemplate,
             CompanyProfileApiService companyProfileApiService,
             LinkRequestFactory linkRequestFactory,
-            CompanyProfileTransformer companyProfileTransformer,
-            @Value("${feature.overseas-company-filing-allowed}") boolean isOverseasCompanyFileAllowed) {
+            CompanyProfileTransformer companyProfileTransformer) {
         this.companyProfileRepository = companyProfileRepository;
         this.mongoTemplate = mongoTemplate;
         this.companyProfileApiService = companyProfileApiService;
         this.linkRequestFactory = linkRequestFactory;
         this.companyProfileTransformer = companyProfileTransformer;
-        this.isOverseasCompanyFileAllowed = isOverseasCompanyFileAllowed;
     }
 
     /**
