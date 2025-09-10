@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
@@ -70,6 +71,9 @@ public class CompanyProfileService {
     private final CompanyProfileApiService companyProfileApiService;
     private final LinkRequestFactory linkRequestFactory;
     private final CompanyProfileTransformer companyProfileTransformer;
+
+    @Value("${feature.overseas-company-filing-allowed}")
+    private boolean isOverseasCompanyFileAllowed;
 
     /**
      * Constructor.
@@ -481,7 +485,7 @@ public class CompanyProfileService {
                     || companyType.equals("llp")
                     || companyType.equals("plc")
                     || companyType.contains("private")
-                    || companyType.equals("oversea-company")) {
+                    || (companyType.equals("oversea-company") && isOverseasCompanyFileAllowed)) {
                 companyProfile.setCanFile(!companyStatus.equals("dissolved")
                         && !companyStatus.equals("converted-closed")
                         && !companyStatus.equals("petition-to-restore-dissolved"));
