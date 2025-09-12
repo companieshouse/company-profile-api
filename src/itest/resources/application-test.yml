@@ -11,4 +11,4 @@ chs:
       key: ${CHS_API_KEY:chsApiKey}
 
 feature:
-  overseas-company-filing-allowed: ${FEATURE_FLAG_OVERSEAS_COMPANY_FILING_ALLOWED_08092025:true}
+  overseas-company-filing-disabled: ${FEATURE_FLAG_OVERSEAS_COMPANY_FILING_DISABLED_08092025:false}
