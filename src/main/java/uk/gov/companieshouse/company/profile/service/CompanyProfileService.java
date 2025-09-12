@@ -72,8 +72,8 @@ public class CompanyProfileService {
     private final LinkRequestFactory linkRequestFactory;
     private final CompanyProfileTransformer companyProfileTransformer;
 
-    @Value("${feature.overseas-company-filing-allowed}")
-    private boolean isOverseasCompanyFileAllowed;
+    @Value("${feature.overseas-company-filing-disabled}")
+    private boolean isOverseasCompanyFileDisabled;
 
     /**
      * Constructor.
@@ -485,7 +485,7 @@ public class CompanyProfileService {
                     || companyType.equals("llp")
                     || companyType.equals("plc")
                     || companyType.contains("private")
-                    || (companyType.equals("oversea-company") && isOverseasCompanyFileAllowed)) {
+                    || (companyType.equals("oversea-company") && !isOverseasCompanyFileDisabled)) {
                 companyProfile.setCanFile(!companyStatus.equals("dissolved")
                         && !companyStatus.equals("converted-closed")
                         && !companyStatus.equals("petition-to-restore-dissolved"));

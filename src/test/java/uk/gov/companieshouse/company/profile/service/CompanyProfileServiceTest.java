@@ -93,8 +93,8 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
-    private static final String IS_OVERSEAS_COMPANY_FILE_ALLOWED_FIELD = "isOverseasCompanyFileAllowed";
-    private static final boolean IS_OVERSEAS_COMPANY_FILE_ALLOWED = true;
+    private static final String IS_OVERSEAS_COMPANY_FILE_DISABLED_FIELD = "isOverseasCompanyFileDisabled";
+    private static final boolean IS_OVERSEAS_COMPANY_FILE_DISABLED = false;
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_CONTEXT_ID = "123456";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "321033";
@@ -176,9 +176,9 @@ class CompanyProfileServiceTest {
 
     @BeforeEach
     void beforeEach() throws NoSuchFieldException, IllegalAccessException {
-        var field = CompanyProfileService.class.getDeclaredField(IS_OVERSEAS_COMPANY_FILE_ALLOWED_FIELD);
+        var field = CompanyProfileService.class.getDeclaredField(IS_OVERSEAS_COMPANY_FILE_DISABLED_FIELD);
         field.setAccessible(true);
-        field.set(companyProfileService, IS_OVERSEAS_COMPANY_FILE_ALLOWED);
+        field.set(companyProfileService, IS_OVERSEAS_COMPANY_FILE_DISABLED);
     }
 
     @Test
