@@ -11,4 +11,7 @@ public interface CompanyProfileRepository extends MongoRepository<VersionedCompa
 
     @Query("{'parent_company_number' : '?0'}")
     List<VersionedCompanyProfileDocument> findAllByParentCompanyNumber(String parentCompanyNumber);
+
+    @Query(value = "{'parent_company_number' : '?0', 'data.company_status': 'open'}", sort = "{'data.date_of_creation': -1}")
+    List<VersionedCompanyProfileDocument> findAllOpenCompanyProfilesByParentNumberSortedByCreation(String parentCompanyNumber);
 }
