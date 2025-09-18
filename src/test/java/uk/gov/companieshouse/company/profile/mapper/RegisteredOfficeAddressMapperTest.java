@@ -1,13 +1,14 @@
 package uk.gov.companieshouse.company.profile.mapper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.jupiter.api.Test;
 
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.company.RegisteredOfficeAddressApi;
 
-public class RegisteredOfficeAddressMapperTest {
+class RegisteredOfficeAddressMapperTest {
 
     private static final String ADDRESS_LINE_1 = "addressLine1";
     private static final String ADDRESS_LINE_2 = "addressLine2";
@@ -23,15 +24,16 @@ public class RegisteredOfficeAddressMapperTest {
     void testMapToApiAllValuesAreAllowedToBeNull() {
         RegisteredOfficeAddress registeredOfficeAddress = new RegisteredOfficeAddress();
         RegisteredOfficeAddressApi registeredOfficeAddressApi = RegisteredOfficeAddressMapper.mapToApi(registeredOfficeAddress);
-        assertEquals(registeredOfficeAddressApi.getAddressLine1(), null);
-        assertEquals(registeredOfficeAddressApi.getAddressLine2(), null);
-        assertEquals(registeredOfficeAddressApi.getCareOf(), null);
-        assertEquals(registeredOfficeAddressApi.getCountry(), null);
-        assertEquals(registeredOfficeAddressApi.getLocality(), null);
-        assertEquals(registeredOfficeAddressApi.getPoBox(), null);
-        assertEquals(registeredOfficeAddressApi.getPostalCode(), null);
-        assertEquals(registeredOfficeAddressApi.getPremises(), null);
-        assertEquals(registeredOfficeAddressApi.getRegion(), null);
+
+        assertNull(registeredOfficeAddressApi.getAddressLine1());
+        assertNull(registeredOfficeAddressApi.getAddressLine2());
+        assertNull(registeredOfficeAddressApi.getCareOf());
+        assertNull(registeredOfficeAddressApi.getCountry());
+        assertNull(registeredOfficeAddressApi.getLocality());
+        assertNull(registeredOfficeAddressApi.getPoBox());
+        assertNull(registeredOfficeAddressApi.getPostalCode());
+        assertNull(registeredOfficeAddressApi.getPremises());
+        assertNull(registeredOfficeAddressApi.getRegion());
     }
 
     @Test

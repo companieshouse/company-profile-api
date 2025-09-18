@@ -2790,7 +2790,7 @@ class CompanyProfileServiceTest {
     @Nested
     class GetUkEstablishmentsAddresses {
 
-        private static List<VersionedCompanyProfileDocument> UK_ESTABLISHMENTS_ADDRESSES_TEST_INPUT;
+        private static List<VersionedCompanyProfileDocument> ukEstablishmentsAddressesTestInput;
         private static VersionedCompanyProfileDocument companyProfileDocument1;
         private static VersionedCompanyProfileDocument companyProfileDocument2;
 
@@ -2799,7 +2799,7 @@ class CompanyProfileServiceTest {
             companyProfileDocument1 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISHMENT_COMPANY_NUMBER, "open", LocalDate.of(2021, 1, 1));
             companyProfileDocument2 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISTMENT_COMPANY_NUMBER_2, "open", LocalDate.of(2020, 1, 1));
 
-            UK_ESTABLISHMENTS_ADDRESSES_TEST_INPUT = Arrays.asList(
+            ukEstablishmentsAddressesTestInput = Arrays.asList(
                 companyProfileDocument2,
                 companyProfileDocument1
         );
@@ -2807,9 +2807,6 @@ class CompanyProfileServiceTest {
 
         @Test
         void testGetUkEstablishmentsAddressesWithNoUkEstiablishments() {
-
-            MockedStatic<UkEstablishmentAddressMapper> ukEstablishmentAddressMapper = mockStatic(
-                    UkEstablishmentAddressMapper.class);
 
             RegisteredOfficeAddressApi registeredOfficeAddressApi1 = new RegisteredOfficeAddressApi();
             registeredOfficeAddressApi1.setAddressLine1("line 1");
@@ -2834,7 +2831,7 @@ class CompanyProfileServiceTest {
                     Optional.of(parentCompanyProfileDocument));
             when(companyProfileRepository
                     .findAllOpenCompanyProfilesByParentNumberSortedByCreation(MOCK_PARENT_COMPANY_NUMBER))
-                    .thenReturn(UK_ESTABLISHMENTS_ADDRESSES_TEST_INPUT);
+                    .thenReturn(ukEstablishmentsAddressesTestInput);
             when(UkEstablishmentAddressMapper
                     .mapToUkEstablishmentAddress(companyProfileDocument1))
                     .thenReturn(ukEstablishmentAddress1);
@@ -2844,7 +2841,7 @@ class CompanyProfileServiceTest {
 
             PrivateUkEstablishmentsAddressListApi addresses = companyProfileService
                     .getUkEstablishmentsAddresses(MOCK_PARENT_COMPANY_NUMBER);
-            assertEquals(addresses.getData().size(), 2);
+            assertEquals(2, addresses.getData().size());
             assertEquals(ukEstablishmentAddress2, addresses.getData().getFirst());
             assertEquals(ukEstablishmentAddress1, addresses.getData().getLast());
         }

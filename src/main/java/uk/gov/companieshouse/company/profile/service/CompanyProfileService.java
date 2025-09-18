@@ -687,10 +687,8 @@ public class CompanyProfileService {
         return companyProfileRepository
                 .findAllOpenCompanyProfilesByParentNumberSortedByCreation(parentCompanyNumber)
                 .stream()
-                .map( versionedCompanyProfileDocument -> {
-                    return UkEstablishmentAddressMapper.mapToUkEstablishmentAddress(versionedCompanyProfileDocument);
-                }).collect(Collectors.collectingAndThen(Collectors.toList(),
-                        PrivateUkEstablishmentsAddressListApi::new
+                .map(UkEstablishmentAddressMapper::mapToUkEstablishmentAddress).collect(Collectors.collectingAndThen(Collectors.toList(),
+                    PrivateUkEstablishmentsAddressListApi::new
                 ));
     }
 

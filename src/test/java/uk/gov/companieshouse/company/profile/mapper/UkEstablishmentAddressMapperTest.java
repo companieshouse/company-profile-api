@@ -15,7 +15,7 @@ import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsA
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 
 @ExtendWith(MockitoExtension.class)
-public class UkEstablishmentAddressMapperTest {
+class UkEstablishmentAddressMapperTest {
     
     private static final String POSTAL_CODE = "TE57 1NG";
     private static final String LINE_1 = "123 Test St";
