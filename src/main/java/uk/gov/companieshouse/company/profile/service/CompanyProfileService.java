@@ -45,10 +45,12 @@ import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressListApi;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
+import uk.gov.companieshouse.company.profile.mapper.UkEstablishmentAddressMapper;
 import uk.gov.companieshouse.company.profile.model.UnversionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
@@ -470,6 +472,13 @@ public class CompanyProfileService {
     }
 
 
+    public PrivateUkEstablishmentsAddressListApi getUkEstablishmentsAddresses(String parentCompanyNumber)
+            throws ResourceNotFoundException {
+        String numberFound = getCompanyProfileDocument(parentCompanyNumber).getId();
+        return retrieveUkEstablishmentsAddresses(numberFound);
+    }
+
+
     /**
      * Set can_file based on company type and status.
      */
@@ -672,6 +681,17 @@ public class CompanyProfileService {
         ukEstablishmentsList.setLinks(parentCompanyLink);
 
         return ukEstablishmentsList;
+    }
+
+    private PrivateUkEstablishmentsAddressListApi retrieveUkEstablishmentsAddresses(String parentCompanyNumber) {
+        return companyProfileRepository
+                .findAllOpenCompanyProfilesByParentNumberSortedByCreation(parentCompanyNumber)
+                .stream()
+                .map( versionedCompanyProfileDocument -> {
+                    return UkEstablishmentAddressMapper.mapToUkEstablishmentAddress(versionedCompanyProfileDocument);
+                }).collect(Collectors.collectingAndThen(Collectors.toList(),
+                        PrivateUkEstablishmentsAddressListApi::new
+                ));
     }
 
     private static void setLinksOnType(Links links, String linkType, String companyNumber) {

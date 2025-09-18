@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -51,6 +53,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -74,9 +77,13 @@ import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.api.model.company.RegisteredOfficeAddressApi;
+import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressApi;
+import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressListApi;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.exception.ConflictException;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
+import uk.gov.companieshouse.company.profile.mapper.UkEstablishmentAddressMapper;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
@@ -101,6 +108,7 @@ class CompanyProfileServiceTest {
     private static final String ANOTHER_PARENT_COMPANY_NUMBER = "FC123456";
     private static final String MOCK_DELTA_AT = "20241129123010123789";
     private static final String UK_ESTABLISHMENT_COMPANY_NUMBER = "BR765432";
+    private static final String UK_ESTABLISTMENT_COMPANY_NUMBER_2 = "BR123456";
     private static final String EXPECTED_NOT_FOUND_EXCEPTION_MESSAGE = "Company profile %s not found";
 
     @Mock
@@ -137,6 +145,8 @@ class CompanyProfileServiceTest {
     @InjectMocks @Spy
     CompanyProfileService companyProfileService;
 
+    static TestHelper testHelper;
+
     private final Gson gson = new Gson();
     private static CompanyProfile COMPANY_PROFILE;
     private static VersionedCompanyProfileDocument COMPANY_PROFILE_DOCUMENT;
@@ -158,7 +168,7 @@ class CompanyProfileServiceTest {
 
     @BeforeAll
     static void setUp() throws IOException {
-        TestHelper testHelper = new TestHelper();
+        testHelper = new TestHelper();
         COMPANY_PROFILE = testHelper.createCompanyProfileObject();
         COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
         EXISTING_LINKS = createExistingLinks();
@@ -2776,4 +2786,69 @@ class CompanyProfileServiceTest {
 
         assertFalse(companyProfile.getData().getHasCharges());
     }
+
+    @Nested
+    class GetUkEstablishmentsAddresses {
+
+        private static List<VersionedCompanyProfileDocument> UK_ESTABLISHMENTS_ADDRESSES_TEST_INPUT;
+        private static VersionedCompanyProfileDocument companyProfileDocument1;
+        private static VersionedCompanyProfileDocument companyProfileDocument2;
+
+        @BeforeAll
+        static void setup() {
+            companyProfileDocument1 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISHMENT_COMPANY_NUMBER, "open", LocalDate.of(2021, 1, 1));
+            companyProfileDocument2 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISTMENT_COMPANY_NUMBER_2, "open", LocalDate.of(2020, 1, 1));
+
+            UK_ESTABLISHMENTS_ADDRESSES_TEST_INPUT = Arrays.asList(
+                companyProfileDocument2,
+                companyProfileDocument1
+        );
+        }
+
+        @Test
+        void testGetUkEstablishmentsAddressesWithNoUkEstiablishments() {
+
+            MockedStatic<UkEstablishmentAddressMapper> ukEstablishmentAddressMapper = mockStatic(
+                    UkEstablishmentAddressMapper.class);
+
+            RegisteredOfficeAddressApi registeredOfficeAddressApi1 = new RegisteredOfficeAddressApi();
+            registeredOfficeAddressApi1.setAddressLine1("line 1");
+            registeredOfficeAddressApi1.setPostalCode("AB1 2CD");
+
+            RegisteredOfficeAddressApi registeredOfficeAddressApi2 = new RegisteredOfficeAddressApi();
+            registeredOfficeAddressApi2.setAddressLine1("line 2");
+            registeredOfficeAddressApi2.setPostalCode("EF3 4GH");
+
+            PrivateUkEstablishmentsAddressApi ukEstablishmentAddress1 = new PrivateUkEstablishmentsAddressApi();
+            ukEstablishmentAddress1.setCompanyNumber(UK_ESTABLISHMENT_COMPANY_NUMBER);
+            ukEstablishmentAddress1.setRegisteredOfficeAddress(registeredOfficeAddressApi1);
+
+            PrivateUkEstablishmentsAddressApi ukEstablishmentAddress2 = new PrivateUkEstablishmentsAddressApi();
+            ukEstablishmentAddress2.setCompanyNumber(UK_ESTABLISTMENT_COMPANY_NUMBER_2);
+            ukEstablishmentAddress2.setRegisteredOfficeAddress(registeredOfficeAddressApi2);
+
+            VersionedCompanyProfileDocument parentCompanyProfileDocument = new VersionedCompanyProfileDocument();
+            parentCompanyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
+            // given
+            when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(
+                    Optional.of(parentCompanyProfileDocument));
+            when(companyProfileRepository
+                    .findAllOpenCompanyProfilesByParentNumberSortedByCreation(MOCK_PARENT_COMPANY_NUMBER))
+                    .thenReturn(UK_ESTABLISHMENTS_ADDRESSES_TEST_INPUT);
+            when(UkEstablishmentAddressMapper
+                    .mapToUkEstablishmentAddress(companyProfileDocument1))
+                    .thenReturn(ukEstablishmentAddress1);
+            when(UkEstablishmentAddressMapper
+                    .mapToUkEstablishmentAddress(companyProfileDocument2))
+                    .thenReturn(ukEstablishmentAddress2);
+
+            PrivateUkEstablishmentsAddressListApi addresses = companyProfileService
+                    .getUkEstablishmentsAddresses(MOCK_PARENT_COMPANY_NUMBER);
+            assertEquals(addresses.getData().size(), 2);
+            assertEquals(ukEstablishmentAddress2, addresses.getData().getFirst());
+            assertEquals(ukEstablishmentAddress1, addresses.getData().getLast());
+        }
+    }
+
+    
 }
