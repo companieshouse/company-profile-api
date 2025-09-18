@@ -2808,6 +2808,8 @@ class CompanyProfileServiceTest {
         @Test
         void testGetUkEstablishmentsAddressesWithNoUkEstiablishments() {
 
+            mockStatic(UkEstablishmentAddressMapper.class);
+
             RegisteredOfficeAddressApi registeredOfficeAddressApi1 = new RegisteredOfficeAddressApi();
             registeredOfficeAddressApi1.setAddressLine1("line 1");
             registeredOfficeAddressApi1.setPostalCode("AB1 2CD");
