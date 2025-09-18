@@ -16,15 +16,16 @@ The service is implemented in Java 21 using Spring Boot 3.3
 
 | Method | URL                                                  | Description                                                                                                                     |
 |--------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| GET    | `/company/{company_number}`                          | Returns company information for a given company number                                                                          |
-| GET    | `/company/{company_number}/links`                    | Returns company information for a given company number in a 'data' field                                                        |
-| GET    | `/company/{company_number}/company-detail`           | Returns company details object for a given company number                                                                       |
-| GET    | `/company/{company_number}/uk-establishments`        | Returns a list of uk establishments for a given parent company number                                                           |
-| PUT    | `/company/{company_number}/internal`                 | Inserts or updates an existing company profile within the collection, includes checks for delta staleness and Mongo versioning. |
-| PATCH  | `/company/{company_number}/links`                    | Updates a company insolvency, charges and registers links for a given company number                                            |
-| PATCH  | `/company/{company_number}/links/{link_type}`        | Updates a company to add a link of a given type                                                                                 |
-| PATCH  | `/company/{company_number}/links/{link_type}/delete` | Deletes a link of a given type for a company                                                                                    |                                                                                                 
-| DELETE | `/company/{company_number}/internal`                 | Deletes company information for a given company number, includes checks for delta staleness                                     |
+| GET    | `/company/{company_number}`                            | Returns company information for a given company number                                                                          |
+| GET    | `/company/{company_number}/links`                      | Returns company information for a given company number in a 'data' field                                                        |
+| GET    | `/company/{company_number}/company-detail`             | Returns company details object for a given company number                                                                       |
+| GET    | `/company/{company_number}/uk-establishments`          | Returns a list of uk establishments for a given parent company number                                                           |
+| GET    | `/company/{company_number}/uk-establishments/addresses`| Returns a list of uk establishments addresses for a given parent company number |
+| PUT    | `/company/{company_number}/internal`                   | Inserts or updates an existing company profile within the collection, includes checks for delta staleness and Mongo versioning. |
+| PATCH  | `/company/{company_number}/links`                      | Updates a company insolvency, charges and registers links for a given company number                                            |
+| PATCH  | `/company/{company_number}/links/{link_type}`          | Updates a company to add a link of a given type                                                                                 |
+| PATCH  | `/company/{company_number}/links/{link_type}/delete`   | Deletes a link of a given type for a company                                                                                    |                                                                                                 
+| DELETE | `/company/{company_number}/internal`                   | Deletes company information for a given company number, includes checks for delta staleness                                     |
 
 ## System requirements
 
