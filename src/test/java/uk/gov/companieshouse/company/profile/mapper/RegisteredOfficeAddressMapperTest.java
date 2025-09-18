@@ -49,14 +49,14 @@ class RegisteredOfficeAddressMapperTest {
         registeredOfficeAddress.setPremises(PREMISES);
         registeredOfficeAddress.setRegion(REGION);
         RegisteredOfficeAddressApi registeredOfficeAddressApi = RegisteredOfficeAddressMapper.mapToApi(registeredOfficeAddress);
-        assertEquals(registeredOfficeAddressApi.getAddressLine1(), ADDRESS_LINE_1);
-        assertEquals(registeredOfficeAddressApi.getAddressLine2(), ADDRESS_LINE_2);
-        assertEquals(registeredOfficeAddressApi.getCareOf(), CARE_OF);
-        assertEquals(registeredOfficeAddressApi.getCountry(), COUNTRY);
-        assertEquals(registeredOfficeAddressApi.getLocality(), LOCALITY);
-        assertEquals(registeredOfficeAddressApi.getPoBox(), PO_BOX);
-        assertEquals(registeredOfficeAddressApi.getPostalCode(), POSTAL_CODE);
-        assertEquals(registeredOfficeAddressApi.getPremises(), PREMISES);
-        assertEquals(registeredOfficeAddressApi.getRegion(), REGION);
+        assertEquals(ADDRESS_LINE_1, registeredOfficeAddressApi.getAddressLine1());
+        assertEquals(ADDRESS_LINE_2, registeredOfficeAddressApi.getAddressLine2());
+        assertEquals(CARE_OF, registeredOfficeAddressApi.getCareOf());
+        assertEquals(COUNTRY, registeredOfficeAddressApi.getCountry());
+        assertEquals(LOCALITY, registeredOfficeAddressApi.getLocality());
+        assertEquals(PO_BOX, registeredOfficeAddressApi.getPoBox());
+        assertEquals(POSTAL_CODE, registeredOfficeAddressApi.getPostalCode());
+        assertEquals(PREMISES, registeredOfficeAddressApi.getPremises());
+        assertEquals(REGION, registeredOfficeAddressApi.getRegion());
     }
 }
