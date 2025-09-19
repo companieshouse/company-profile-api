@@ -13,6 +13,7 @@ import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class TestHelper {
@@ -116,6 +117,13 @@ public class TestHelper {
         existingCompanyProfileDocument.setParentCompanyNumber("FC123456");
         existingCompanyProfileDocument.version(1L);
         return existingCompanyProfileDocument;
+    }
+
+    public VersionedCompanyProfileDocument createCompanyProfileTypeUkEstablishment(String companyNumber, String companyStatus, LocalDate dateOfCreation) {
+        VersionedCompanyProfileDocument companyProfileDocument = createCompanyProfileTypeUkEstablishment(companyNumber);
+        companyProfileDocument.getCompanyProfile().setDateOfCreation(dateOfCreation);
+        companyProfileDocument.getCompanyProfile().setCompanyStatus(companyStatus);
+        return companyProfileDocument;
     }
 
     public VersionedCompanyProfileDocument createParentCompanyProfile(String companyNumber) {

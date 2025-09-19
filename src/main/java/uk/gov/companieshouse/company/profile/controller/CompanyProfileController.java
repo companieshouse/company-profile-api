@@ -21,6 +21,7 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressListApi;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.logging.DataMapHolder;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
@@ -124,6 +125,28 @@ public class CompanyProfileController {
         try {
             UkEstablishmentsList data = companyProfileService
                     .getUkEstablishments(parentCompanyNumber);
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (DataAccessException dataAccessException) {
+            LOGGER.error("Error accessing MongoDB for company.", dataAccessException, DataMapHolder.getLogMap());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+    }
+
+    /**
+     * Retrieve a list of uk establishments addresses for a given parent company number.
+     * @param parentCompanyNumber the supplied parent company number
+     * @return list of uk establishments addresses
+     */
+    @GetMapping("/company/{company_number}/uk-establishments/addresses")
+    public ResponseEntity<PrivateUkEstablishmentsAddressListApi> getUkEstablishmentsAddresses(
+            @PathVariable("company_number") String parentCompanyNumber) {
+        DataMapHolder.get().companyNumber(parentCompanyNumber);
+        LOGGER.info(
+                "Processing GET company profile uk establishments addresses",
+                DataMapHolder.getLogMap());
+        try {
+            PrivateUkEstablishmentsAddressListApi data = companyProfileService
+                    .getUkEstablishmentsAddresses(parentCompanyNumber);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (DataAccessException dataAccessException) {
             LOGGER.error("Error accessing MongoDB for company.", dataAccessException, DataMapHolder.getLogMap());

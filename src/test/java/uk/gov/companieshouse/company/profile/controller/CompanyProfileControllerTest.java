@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,6 +41,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import uk.gov.companieshouse.api.company.CompanyDetails;
@@ -51,6 +54,9 @@ import uk.gov.companieshouse.api.exception.DocumentNotFoundException;
 import uk.gov.companieshouse.api.exception.ResourceStateConflictException;
 import uk.gov.companieshouse.api.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.api.model.Updated;
+import uk.gov.companieshouse.api.model.company.RegisteredOfficeAddressApi;
+import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressApi;
+import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressListApi;
 import uk.gov.companieshouse.company.profile.adapter.LocalDateTypeAdapter;
 import uk.gov.companieshouse.company.profile.config.ApplicationConfig;
 import uk.gov.companieshouse.company.profile.config.ExceptionHandlerConfig;
@@ -60,6 +66,8 @@ import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
@@ -86,10 +94,11 @@ class CompanyProfileControllerTest {
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
     private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
     private static final String UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments", MOCK_COMPANY_NUMBER);
-
+    
     private static final String GET_UK_ESTABLISHMENTS_URL = String.format(
             "/company/%s/uk-establishments", MOCK_PARENT_COMPANY_NUMBER);
-
+    private static final String GET_UK_ESTABLISHMENTS_ADDRESSES_URL = String.format("/company/%s/uk-establishments/addresses", MOCK_COMPANY_NUMBER);
+            
     private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s/internal", MOCK_COMPANY_NUMBER);
 
     private static final String X_REQUEST_ID = "123456";
@@ -1273,5 +1282,130 @@ class CompanyProfileControllerTest {
             .andExpect(status().isForbidden())
             .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+    }
+
+    @Test
+    void testGetUkEstablishmentsAddressesWithNoUkEstablishments() throws Exception {
+
+        PrivateUkEstablishmentsAddressListApi privateUkEstablishmentsAddressList = new PrivateUkEstablishmentsAddressListApi(
+            Collections.emptyList()
+        );
+
+        String result = objectMapper.writeValueAsString(Collections.emptyList());
+
+        when(companyProfileService.getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER))
+            .thenReturn(privateUkEstablishmentsAddressList);
+        
+        ResultActions resultActions = mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
+                        .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isOk());
+        
+        MvcResult mvcResult =  resultActions.andReturn();
+
+        verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+        assertEquals(result, mvcResult.getResponse().getContentAsString());
+    }
+
+    @Test
+    void testGetUkEstablishmentsAddressesWithTwoUkEstablishments() throws Exception {
+
+        RegisteredOfficeAddressApi address1 = new RegisteredOfficeAddressApi();
+        address1.setAddressLine1("line 1");
+
+        RegisteredOfficeAddressApi address2 = new RegisteredOfficeAddressApi();
+        address2.setAddressLine1("line 2");
+
+        PrivateUkEstablishmentsAddressApi ukAddress1 = new PrivateUkEstablishmentsAddressApi();
+        ukAddress1.setCompanyNumber("12345678");
+        ukAddress1.setRegisteredOfficeAddress(new RegisteredOfficeAddressApi());
+        PrivateUkEstablishmentsAddressApi ukAddress2 = new PrivateUkEstablishmentsAddressApi();
+        ukAddress2.setCompanyNumber("87654321");
+        ukAddress2.setRegisteredOfficeAddress(address2);
+
+        PrivateUkEstablishmentsAddressListApi privateUkEstablishmentsAddressList = new PrivateUkEstablishmentsAddressListApi(
+            List.of(ukAddress1, ukAddress2)
+        );
+
+        String result = objectMapper.writeValueAsString(List.of(ukAddress1, ukAddress2));
+
+        when(companyProfileService.getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER))
+            .thenReturn(privateUkEstablishmentsAddressList);
+        
+        ResultActions resultActions = mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
+                        .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isOk());
+        
+        MvcResult mvcResult =  resultActions.andReturn();
+        verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+        assertEquals(result, mvcResult.getResponse().getContentAsString());
+    }
+
+    @Test
+    void testGetUkEstablishmentsAddressesServiceUnavailable() throws Exception {
+
+        doThrow(new DataAccessException("..."){}).when(companyProfileService)
+            .getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+
+        mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
+                        .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isServiceUnavailable());
+
+        verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+    }
+
+    @Test
+    void testGetUkEstablishmentsAddressesUnauthorized() throws Exception {
+
+        mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", "web")
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(companyProfileService);
+    }
+
+    @Test
+    void testGetUkEstablishmentsAddressesNotFound() throws Exception {
+
+        doThrow(ResourceNotFoundException.class).when(companyProfileService)
+            .getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+
+        mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
+                        .header("Origin", "")
+                        .header("ERIC-Allowed-Origin", "some-origin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("ERIC-Identity", ERIC_IDENTITY)
+                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
+                        .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
+                        .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
+                        .header("x-request-id", X_REQUEST_ID))
+            .andExpect(status().isNotFound());
+
+        verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
     }
 }
