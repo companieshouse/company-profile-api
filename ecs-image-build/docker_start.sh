@@ -4,4 +4,4 @@
 
 PORT=8080
 
-exec java -jar -Dserver.port="${PORT}" "company-profile-api.jar"
+exec java "${JAVA_MEM_ARGS}" -jar -Dserver.port="${PORT}" "company-profile-api.jar"
