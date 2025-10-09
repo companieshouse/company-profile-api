@@ -52,7 +52,7 @@ public class CompanyProfileController {
      * @return data object
      */
     @GetMapping("/company/{company_number}")
-    public ResponseEntity<?> searchCompanyProfile(
+    public ResponseEntity<Data> searchCompanyProfile(
             @PathVariable("company_number") String companyNumber)
             throws ResourceNotFoundException {
         DataMapHolder.get()

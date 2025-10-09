@@ -12,15 +12,16 @@ public class ErrorResponseBody {
 
     @Override
     public String toString() {
-        String errorString =
-                "{\n"
-                        + "    \"errors\": [\n"
-                        + "        {\n"
-                        + "            \"type\": \"%s\",\n"
-                        + "            \"error\": \"%s\"\n"
-                        + "        }\n"
-                        + "    ]\n"
-                        + "}";
+        // checked by @see https://jsonformatter.org/json-pretty-print
+        String errorString = """
+                {
+                    "errors": [
+                        {
+                            "type": "%s",
+                            "error": "%s"
+                        }
+                    ]
+                }""";
         return String.format(errorString, type, error);
     }
 }

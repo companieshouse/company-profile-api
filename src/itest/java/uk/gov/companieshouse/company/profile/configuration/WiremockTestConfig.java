@@ -13,15 +13,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 public class WiremockTestConfig {
 
-    private static final int port = 8888;
+    private static final int PORT = 8888;
 
     private static WireMockServer wireMockServer = null;
 
     public static void setupWiremock() {
         if (wireMockServer == null) {
-            wireMockServer = new WireMockServer(port);
+            wireMockServer = new WireMockServer(PORT);
             wireMockServer.start();
-            configureFor("localhost", port);
+            configureFor("localhost", PORT);
         } else {
             wireMockServer.resetAll();
         }

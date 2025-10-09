@@ -19,75 +19,75 @@ import java.time.format.DateTimeFormatter;
 class CompanyProfileTransformerTest {
 
     private CompanyProfileTransformer transformer;
-    private CompanyProfile COMPANY_PROFILE;
-    private CompanyProfile COMPANY_PROFILE_WITHOUT_LINKS;
-    private Links EXISTING_LINKS;
-    private final String NEW_CHARGES_LINK = "/company/00019993/charges";
-    private final String EXISTING_CHARGES_LINK = "/company/00010001/charges";
-    private final String EXISTING_INSOLVENCY_LINK = "/company/00010001/insolvency";
+    private CompanyProfile companyProfile;
+    private CompanyProfile companyProfileWithoutLinks;
+    private Links existingLinks;
+    private final String newChargesLink = "/company/00019993/charges";
+    private final String existingChargesLink = "/company/00010001/charges";
+    private final String existingInsolvencyLink = "/company/00010001/insolvency";
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         transformer = new CompanyProfileTransformer();
         TestHelper testHelper = new TestHelper();
-        COMPANY_PROFILE = testHelper.createCompanyProfileObject();
-        EXISTING_LINKS = createExistingLinks();
-        COMPANY_PROFILE_WITHOUT_LINKS = testHelper.createCompanyProfileWithoutLinks();
+        companyProfile = testHelper.createCompanyProfileObject();
+        existingLinks = createExistingLinks();
+        companyProfileWithoutLinks = testHelper.createCompanyProfileWithoutLinks();
     }
 
     @Test
     void shouldTransformCompanyProfileWithLinksWhenThereAreNoExistingLinks(){
-        EXISTING_LINKS = null;
+        existingLinks = null;
 
-        VersionedCompanyProfileDocument document = transformer.transform(new VersionedCompanyProfileDocument(), COMPANY_PROFILE, EXISTING_LINKS);
+        VersionedCompanyProfileDocument document = transformer.transform(new VersionedCompanyProfileDocument(), companyProfile, existingLinks);
 
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
-        Assertions.assertEquals(COMPANY_PROFILE.getData(), document.getCompanyProfile());
-        Assertions.assertEquals(COMPANY_PROFILE.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
+        Assertions.assertEquals(companyProfile.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
+        Assertions.assertEquals(companyProfile.getData(), document.getCompanyProfile());
+        Assertions.assertEquals(companyProfile.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
                 .ofPattern("yyyyMMddHHmmssSSSSSS")));
-        Assertions.assertEquals(COMPANY_PROFILE.getHasMortgages(), document.isHasMortgages());
+        Assertions.assertEquals(companyProfile.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNotNull(document.getCompanyProfile().getLinks());
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks(), document.getCompanyProfile().getLinks());
-        Assertions.assertEquals(NEW_CHARGES_LINK, document.getCompanyProfile().getLinks().getCharges());
+        Assertions.assertEquals(companyProfile.getData().getLinks(), document.getCompanyProfile().getLinks());
+        Assertions.assertEquals(newChargesLink, document.getCompanyProfile().getLinks().getCharges());
         Assertions.assertNull(document.getCompanyProfile().getLinks().getInsolvency());
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
+        Assertions.assertEquals(companyProfile.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
     }
 
     @Test
     void shouldTransformCompanyProfileWithLinksWhenThereAreExistingLinks(){
-        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), COMPANY_PROFILE, EXISTING_LINKS);
+        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), companyProfile, existingLinks);
 
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
-        Assertions.assertEquals(COMPANY_PROFILE.getData(), document.getCompanyProfile());
-        Assertions.assertEquals(COMPANY_PROFILE.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
+        Assertions.assertEquals(companyProfile.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
+        Assertions.assertEquals(companyProfile.getData(), document.getCompanyProfile());
+        Assertions.assertEquals(companyProfile.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
                 .ofPattern("yyyyMMddHHmmssSSSSSS")));
-        Assertions.assertEquals(COMPANY_PROFILE.getHasMortgages(), document.isHasMortgages());
+        Assertions.assertEquals(companyProfile.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNotNull(document.getCompanyProfile().getLinks());
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks(), document.getCompanyProfile().getLinks());
-        Assertions.assertEquals(NEW_CHARGES_LINK, document.getCompanyProfile().getLinks().getCharges());
-        Assertions.assertEquals(EXISTING_INSOLVENCY_LINK, document.getCompanyProfile().getLinks().getInsolvency());
+        Assertions.assertEquals(companyProfile.getData().getLinks(), document.getCompanyProfile().getLinks());
+        Assertions.assertEquals(newChargesLink, document.getCompanyProfile().getLinks().getCharges());
+        Assertions.assertEquals(existingInsolvencyLink, document.getCompanyProfile().getLinks().getInsolvency());
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
+        Assertions.assertEquals(companyProfile.getData().getDateOfCreation(), document.getCompanyProfile().getDateOfCreation());
     }
 
     @Test
     void shouldTransformCompanyProfileWithNoLinksWhenThereAreExistingLinks(){
-        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), COMPANY_PROFILE_WITHOUT_LINKS, EXISTING_LINKS);
+        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), companyProfileWithoutLinks, existingLinks);
 
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getData(), document.getCompanyProfile());
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
+        Assertions.assertEquals(companyProfileWithoutLinks.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
+        Assertions.assertEquals(companyProfileWithoutLinks.getData(), document.getCompanyProfile());
+        Assertions.assertEquals(companyProfileWithoutLinks.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
                 .ofPattern("yyyyMMddHHmmssSSSSSS")));
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getHasMortgages(), document.isHasMortgages());
+        Assertions.assertEquals(companyProfileWithoutLinks.getHasMortgages(), document.isHasMortgages());
         Assertions.assertNotNull(document.getCompanyProfile().getLinks());
-        Assertions.assertEquals(EXISTING_LINKS, document.getCompanyProfile().getLinks());
-        Assertions.assertEquals(EXISTING_CHARGES_LINK, document.getCompanyProfile().getLinks().getCharges());
-        Assertions.assertEquals(EXISTING_INSOLVENCY_LINK, document.getCompanyProfile().getLinks().getInsolvency());
+        Assertions.assertEquals(existingLinks, document.getCompanyProfile().getLinks());
+        Assertions.assertEquals(existingChargesLink, document.getCompanyProfile().getLinks().getCharges());
+        Assertions.assertEquals(existingInsolvencyLink, document.getCompanyProfile().getLinks().getInsolvency());
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
@@ -95,16 +95,16 @@ class CompanyProfileTransformerTest {
 
     @Test
     void shouldTransformCompanyProfileWithNoLinksWhenThereAreNoExistingLinks(){
-        EXISTING_LINKS = null;
+        existingLinks = null;
 
-        VersionedCompanyProfileDocument document = transformer.transform(new VersionedCompanyProfileDocument(), COMPANY_PROFILE_WITHOUT_LINKS, EXISTING_LINKS);
+        VersionedCompanyProfileDocument document = transformer.transform(new VersionedCompanyProfileDocument(), companyProfileWithoutLinks, existingLinks);
 
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getData(), document.getCompanyProfile());
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
+        Assertions.assertEquals(companyProfileWithoutLinks.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
+        Assertions.assertEquals(companyProfileWithoutLinks.getData(), document.getCompanyProfile());
+        Assertions.assertEquals(companyProfileWithoutLinks.getDeltaAt(), document.getDeltaAt().format(DateTimeFormatter
                 .ofPattern("yyyyMMddHHmmssSSSSSS")));
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getHasMortgages(), document.isHasMortgages());
-        Assertions.assertEquals(COMPANY_PROFILE_WITHOUT_LINKS.getParentCompanyNumber(), document.getParentCompanyNumber());
+        Assertions.assertEquals(companyProfileWithoutLinks.getHasMortgages(), document.isHasMortgages());
+        Assertions.assertEquals(companyProfileWithoutLinks.getParentCompanyNumber(), document.getParentCompanyNumber());
         Assertions.assertNull(document.getCompanyProfile().getLinks());
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
@@ -116,10 +116,10 @@ class CompanyProfileTransformerTest {
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOfName("careOfName");
         roa.setCareOf("careOf");
-        COMPANY_PROFILE_WITHOUT_LINKS.getData().setRegisteredOfficeAddress(roa);
+        companyProfileWithoutLinks.getData().setRegisteredOfficeAddress(roa);
 
-        EXISTING_LINKS = null;
-        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), COMPANY_PROFILE_WITHOUT_LINKS, EXISTING_LINKS);
+        existingLinks = null;
+        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), companyProfileWithoutLinks, existingLinks);
 
         Assertions.assertEquals("careOfName", document.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
         Assertions.assertNull(document.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
@@ -132,10 +132,10 @@ class CompanyProfileTransformerTest {
     void shouldTransformCompanyProfileWithOnlyCareOf(){
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOf("careOf");
-        COMPANY_PROFILE_WITHOUT_LINKS.getData().setRegisteredOfficeAddress(roa);
+        companyProfileWithoutLinks.getData().setRegisteredOfficeAddress(roa);
 
-        EXISTING_LINKS = null;
-        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), COMPANY_PROFILE_WITHOUT_LINKS, EXISTING_LINKS);
+        existingLinks = null;
+        VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), companyProfileWithoutLinks, existingLinks);
 
         Assertions.assertEquals("careOf", document.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
         Assertions.assertNull(document.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
