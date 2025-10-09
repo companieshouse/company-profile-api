@@ -849,6 +849,10 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Add uk establishments link request returns 409 not found when resource state conflict exception is thrown")
     void addUkEstablishmentsLinkConflict() throws Exception {
+        addDeleteUkEstablishmentsLinkConflict();
+    }
+
+    private void addDeleteUkEstablishmentsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
@@ -865,6 +869,10 @@ class CompanyProfileControllerTest {
     @Test()
     @DisplayName("Add uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addUkEstablishmentsLinkServiceUnavailable() throws Exception {
+        addDeleteUkEstablishmentsLinkServiceUnavailable();
+    }
+
+    private void addDeleteUkEstablishmentsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
@@ -881,6 +889,10 @@ class CompanyProfileControllerTest {
     @Test()
     @DisplayName("Add uk establishments link request returns 500 internal server error when a runtime exception is thrown")
     void addUkEstablishmentsLinkInternalServerError() throws Exception {
+        addDeleteUkEstablishmentsLinkInternalServerError();
+    }
+
+    private void addDeleteUkEstablishmentsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException()).when(companyProfileService)
                 .processLinkRequest(anyString(), anyString(), anyBoolean());
 
@@ -926,49 +938,19 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Delete uk establishments link request returns 409 not found when resource state conflict exception is thrown")
     void deleteUkEstablishmentsLinkConflict() throws Exception {
-        doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
-
-        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
+        addDeleteUkEstablishmentsLinkConflict();
     }
 
     @Test()
     @DisplayName("Delete uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deleteUkEstablishmentsLinkServiceUnavailable() throws Exception {
-        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
-
-        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
+        addDeleteUkEstablishmentsLinkServiceUnavailable();
     }
 
     @Test()
     @DisplayName("Delete uk establishments link request returns 500 internal server error when a runtime exception is thrown")
     void deleteUkEstablishmentsLinkInternalServerError() throws Exception {
-        doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
-
-        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
+        addDeleteUkEstablishmentsLinkInternalServerError();
     }
 
     @Test

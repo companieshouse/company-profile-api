@@ -63,6 +63,8 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 @Service
 public class CompanyProfileService {
 
+    private static final String LINK_TYPE_CHARGES = "charges";
+    private static final String ERROR_ACCESSING_MONGO_DB = "Error accessing MongoDB";
     private static final String RELATED_COMPANIES_KIND = "related-companies";
     private static final String COMPANY_SELF_LINK = "/company/%s";
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
@@ -301,23 +303,7 @@ public class CompanyProfileService {
                                     UK_ESTABLISHMENTS_LINK_TYPE,
                                     UK_ESTABLISHMENTS_DELTA_TYPE, Links::getUkEstablishments);
 
-                    try {
-                        if (companyProfile.getData().getType().equals("uk-establishment")) {
-                            Links links = companyProfile.getData().getLinks();
-                            links.setOverseas(String.format("/company/%s", parentCompanyNumber));
-                            companyProfile.getData().setLinks(links);
-                            checkForAddLink(ukEstablishmentLinkRequest);
-                        }
-                    } catch (DocumentNotFoundException documentNotFoundException) {
-                        // create parent company if not present
-                        LOGGER.info("Creating new parent company document", DataMapHolder.getLogMap());
-                        companyProfileRepository.insert(
-                                createParentCompanyDocument(parentCompanyNumber));
-                        companyProfileApiService.invokeChsKafkaApi(parentCompanyNumber);
-                    } catch (ResourceStateConflictException resourceStateConflictException) {
-                        LOGGER.info("Parent company link already exists", DataMapHolder.getLogMap());
-                    }
-
+                    setLinksForUkCompany(companyProfile, parentCompanyNumber, ukEstablishmentLinkRequest);
                 });
 
         if (companyProfile.getData() != null) {
@@ -363,6 +349,26 @@ public class CompanyProfileService {
                     DataMapHolder.getLogMap());
         } catch (IllegalArgumentException illegalArgumentEx) {
             throw new BadRequestException("Saving to MongoDb failed", illegalArgumentEx);
+        }
+    }
+
+    private void setLinksForUkCompany(CompanyProfile companyProfile, String parentCompanyNumber,
+            LinkRequest ukEstablishmentLinkRequest) {
+        try {
+            if (companyProfile.getData().getType().equals("uk-establishment")) {
+                Links links = companyProfile.getData().getLinks();
+                links.setOverseas(String.format(COMPANY_SELF_LINK, parentCompanyNumber));
+                companyProfile.getData().setLinks(links);
+                checkForAddLink(ukEstablishmentLinkRequest);
+            }
+        } catch (DocumentNotFoundException documentNotFoundException) {
+            // create parent company if not present
+            LOGGER.info("Creating new parent company document", DataMapHolder.getLogMap());
+            companyProfileRepository.insert(
+                    createParentCompanyDocument(parentCompanyNumber));
+            companyProfileApiService.invokeChsKafkaApi(parentCompanyNumber);
+        } catch (ResourceStateConflictException resourceStateConflictException) {
+            LOGGER.info("Parent company link already exists", DataMapHolder.getLogMap());
         }
     }
 
@@ -520,10 +526,10 @@ public class CompanyProfileService {
 
             Optional.ofNullable(companyProfile.getConfirmationStatement())
                     .map(ConfirmationStatement::getNextDue)
-                    .ifPresent(nextDue -> {
+                    .ifPresent(nextDue -> 
                         companyProfile.getConfirmationStatement()
-                                .setOverdue(nextDue.isBefore(currentDate));
-                    });
+                                .setOverdue(nextDue.isBefore(currentDate))
+                    );
 
             Optional.ofNullable(companyProfile.getAccounts())
                     .map(Accounts::getNextAccounts)
@@ -536,10 +542,10 @@ public class CompanyProfileService {
 
             Optional.ofNullable(companyProfile.getAnnualReturn())
                     .map(AnnualReturn::getNextDue)
-                    .ifPresent(nextDue -> {
+                    .ifPresent(nextDue -> 
                         companyProfile.getAnnualReturn()
-                                .setOverdue(nextDue.isBefore(currentDate));
-                    });
+                                .setOverdue(nextDue.isBefore(currentDate))
+                    );
         } catch (Exception exception) {
             LOGGER.error("Error determining overdue status %s".formatted(exception.getMessage()), DataMapHolder.getLogMap());
         }
@@ -558,7 +564,7 @@ public class CompanyProfileService {
                     .setType(linkRequest.getDeltaType())
                     .setBy(linkRequest.getContextId()));
 
-            if (linkRequest.getLinkType().equals("charges")) {
+            if (linkRequest.getLinkType().equals(LINK_TYPE_CHARGES)) {
                 existingDocument.getCompanyProfile().setHasCharges(true);
                 existingDocument.setHasMortgages(true);
             } else {
@@ -578,7 +584,7 @@ public class CompanyProfileService {
             LOGGER.error("Error calling chs-kafka-api", exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            LOGGER.error("Error accessing MongoDB", exception, DataMapHolder.getLogMap());
+            LOGGER.error(ERROR_ACCESSING_MONGO_DB, exception, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
@@ -594,7 +600,7 @@ public class CompanyProfileService {
             }
         }
         try {
-            existingDocument.setHasMortgages(!linkRequest.getLinkType().equals("charges"));
+            existingDocument.setHasMortgages(!linkRequest.getLinkType().equals(LINK_TYPE_CHARGES));
             unsetLinksOnType(existingDocument.getCompanyProfile().getLinks(), linkRequest.getLinkType());
             existingDocument.getCompanyProfile().setEtag(GenerateEtagUtil.generateEtag());
             existingDocument.setUpdated(new Updated()
@@ -616,7 +622,7 @@ public class CompanyProfileService {
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         } catch (DataAccessException exception) {
-            LOGGER.error("Error accessing MongoDB", exception,
+            LOGGER.error(ERROR_ACCESSING_MONGO_DB, exception,
                     DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
@@ -628,7 +634,7 @@ public class CompanyProfileService {
                     .orElseThrow(() -> new DocumentNotFoundException(
                             String.format("Company profile %s not found", companyNumber)));
         } catch (DataAccessException exception) {
-            LOGGER.error("Error accessing MongoDB", DataMapHolder.getLogMap());
+            LOGGER.error(ERROR_ACCESSING_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(exception.getMessage());
         }
     }
@@ -670,7 +676,7 @@ public class CompanyProfileService {
                     companySelfLink.setCompany(String.format(COMPANY_SELF_LINK, company.getId()));
                     ukEstablishment.setLinks(companySelfLink);
                     return ukEstablishment;
-                }).collect(Collectors.toList());
+                }).toList();
 
         UkEstablishmentsList ukEstablishmentsList = new UkEstablishmentsList();
         ukEstablishmentsList.setItems(ukEstablishments);
@@ -694,7 +700,7 @@ public class CompanyProfileService {
 
     private static void setLinksOnType(Links links, String linkType, String companyNumber) {
         switch (linkType) {
-            case "charges" -> links.setCharges(formatLinks(companyNumber, linkType));
+            case LINK_TYPE_CHARGES -> links.setCharges(formatLinks(companyNumber, linkType));
             case "exemptions" -> links.setExemptions(formatLinks(companyNumber, linkType));
             case "filing-history" -> links.setFilingHistory(formatLinks(companyNumber, linkType));
             case "insolvency" -> links.setInsolvency(formatLinks(companyNumber, linkType));
@@ -715,7 +721,7 @@ public class CompanyProfileService {
 
     private static void unsetLinksOnType(Links links, String linkType) {
         switch (linkType) {
-            case "charges" -> links.setCharges(null);
+            case LINK_TYPE_CHARGES -> links.setCharges(null);
             case "exemptions" -> links.setExemptions(null);
             case "filing-history" -> links.setFilingHistory(null);
             case "insolvency" -> links.setInsolvency(null);

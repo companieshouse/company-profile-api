@@ -1,19 +1,20 @@
 package uk.gov.companieshouse.company.profile.serialization;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import uk.gov.companieshouse.api.exception.BadRequestException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import uk.gov.companieshouse.api.exception.BadRequestException;
 
 @SpringBootTest
 class LocalDateDeSerializerTest {
@@ -29,7 +30,7 @@ class LocalDateDeSerializerTest {
    }
 
     @Test
-    void dateShouldDeserialize() throws JsonParseException, IOException {
+    void dateShouldDeserialize() throws IOException {
        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T00:00:00Z\"}}";
 
        LocalDate returnedDate = deserialize(jsonTestString);
@@ -38,7 +39,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void deserializeWithMillisecondsTimestamp() throws JsonParseException, IOException{
+    void deserializeWithMillisecondsTimestamp() throws IOException{
        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.396Z\"}}";
 
        LocalDate returnedDate = deserialize(jsonTestString);
@@ -46,7 +47,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void deserializeWith1digitMillisecondsTimestamp() throws JsonParseException, IOException{
+    void deserializeWith1digitMillisecondsTimestamp() throws IOException{
         String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.3Z\"}}";
 
         LocalDate returnedDate = deserialize(jsonTestString);
@@ -54,7 +55,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void longStringReturnsLong() throws JsonParseException, IOException{
+    void longStringReturnsLong() throws IOException{
        String jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
 
        LocalDate returnedDate = deserialize(jsonTestString);
@@ -63,7 +64,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void testParsedDateWithDateStringAsNull() throws  JsonParseException, IOException{
+    void testParsedDateWithDateStringAsNull() throws IOException{
        String jsonTestString = "{\"date\":{\"$date\": null}}}";
 
        LocalDate returnedDate = deserialize(jsonTestString);
@@ -72,7 +73,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void invalidStringReturnsError() throws JsonParseException, IOException{
+    void invalidStringReturnsError() {
        String jsonTestString = "{\"date\":{\"$date\": \"NotADate\"}}}";
 
        assertThrows(BadRequestException.class, ()->{
@@ -81,7 +82,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void nullStringReturnsError() throws JsonParseException, IOException{
+    void nullStringReturnsError() {
 
         String jsonTestString = null;
 
@@ -90,7 +91,7 @@ class LocalDateDeSerializerTest {
         });
     }
 
-    private LocalDate deserialize(String jsonString) throws JsonParseException, IOException {
+    private LocalDate deserialize(String jsonString) throws IOException {
         JsonParser parser = mapper.getFactory().createParser(jsonString);
         DeserializationContext deserializationContext = mapper.getDeserializationContext();
 

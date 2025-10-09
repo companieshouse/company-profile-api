@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
@@ -98,7 +97,7 @@ public class ExemptionsLinkSteps {
     }
 
     @When("a PATCH request is sent to the delete exemptions link endpoint for {string}")
-    public void deleteOfficersLink(String companyNumber) throws ApiErrorResponseException {
+    public void deleteOfficersLink(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));

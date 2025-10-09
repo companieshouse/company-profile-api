@@ -147,8 +147,9 @@ class CompanyProfileApiClientServiceTest {
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenThrow(apiErrorResponseException);
 
+        final Data data = new Data();
         Assert.assertThrows(ServiceUnavailableException.class,
-                () -> companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("CH4000056", new Data()));
+                () -> companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("CH4000056", data));
 
         verify(apiClientService, times(1)).getInternalApiClient();
         verify(internalApiClient, times(1)).privateChangedResourceHandler();
@@ -183,8 +184,9 @@ class CompanyProfileApiClientServiceTest {
         when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
 
+        final Data data = new Data();
         Assert.assertThrows(SerDesException.class,
-                () -> companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("CH4000056", new Data()));
+                () -> companyProfileApiService.invokeChsKafkaApiWithDeleteEvent("CH4000056", data));
 
         verify(apiClientService).getInternalApiClient();
         verify(internalApiClient).privateChangedResourceHandler();

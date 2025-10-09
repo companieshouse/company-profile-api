@@ -169,7 +169,7 @@ public class CompanyProfileSteps {
     @When("I send PATCH request with raw payload {string} and company number {string}")
     public void i_send_put_request_with_raw_payload(String dataFile, String companyNumber) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
-        String raw_payload = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+        String rawPayload = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -181,7 +181,7 @@ public class CompanyProfileSteps {
         this.contextId = "5234234234";
         headers.set("x-request-id", this.contextId);
 
-        HttpEntity<?> request = new HttpEntity<>(raw_payload, headers);
+        HttpEntity<?> request = new HttpEntity<>(rawPayload, headers);
         String uri = "/company/{company_number}/links";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PATCH, request, Void.class, companyNumber);
 

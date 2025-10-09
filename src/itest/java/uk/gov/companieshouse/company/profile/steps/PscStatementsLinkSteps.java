@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
@@ -55,7 +54,7 @@ public class PscStatementsLinkSteps {
     }
 
     @When("a PATCH request is sent to the add psc statements link endpoint for {string}")
-    public void addPscStatementsLink(String companyNumber) throws ApiErrorResponseException {
+    public void addPscStatementsLink(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -74,7 +73,7 @@ public class PscStatementsLinkSteps {
     }
 
     @When("a PATCH request is sent to the delete psc statements link endpoint for {string}")
-    public void deletePscStatementsLink(String companyNumber) throws ApiErrorResponseException {
+    public void deletePscStatementsLink(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
