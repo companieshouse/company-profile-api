@@ -3,10 +3,9 @@ package uk.gov.companieshouse.company.profile.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.cucumber.java.Before;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.When;
+import java.util.Collections;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -14,12 +13,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
+import io.cucumber.java.en.When;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
-import java.util.Collections;
-import java.util.Optional;
 
 public class UkEstablishmentLinkSteps {
 
@@ -27,9 +28,6 @@ public class UkEstablishmentLinkSteps {
     private static final String UK_ESTABLISHMENTS_LINK = "/company/%s/uk-establishments";
     private static final String DELETE_UK_ESTABLISHMENTS_LINK = "/company/%s/links/uk-establishments/delete";
     private static final String OVERSEAS_LINK = "/company/%s";
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private TestRestTemplate restTemplate;

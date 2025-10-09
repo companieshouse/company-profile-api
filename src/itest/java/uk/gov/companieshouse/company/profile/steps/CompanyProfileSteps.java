@@ -10,14 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig.mongoDBContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-import io.cucumber.java.Before;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,13 +20,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -43,21 +35,27 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+
+import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
-import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
-import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer;
 
 public class CompanyProfileSteps {
 
@@ -65,7 +63,6 @@ public class CompanyProfileSteps {
     private static final String DELTA_AT = "20241229123010123789";
     private String companyNumber;
     private String contextId;
-    private ResponseEntity<Data> response;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -77,16 +74,7 @@ public class CompanyProfileSteps {
     private CompanyProfileRepository companyProfileRepository;
 
     @Autowired
-    private CompanyProfileApiService companyProfileApiService;
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    @Autowired
     private CompanyProfileService companyProfileService;
-
-    @Autowired
-    private CompanyProfileTransformer companyProfileTransformer;
 
     @Before
     public void dbCleanUp() {

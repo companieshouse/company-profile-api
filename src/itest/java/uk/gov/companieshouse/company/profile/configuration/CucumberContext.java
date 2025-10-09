@@ -10,10 +10,9 @@ public enum CucumberContext {
 
     CONTEXT;
 
-    private static final String RESPONSE = "RESPONSE";
-
     private final ThreadLocal<Map<String, Object>> testContexts = ThreadLocal.withInitial(HashMap::new);
 
+    @SuppressWarnings("unchecked")
     public <T> T get(String name) {
         return (T)testContexts.get()
                 .get(name);

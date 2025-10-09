@@ -35,9 +35,14 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLIS
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingCompanyProfile;
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingLinks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
-import com.mongodb.client.result.UpdateResult;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,6 +60,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.client.result.UpdateResult;
 
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
@@ -87,13 +95,6 @@ import uk.gov.companieshouse.company.profile.transform.CompanyProfileTransformer
 import uk.gov.companieshouse.company.profile.util.LinkRequest;
 import uk.gov.companieshouse.company.profile.util.LinkRequestFactory;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
@@ -144,7 +145,6 @@ class CompanyProfileServiceTest {
 
     static TestHelper testHelper;
 
-    private final Gson gson = new Gson();
     private static CompanyProfile COMPANY_PROFILE;
     private static VersionedCompanyProfileDocument COMPANY_PROFILE_DOCUMENT;
     private static Links EXISTING_LINKS;
