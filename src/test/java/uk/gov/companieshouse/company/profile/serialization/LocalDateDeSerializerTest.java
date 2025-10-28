@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,7 +71,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void invalidStringReturnsError() throws IOException {
+    void invalidStringReturnsError() {
         String jsonTestString = "{\"date\":{\"$date\": \"NotADate\"}}}";
 
         assertThrows(BadRequestException.class, () -> {
@@ -81,7 +80,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void nullStringReturnsError() throws IOException {
+    void nullStringReturnsError() {
 
         String jsonTestString = null;
 
