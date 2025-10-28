@@ -18,37 +18,33 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>21</java.version>
-        <spring-boot-starter.version>3.5.3</spring-boot-starter.version>
-        <spring-context.version>6.2.11</spring-context.version>
-        <spring-security-core.version>6.5.4</spring-security-core.version>
-        <commons-beanutils.version>1.11.0</commons-beanutils.version>
-        <tomcat-embed-core.version>11.0.10</tomcat-embed-core.version>
-        <spring-web.version>6.2.8</spring-web.version>
+        <spring-boot-starter.version>3.5.7</spring-boot-starter.version>
 
         <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
         <!-- Internal -->
-        <structured-logging.version>3.0.40</structured-logging.version>
-        <api-sdk-java.version>6.4.4</api-sdk-java.version>
-        <private-api-sdk-java.version>4.0.367</private-api-sdk-java.version>
+        <structured-logging.version>3.0.43</structured-logging.version>
+        <api-sdk-java.version>6.4.11</api-sdk-java.version>
+        <private-api-sdk-java.version>4.0.404</private-api-sdk-java.version>
         <data-sync-api-sdk-java.version>1.0.9</data-sync-api-sdk-java.version>
-        <api-sdk-manager-java-library.version>3.0.11</api-sdk-manager-java-library.version>
-        <api-helper-java-library.version>3.0.2</api-helper-java-library.version>
-        <api-security-java.version>2.0.8</api-security-java.version>
+        <api-sdk-manager-java-library.version>3.0.13</api-sdk-manager-java-library.version>
+        <api-helper-java-library.version>3.0.3</api-helper-java-library.version>
+        <api-security-java.version>2.0.16</api-security-java.version>
 
         <!-- tests -->
-        <cucumber-java.version>7.20.1</cucumber-java.version>
-        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
-        <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
+        <cucumber-java.version>7.30.0</cucumber-java.version>
+        <wiremock.version>3.13.1</wiremock.version>
+        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
         <skip.integration.tests>false</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
 
         <!--Plugin-->
         <jib-maven-plugin.version>3.4.4</jib-maven-plugin.version>
-        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-build-helper-plugin.version>3.6.0</maven-build-helper-plugin.version>
-        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <maven-build-helper-plugin.version>3.6.1</maven-build-helper-plugin.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 
         <!--sonar configuration-->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
@@ -87,38 +83,19 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring-context.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-core</artifactId>
-                <version>${spring-security-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-beanutils</groupId>
-                <artifactId>commons-beanutils</artifactId>
-                <version>${commons-beanutils.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-core</artifactId>
-                <version>${tomcat-embed-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring-web.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <!--Spring dependencies-->
     <dependencies>
-        <!--the following transitive dependencies are added specifically to avoid vulnerabilities-->
+        <!--Transitive deps start here-->
+        <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+          <version>3.19.0</version>
+        </dependency>
         <!--end transitive dependencies-->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -140,12 +117,6 @@
                     <artifactId>log4j-to-slf4j</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <!-- Pinning version to address CVE-2025-41242 spring-core pulled transitively-->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>6.2.10</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -184,18 +155,6 @@
             <artifactId>structured-logging</artifactId>
             <version>${structured-logging.version}</version>
         </dependency>
-        <!-- Pinning version to address CVE-2025-49124 and others tomcat-embed-websocket pulled transitively-->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-websocket</artifactId>
-            <version>10.1.44</version>
-        </dependency>
-        <!-- Pinning version to address CVE-2025-48924 commons-lang3 pulled transitively-->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
-        </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>private-api-sdk-java</artifactId>
@@ -216,18 +175,6 @@
                     <artifactId>docker-java-api</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <!-- Pinning version to address CVE-2025-48989 and others tomcat-embed-core pulled transitively-->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-            <version>11.0.10</version>
-        </dependency>
-        <!-- Pinning version to address CVE-2025-53864 gson pulled transitively-->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
@@ -258,7 +205,7 @@
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>3.5.2</version>
+            <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

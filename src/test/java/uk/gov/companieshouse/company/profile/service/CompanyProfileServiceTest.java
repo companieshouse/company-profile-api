@@ -39,6 +39,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import com.mongodb.client.result.UpdateResult;
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -2790,6 +2792,7 @@ class CompanyProfileServiceTest {
         private static List<VersionedCompanyProfileDocument> ukEstablishmentsAddressesTestInput;
         private static VersionedCompanyProfileDocument companyProfileDocument1;
         private static VersionedCompanyProfileDocument companyProfileDocument2;
+        private MockedStatic<UkEstablishmentAddressMapper> ukEstablishmentAddressMapper;
 
         @BeforeAll
         static void setup() {
@@ -2802,11 +2805,20 @@ class CompanyProfileServiceTest {
         );
         }
 
+        @BeforeEach
+        void initStaticMock() {
+            ukEstablishmentAddressMapper = mockStatic(UkEstablishmentAddressMapper.class);
+        }
+
+        @AfterEach
+        void closeStaticMock() {
+            if (ukEstablishmentAddressMapper != null) {
+                ukEstablishmentAddressMapper.close();
+            }
+        }
+
         @Test
         void testGetUkEstablishmentsAddressesWithNoUkEstiablishments() {
-
-            mockStatic(UkEstablishmentAddressMapper.class);
-
             RegisteredOfficeAddressApi registeredOfficeAddressApi1 = new RegisteredOfficeAddressApi();
             registeredOfficeAddressApi1.setAddressLine1("line 1");
             registeredOfficeAddressApi1.setPostalCode("AB1 2CD");
@@ -2831,10 +2843,10 @@ class CompanyProfileServiceTest {
             when(companyProfileRepository
                     .findAllOpenCompanyProfilesByParentNumberSortedByCreation(MOCK_PARENT_COMPANY_NUMBER))
                     .thenReturn(ukEstablishmentsAddressesTestInput);
-            when(UkEstablishmentAddressMapper
+            ukEstablishmentAddressMapper.when(() -> UkEstablishmentAddressMapper
                     .mapToUkEstablishmentAddress(companyProfileDocument1))
                     .thenReturn(ukEstablishmentAddress1);
-            when(UkEstablishmentAddressMapper
+            ukEstablishmentAddressMapper.when(() -> UkEstablishmentAddressMapper
                     .mapToUkEstablishmentAddress(companyProfileDocument2))
                     .thenReturn(ukEstablishmentAddress2);
 
