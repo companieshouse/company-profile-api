@@ -17,7 +17,6 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +47,6 @@ import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.UkEstablishmentsList;
-import uk.gov.companieshouse.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.api.model.CompanyProfileDocument;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
@@ -134,7 +132,8 @@ public class CompanyProfileSteps {
     }
 
     @When("I send PATCH request with payload {string} and company number {string} and CHS Kafka API unavailable")
-    public void i_send_patch_request_with_payload_and_company_number_and_chs_kafka_api_unavailable(String dataFile, String companyNumber)
+    public void i_send_patch_request_with_payload_and_company_number_and_chs_kafka_api_unavailable(String dataFile,
+            String companyNumber)
             throws IOException {
         WiremockTestConfig.stubKafkaApi(HttpStatus.SERVICE_UNAVAILABLE.value());
 
@@ -159,7 +158,8 @@ public class CompanyProfileSteps {
     }
 
     @When("I send PATCH request with payload {string} and company number {string} without setting Eric headers")
-    public void i_send_put_request_with_payload_without_setting_Eric_Headers(String dataFile, String companyNumber) throws IOException {
+    public void i_send_put_request_with_payload_without_setting_Eric_Headers(String dataFile, String companyNumber)
+            throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
         CompanyProfile companyProfile = objectMapper.readValue(file, CompanyProfile.class);
 
@@ -270,7 +270,8 @@ public class CompanyProfileSteps {
 
     @Then("the Get call response body should match {string} file")
     public void the_get_call_response_body_should_match_file(String dataFile) throws IOException {
-        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/output/" + dataFile + ".json")));
+        String data = FileCopyUtils.copyToString(
+                new InputStreamReader(new FileInputStream("src/itest/resources/json/output/" + dataFile + ".json")));
         Data expected = objectMapper.readValue(data, Data.class);
 
         Data actual = CucumberContext.CONTEXT.get("getResponseBody");
@@ -417,8 +418,10 @@ public class CompanyProfileSteps {
     }
 
     @When("I send a PUT request with payload {string} file for company number {string} without setting Eric headers")
-    public void i_send_company_profile_put_request_with_payload_without_headers(String dataFile, String companyNumber) throws IOException {
-        String data = FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
+    public void i_send_company_profile_put_request_with_payload_without_headers(String dataFile, String companyNumber)
+            throws IOException {
+        String data = FileCopyUtils.copyToString(
+                new InputStreamReader(new FileInputStream("src/itest/resources/json/input/" + dataFile + ".json")));
 
         HttpHeaders headers = new HttpHeaders();
 
@@ -622,7 +625,8 @@ public class CompanyProfileSteps {
     }
 
     @When("I send a PUT request with payload {string} file for company number {string} with insufficient access")
-    public void iSendAPUTRequestWithPayloadFileForCompanyNumberWithInsufficientAccess(String companyNumber, String dataFile) throws IOException {
+    public void iSendAPUTRequestWithPayloadFileForCompanyNumberWithInsufficientAccess(String companyNumber, String dataFile)
+            throws IOException {
         String data = FileCopyUtils.copyToString(
                 new InputStreamReader(new FileInputStream(
                         "src/itest/resources/json/input/" + dataFile + ".json")));
@@ -705,8 +709,8 @@ public class CompanyProfileSteps {
         companyProfileDocument.setId(companyProfile.getData().getCompanyNumber());
         companyProfileDocument.version(0L);
         if (parentCompanyNumber != null) {
-        companyProfileDocument.setParentCompanyNumber(
-                companyProfile.getData().getBranchCompanyDetails().getParentCompanyNumber());
+            companyProfileDocument.setParentCompanyNumber(
+                    companyProfile.getData().getBranchCompanyDetails().getParentCompanyNumber());
         }
         companyProfileRepository.insert(companyProfileDocument);
     }

@@ -9,8 +9,8 @@ Feature: Error and retry scenarios for company profile
     And nothing is persisted in the database
 
     Examples:
-      | data                               | company_number     | response_code |
-      | bad_request_payload                | 11748564           | 400           |
+      | data                | company_number | response_code |
+      | bad_request_payload | 11748564       | 400           |
 
   Scenario Outline: Processing company profile information unsuccessfully when payload field is null
 
@@ -20,8 +20,8 @@ Feature: Error and retry scenarios for company profile
     Then I should receive 400 status code
 
     Examples:
-      | data                  | company_number     |
-      | null_data_payload     | 00006400           |
+      | data              | company_number |
+      | null_data_payload | 00006400       |
 
 
   Scenario Outline: Retrieve company profile unsuccessfully as the company number does not exist

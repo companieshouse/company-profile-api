@@ -5,6 +5,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +26,10 @@ import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
-import java.time.LocalDateTime;
-import java.util.Collections;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CompanyProfileControllerITest {
+
     private static final String COMPANY_NUMBER = "6146287";
     private static final String COMPANY_URL = String.format("/company/%s/links",
             COMPANY_NUMBER);
@@ -46,7 +47,8 @@ class CompanyProfileControllerITest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
+                updated, false);
         companyProfileDocument.setId(COMPANY_NUMBER);
 
         when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(companyProfileDocument);
@@ -69,7 +71,8 @@ class CompanyProfileControllerITest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
+                updated, false);
         companyProfileDocument.setId(COMPANY_NUMBER);
 
         when(companyProfileService.get(COMPANY_NUMBER)).thenReturn(companyProfileDocument);

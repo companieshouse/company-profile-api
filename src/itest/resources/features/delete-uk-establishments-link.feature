@@ -11,7 +11,7 @@ Feature: Delete UK establishments link in company profile
 
     Examples:
       | company_number | company_to_delete |
-      | 00006406       |  00006404         |
+      | 00006406       | 00006404          |
 
   Scenario Outline: Delete Uk establishment and link (single establishments)
 
@@ -36,8 +36,8 @@ Feature: Delete UK establishments link in company profile
     And the UK establishment link should be removed from "<company_number>"
 
     Examples:
-      | data_file               | company_number |
-      | with_links_resource     | 00006400       |
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
 
   Scenario Outline: Delete UK establishments link unsuccessfully - still contains more than one UK establishment
 
@@ -78,8 +78,8 @@ Feature: Delete UK establishments link in company profile
     Then the response code should be 409
 
     Examples:
-      | data_file                   | company_number |
-      | without_links_resource      | 00006400       |
+      | data_file              | company_number |
+      | without_links_resource | 00006400       |
 
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
@@ -91,8 +91,8 @@ Feature: Delete UK establishments link in company profile
     Then the response code should be 503
 
     Examples:
-      | data_file               | company_number |
-      | with_links_resource     | 00006400       |
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
 
   Scenario Outline: Delete UK establishments link unsuccessfully - the database is unavailable
 

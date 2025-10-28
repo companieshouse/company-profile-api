@@ -3,6 +3,7 @@ package uk.gov.companieshouse.company.profile.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,6 @@ import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
-import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest
@@ -135,12 +135,12 @@ class CompanyProfileConcurrencyITest {
         assertTrue(actual.isEmpty());
     }
 
-     private static VersionedCompanyProfileDocument buildCompanyProfileDocument() {
+    private static VersionedCompanyProfileDocument buildCompanyProfileDocument() {
         VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-                companyProfileDocument.setId(COMPANY_NUMBER);
-                companyProfileDocument.setCompanyProfile(new Data()
-                        .links(new Links()
-                                .self("/company/" + COMPANY_NUMBER)));
+        companyProfileDocument.setId(COMPANY_NUMBER);
+        companyProfileDocument.setCompanyProfile(new Data()
+                .links(new Links()
+                        .self("/company/" + COMPANY_NUMBER)));
         companyProfileDocument.setHasMortgages(false);
         companyProfileDocument.version(0L);
         return companyProfileDocument;

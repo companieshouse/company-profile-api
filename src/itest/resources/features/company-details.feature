@@ -9,8 +9,8 @@ Feature: Process company details
     And the Get call response body should match "<result>" file for company details
 
     Examples:
-      | companyNumber         | result                            |
-      | 00006402              | 00006402-getCompanyDetail         |
+      | companyNumber | result                    |
+      | 00006402      | 00006402-getCompanyDetail |
 
   Scenario Outline: Get Company details when sending get request without Eric headers
 
@@ -20,8 +20,8 @@ Feature: Process company details
     Then I should receive 401 status code
 
     Examples:
-      | companyNumber     |
-      | 00006402          |
+      | companyNumber |
+      | 00006402      |
 
 
   Scenario Outline: get company details unsuccessfully - company profile resource does not exist
@@ -42,5 +42,5 @@ Feature: Process company details
     Then I should receive 503 status code
 
     Examples:
-      | company_number     |
-      | 00006400           |
+      | company_number |
+      | 00006400       |

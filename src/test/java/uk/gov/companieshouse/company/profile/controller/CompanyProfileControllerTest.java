@@ -25,6 +25,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,11 +69,6 @@ import uk.gov.companieshouse.company.profile.exception.ResourceNotFoundException
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.service.CompanyProfileService;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 // Need to set context configuration otherwise non-dependent beans (the repository) will be created.
 @ExtendWith(SpringExtension.class)
@@ -76,6 +76,7 @@ import java.util.Optional;
 @ContextConfiguration(classes = {CompanyProfileController.class, ExceptionHandlerConfig.class})
 @Import({ApplicationConfig.class})
 class CompanyProfileControllerTest {
+
     private static final String MOCK_COMPANY_NUMBER = "6146287";
     private static final String MOCK_PARENT_COMPANY_NUMBER = "FR123456";
     private static final String MOCK_DELTA_AT = "20241129123010123789";
@@ -85,20 +86,24 @@ class CompanyProfileControllerTest {
     private static final String COMPANY_LINKS_URL = String.format("/company/%s/links", MOCK_COMPANY_NUMBER);
     private static final String COMPANY_DETAILS_URL = String.format("/company/%s/company-detail", MOCK_COMPANY_NUMBER);
     private static final String EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions", MOCK_COMPANY_NUMBER);
-    private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete", MOCK_COMPANY_NUMBER);
+    private static final String DELETE_EXEMPTIONS_LINK_URL = String.format("/company/%s/links/exemptions/delete",
+            MOCK_COMPANY_NUMBER);
     private static final String OFFICERS_LINK_URL = String.format("/company/%s/links/officers", MOCK_COMPANY_NUMBER);
-    private static final String DELETE_OFFICERS_LINK_URL = String.format("/company/%s/links/officers/delete", MOCK_COMPANY_NUMBER);
+    private static final String DELETE_OFFICERS_LINK_URL = String.format("/company/%s/links/officers/delete",
+            MOCK_COMPANY_NUMBER);
     private static final String PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements", MOCK_COMPANY_NUMBER);
     private static final String DELETE_PSC_STATEMENTS_LINK_URL = String.format(
             "/company/%s/links/persons-with-significant-control-statements/delete", MOCK_COMPANY_NUMBER);
     private static final String FILING_HISTORY_LINK_URL = String.format("/company/%s/links/filing-history", MOCK_COMPANY_NUMBER);
-    private static final String UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments", MOCK_COMPANY_NUMBER);
-    
+    private static final String UK_ESTABLISHMENTS_LINK_URL = String.format("/company/%s/links/uk-establishments",
+            MOCK_COMPANY_NUMBER);
+
     private static final String GET_UK_ESTABLISHMENTS_URL = String.format(
             "/company/%s/uk-establishments", MOCK_PARENT_COMPANY_NUMBER);
-    private static final String GET_UK_ESTABLISHMENTS_ADDRESSES_URL = String.format("/company/%s/uk-establishments/addresses", MOCK_COMPANY_NUMBER);
-            
+    private static final String GET_UK_ESTABLISHMENTS_ADDRESSES_URL = String.format("/company/%s/uk-establishments/addresses",
+            MOCK_COMPANY_NUMBER);
+
     private static final String DELETE_COMPANY_PROFILE_URL = String.format("/company/%s/internal", MOCK_COMPANY_NUMBER);
 
     private static final String X_REQUEST_ID = "123456";
@@ -119,7 +124,7 @@ class CompanyProfileControllerTest {
     @InjectMocks
     private CompanyProfileController companyProfileController;
 
-    private Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
+    private final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
             .create();
 
     @Test
@@ -131,11 +136,13 @@ class CompanyProfileControllerTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData,
+                localDateTime, updated, false);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyProfileDocument);
 
-        mockMvc.perform(get(COMPANY_LINKS_URL).header("ERIC-Identity", ERIC_IDENTITY).header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
+        mockMvc.perform(
+                        get(COMPANY_LINKS_URL).header("ERIC-Identity", ERIC_IDENTITY).header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().string(objectMapper.writeValueAsString(mockCompanyProfile)));
     }
@@ -149,7 +156,8 @@ class CompanyProfileControllerTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData,
+                localDateTime, updated, false);
 
         when(companyProfileService.get(MOCK_COMPANY_NUMBER)).thenReturn(mockCompanyProfileDocument);
 
@@ -1047,7 +1055,6 @@ class CompanyProfileControllerTest {
     }
 
 
-
     @Test
     @DisplayName("Retrieve a company profile when sending a GET request")
     void testSearchCompanyProfile() throws Exception {
@@ -1121,7 +1128,8 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Return 401 when no api key is present")
     void deleteCompanyProfileWhenNoApiKeyPresent() throws Exception {
-        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL).header("x-request-id", X_REQUEST_ID)).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete(DELETE_COMPANY_PROFILE_URL).header("x-request-id", X_REQUEST_ID))
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(companyProfileService);
     }
@@ -1209,7 +1217,8 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Failed to retrieve uk establishments due to MongoDB exception")
     void testGetUkEstablishmentsStatusServiceUnavailable() throws Exception {
-        doThrow(new DataAccessException("..."){}).when(companyProfileService)
+        doThrow(new DataAccessException("...") {
+        }).when(companyProfileService)
                 .getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
 
         mockMvc.perform(MockMvcRequestBuilders.get(GET_UK_ESTABLISHMENTS_URL, MOCK_PARENT_COMPANY_NUMBER)
@@ -1229,11 +1238,11 @@ class CompanyProfileControllerTest {
                         .options(COMPANY_PROFILE_URL)
                         .header("Origin", "")
                         .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent())
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_MAX_AGE));
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_MAX_AGE));
     }
 
     @Test
@@ -1249,9 +1258,9 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
                         .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isOk())
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+                .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
     }
 
     @Test
@@ -1264,9 +1273,9 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isForbidden())
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+                .andExpect(status().isForbidden())
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
     }
 
     @Test
@@ -1279,23 +1288,23 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isForbidden())
-            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
+                .andExpect(status().isForbidden())
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")));
     }
 
     @Test
     void testGetUkEstablishmentsAddressesWithNoUkEstablishments() throws Exception {
 
         PrivateUkEstablishmentsAddressListApi privateUkEstablishmentsAddressList = new PrivateUkEstablishmentsAddressListApi(
-            Collections.emptyList()
+                Collections.emptyList()
         );
 
         String result = objectMapper.writeValueAsString(Collections.emptyList());
 
         when(companyProfileService.getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER))
-            .thenReturn(privateUkEstablishmentsAddressList);
-        
+                .thenReturn(privateUkEstablishmentsAddressList);
+
         ResultActions resultActions = mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
                         .header("Origin", "")
                         .header("ERIC-Allowed-Origin", "some-origin")
@@ -1305,9 +1314,9 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
                         .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isOk());
-        
-        MvcResult mvcResult =  resultActions.andReturn();
+                .andExpect(status().isOk());
+
+        MvcResult mvcResult = resultActions.andReturn();
 
         verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
         assertEquals(result, mvcResult.getResponse().getContentAsString());
@@ -1330,14 +1339,14 @@ class CompanyProfileControllerTest {
         ukAddress2.setRegisteredOfficeAddress(address2);
 
         PrivateUkEstablishmentsAddressListApi privateUkEstablishmentsAddressList = new PrivateUkEstablishmentsAddressListApi(
-            List.of(ukAddress1, ukAddress2)
+                List.of(ukAddress1, ukAddress2)
         );
 
         String result = objectMapper.writeValueAsString(List.of(ukAddress1, ukAddress2));
 
         when(companyProfileService.getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER))
-            .thenReturn(privateUkEstablishmentsAddressList);
-        
+                .thenReturn(privateUkEstablishmentsAddressList);
+
         ResultActions resultActions = mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
                         .header("Origin", "")
                         .header("ERIC-Allowed-Origin", "some-origin")
@@ -1347,9 +1356,9 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
                         .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isOk());
-        
-        MvcResult mvcResult =  resultActions.andReturn();
+                .andExpect(status().isOk());
+
+        MvcResult mvcResult = resultActions.andReturn();
         verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
         assertEquals(result, mvcResult.getResponse().getContentAsString());
     }
@@ -1357,8 +1366,9 @@ class CompanyProfileControllerTest {
     @Test
     void testGetUkEstablishmentsAddressesServiceUnavailable() throws Exception {
 
-        doThrow(new DataAccessException("..."){}).when(companyProfileService)
-            .getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+        doThrow(new DataAccessException("...") {
+        }).when(companyProfileService)
+                .getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
                         .header("Origin", "")
@@ -1369,7 +1379,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
                         .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isServiceUnavailable());
+                .andExpect(status().isServiceUnavailable());
 
         verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
     }
@@ -1384,7 +1394,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Identity", ERIC_IDENTITY)
                         .header("ERIC-Identity-Type", "web")
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(companyProfileService);
     }
@@ -1393,7 +1403,7 @@ class CompanyProfileControllerTest {
     void testGetUkEstablishmentsAddressesNotFound() throws Exception {
 
         doThrow(ResourceNotFoundException.class).when(companyProfileService)
-            .getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
+                .getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
 
         mockMvc.perform(get(GET_UK_ESTABLISHMENTS_ADDRESSES_URL)
                         .header("Origin", "")
@@ -1404,7 +1414,7 @@ class CompanyProfileControllerTest {
                         .header("ERIC-Authorised-Key-Roles", ERIC_PRIVILEGES)
                         .header("ERIC-Authorised-Key-Privileges", ERIC_AUTH)
                         .header("x-request-id", X_REQUEST_ID))
-            .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
 
         verify(companyProfileService).getUkEstablishmentsAddresses(MOCK_COMPANY_NUMBER);
     }

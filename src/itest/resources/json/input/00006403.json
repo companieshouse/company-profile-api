@@ -39,13 +39,13 @@
       "officers": "/company/00006403/officers",
       "persons_with_significant_control": "/company/00006403/persons-with-significant-control",
       "self": "/company/00006403",
-      "insolvency" : "insolvency",
+      "insolvency": "insolvency",
       "overseas": "/company/00006402"
     },
-    "branch_company_details" : {
-      "parent_company_number" : "00006402",
-      "parent_company_name" : "RENABLE PHARMA LTD",
-      "business_activity" : "liquidation"
+    "branch_company_details": {
+      "parent_company_number": "00006402",
+      "parent_company_name": "RENABLE PHARMA LTD",
+      "business_activity": "liquidation"
     },
     "registered_office_address": {
       "address_line_1": "Ground Floor Marlow International",

@@ -11,6 +11,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,12 +51,6 @@ import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -117,10 +117,12 @@ class CompanyProfileFullE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(
+                mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Data childCompanyProfile = childDocument.getCompanyProfile();
 
-        final VersionedCompanyProfileDocument baseParentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument baseParentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNotNull(baseParentDocument);
         assertNull(baseParentDocument.getDeltaAt());
@@ -164,7 +166,8 @@ class CompanyProfileFullE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNotNull(parentDocument);
         assertNotNull(parentDocument.getDeltaAt());
@@ -192,7 +195,8 @@ class CompanyProfileFullE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNotNull(parentDocument);
         assertNotNull(parentDocument.getDeltaAt());
@@ -228,7 +232,8 @@ class CompanyProfileFullE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNotNull(parentDocument);
         assertNotNull(parentDocument.getDeltaAt());
@@ -238,8 +243,8 @@ class CompanyProfileFullE2EITest {
         assertEquals(1L, parentDocument.getVersion());
         verify(companyProfileApiService).invokeChsKafkaApi(PARENT_COMPANY_NUMBER);
 
-
-        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument childDocument = Objects.requireNonNull(
+                mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Data childCompanyProfile = childDocument.getCompanyProfile();
 
         assertEquals(CHILD_SELF_LINK, childCompanyProfile.getLinks().getSelf());
@@ -271,11 +276,11 @@ class CompanyProfileFullE2EITest {
                 .header("X-DELTA-AT", DELTA_AT)
                 .contentType(MediaType.APPLICATION_JSON));
 
-
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNull(parentDocument);
         verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(PARENT_COMPANY_NUMBER, document.getCompanyProfile());
@@ -302,11 +307,11 @@ class CompanyProfileFullE2EITest {
                 .header("X-DELTA-AT", DELTA_AT)
                 .contentType(MediaType.APPLICATION_JSON));
 
-
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument parentDocument = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNull(parentDocument);
         verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(PARENT_COMPANY_NUMBER, document.getCompanyProfile());
@@ -336,7 +341,8 @@ class CompanyProfileFullE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNull(childDocument);
         verify(companyProfileApiService).invokeChsKafkaApiWithDeleteEvent(CHILD_COMPANY_NUMBER, document.getCompanyProfile());
@@ -374,8 +380,10 @@ class CompanyProfileFullE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument parentRetrieved = mongoTemplate.findById(PARENT_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
-        final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER, VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument parentRetrieved = mongoTemplate.findById(PARENT_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
+        final VersionedCompanyProfileDocument childDocument = mongoTemplate.findById(CHILD_COMPANY_NUMBER,
+                VersionedCompanyProfileDocument.class);
 
         assertNotNull(parentRetrieved);
         assertNotNull(parentRetrieved.getCompanyProfile().getLinks().getSelf());

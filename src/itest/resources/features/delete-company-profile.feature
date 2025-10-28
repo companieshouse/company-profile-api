@@ -9,8 +9,8 @@ Feature: Delete company profile
     And the CHS Kafka API is invoked successfully for delete for "<data_file>"
 
     Examples:
-      | data_file               | company_number |
-      | with_links_resource     | 00006400       |
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
 
   Scenario Outline: Delete company profile successfully - company profile resource does not exist
     Given the CHS Kafka API is reachable
@@ -22,7 +22,7 @@ Feature: Delete company profile
     Examples:
       | company_number |
       | 00006400       |
-  
+
   Scenario Outline: Delete company profile unsuccessfully - user not authenticated
     When a DELETE request is sent to the company profile endpoint for "<company_number>" without valid ERIC headers
     Then the response code should be 401
@@ -79,5 +79,5 @@ Feature: Delete company profile
     And the company profile does not exist for "<company_number>"
 
     Examples:
-      | data_file               | company_number |
-      | with_links_resource     | 00006400       |
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
