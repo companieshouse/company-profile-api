@@ -25,10 +25,13 @@ mongodb:
       name: ${COMPANY_PROFILE_COLLECTION_NAME:company_profile}
 
 management:
+  health:
+    mongo:
+      enabled: false
   endpoints:
     enabled-by-default: false
     web:
-      base-path: /company-profile-api
+      base-path: /
       path-mapping:
         health: healthcheck
   endpoint:
