@@ -134,6 +134,7 @@ public class CompanyProfileController {
 
     /**
      * Retrieve a list of uk establishments addresses for a given parent company number.
+     *
      * @param parentCompanyNumber the supplied parent company number
      * @return list of uk establishments addresses
      */

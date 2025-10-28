@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
+import java.util.Collections;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -18,8 +20,6 @@ import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
-import java.util.Collections;
-import java.util.Optional;
 
 public class UkEstablishmentLinkSteps {
 
@@ -38,7 +38,7 @@ public class UkEstablishmentLinkSteps {
     private CompanyProfileRepository companyProfileRepository;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
 
         if (mongoDBContainer.getContainerId() == null) {
@@ -51,14 +51,17 @@ public class UkEstablishmentLinkSteps {
     public void verifyUkEstablishmentsLinkExists(String companyNumber) {
         getUkEstablishmentLink(companyNumber);
     }
+
     @And("an Overseas link should be added in {string} to {string}")
     public void verifyOverseasLinkExists(String companyNumber, String parentCompanyNumber) {
         getOverseasLink(companyNumber, parentCompanyNumber);
     }
+
     @And("a UK establishment link does exist for {string}")
     public void theUkEstablishmentLinkDoesExistFor(String parentCompanyNumber) {
         getUkEstablishmentLink(parentCompanyNumber);
     }
+
     @And("the UK establishment link should still exist for {string}")
     public void theUkEstablishmentLinkShouldStillExistFor(String parentCompanyNumber) {
         getUkEstablishmentLink(parentCompanyNumber);
@@ -68,14 +71,16 @@ public class UkEstablishmentLinkSteps {
         Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(parentCompanyNumber);
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
-        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
+        assertThat(document.get().getCompanyProfile().getLinks().getUkEstablishments()).isEqualTo(
+                String.format(UK_ESTABLISHMENTS_LINK, parentCompanyNumber));
     }
 
     private void getOverseasLink(String companyNumber, String parentCompanyNumber) {
         Optional<VersionedCompanyProfileDocument> document = companyProfileRepository.findById(companyNumber);
         assertThat(document).isPresent();
         System.out.println(document.get().getCompanyProfile().getLinks());
-        assertThat(document.get().getCompanyProfile().getLinks().getOverseas()).isEqualTo(String.format(OVERSEAS_LINK, parentCompanyNumber));
+        assertThat(document.get().getCompanyProfile().getLinks().getOverseas()).isEqualTo(
+                String.format(OVERSEAS_LINK, parentCompanyNumber));
     }
 
     @And("a UK establishment link does not exist for {string}")
@@ -109,7 +114,8 @@ public class UkEstablishmentLinkSteps {
 
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
-                String.format(DELETE_UK_ESTABLISHMENTS_LINK, parentCompanyNumber), HttpMethod.PATCH, request, Void.class, parentCompanyNumber);
+                String.format(DELETE_UK_ESTABLISHMENTS_LINK, parentCompanyNumber), HttpMethod.PATCH, request, Void.class,
+                parentCompanyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
@@ -125,7 +131,8 @@ public class UkEstablishmentLinkSteps {
 
         HttpEntity<String> request = new HttpEntity<String>(null, headers);
         ResponseEntity<Void> response = restTemplate.exchange(
-                String.format(DELETE_UK_ESTABLISHMENTS_LINK, parentCompanyNumber), HttpMethod.PATCH, request, Void.class, parentCompanyNumber);
+                String.format(DELETE_UK_ESTABLISHMENTS_LINK, parentCompanyNumber), HttpMethod.PATCH, request, Void.class,
+                parentCompanyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }

@@ -1,11 +1,12 @@
 {
-  "resource_uri":"/company/00006400",
-  "resource_kind":"company-profile",
-  "context_id":"5234234234",
-  "deleted_data":{
+  "resource_uri": "/company/00006400",
+  "resource_kind": "company-profile",
+  "context_id": "5234234234",
+  "deleted_data": {
     "accounts": {
       "accounting_reference_date": {
-        "day": "31", "month": "08"
+        "day": "31",
+        "month": "08"
       },
       "last_accounts": {
         "made_up_to": "2014-08-31",
@@ -74,7 +75,11 @@
       "postal_code": "SW1P 1JP"
     },
     "registered_office_is_in_dispute": false,
-    "sic_codes": ["85100", "85200", "85310"],
+    "sic_codes": [
+      "85100",
+      "85200",
+      "85310"
+    ],
     "type": "uk-establishment",
     "undeliverable_registered_office_address": false,
     "officer_summary": {
@@ -109,9 +114,9 @@
       "resigned_count": 54.0
     }
   },
-  "event":{
-    "fields_changed":null,
-    "published_at":"2025-02-04T10:53:33",
-    "type":"deleted"
+  "event": {
+    "fields_changed": null,
+    "published_at": "2025-02-04T10:53:33",
+    "type": "deleted"
   }
 }

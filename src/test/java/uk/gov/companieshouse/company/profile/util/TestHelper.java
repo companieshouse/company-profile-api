@@ -2,6 +2,10 @@ package uk.gov.companieshouse.company.profile.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.springframework.util.FileCopyUtils;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -11,22 +15,18 @@ import uk.gov.companieshouse.api.company.SelfLink;
 import uk.gov.companieshouse.api.company.UkEstablishment;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class TestHelper {
 
     public final static String notFoundErrorString =
-              "{\n"
-            + "    \"errors\": [\n"
-            + "        {\n"
-            + "            \"type\": \"ch:service\",\n"
-            + "            \"error\": \"company-profile-not-found\"\n"
-            + "        }\n"
-            + "    ]\n"
-            + "}";
+            "{\n"
+                    + "    \"errors\": [\n"
+                    + "        {\n"
+                    + "            \"type\": \"ch:service\",\n"
+                    + "            \"error\": \"company-profile-not-found\"\n"
+                    + "        }\n"
+                    + "    ]\n"
+                    + "}";
 
     public String createJsonCompanyProfilePayload() throws IOException {
         InputStreamReader exampleJsonPayload = new InputStreamReader(
@@ -62,7 +62,7 @@ public class TestHelper {
         return existingLinks;
     }
 
-    public static VersionedCompanyProfileDocument createExistingCompanyProfile()  {
+    public static VersionedCompanyProfileDocument createExistingCompanyProfile() {
         Data companyProfileData = new Data();
         companyProfileData.setLinks(createExistingLinks());
         VersionedCompanyProfileDocument existingCompanyProfileDocument = new VersionedCompanyProfileDocument();
@@ -119,7 +119,8 @@ public class TestHelper {
         return existingCompanyProfileDocument;
     }
 
-    public VersionedCompanyProfileDocument createCompanyProfileTypeUkEstablishment(String companyNumber, String companyStatus, LocalDate dateOfCreation) {
+    public VersionedCompanyProfileDocument createCompanyProfileTypeUkEstablishment(String companyNumber, String companyStatus,
+            LocalDate dateOfCreation) {
         VersionedCompanyProfileDocument companyProfileDocument = createCompanyProfileTypeUkEstablishment(companyNumber);
         companyProfileDocument.getCompanyProfile().setDateOfCreation(dateOfCreation);
         companyProfileDocument.getCompanyProfile().setCompanyStatus(companyStatus);

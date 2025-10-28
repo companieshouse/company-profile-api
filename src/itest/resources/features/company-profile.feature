@@ -9,8 +9,8 @@ Feature: Process company profile
     And the Get call response body should match "<result>" file
 
     Examples:
-      | companyNumber         | result                            |
-      | 00006402              | 00006402-getCompanyProfile        |
+      | companyNumber | result                     |
+      | 00006402      | 00006402-getCompanyProfile |
 
   Scenario Outline: Get Company Profile when sending get request without Eric headers
 
@@ -20,8 +20,8 @@ Feature: Process company profile
     Then I should receive 401 status code
 
     Examples:
-      | companyNumber     |
-      | 00006402          |
+      | companyNumber |
+      | 00006402      |
 
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
@@ -31,8 +31,8 @@ Feature: Process company profile
     Then the response code should be 404
 
     Examples:
-      | company_number  |
-      | 00006402        |
+      | company_number |
+      | 00006402       |
 
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
@@ -57,8 +57,8 @@ Feature: Process company profile
     And the CHS Kafka API is invoked successfully
 
     Examples:
-      | companyNumber     |
-      | 00006402          |
+      | companyNumber |
+      | 00006402      |
 
   Scenario Outline: Processing stale company profile information returns HTTP 409 conflict
 
@@ -85,8 +85,8 @@ Feature: Process company profile
     And the CHS Kafka API is invoked successfully
 
     Examples:
-      | companyNumber     |
-      | 00006402          |
+      | companyNumber |
+      | 00006402      |
 
   Scenario Outline: Processing company profile information with bad payload
 
@@ -97,8 +97,8 @@ Feature: Process company profile
     And the CHS Kafka API is not invoked
 
     Examples:
-      | companyNumber         |
-      | 00006402_bad_payload  |
+      | companyNumber        |
+      | 00006402_bad_payload |
 
   Scenario Outline: Process Company Profile when sending put request without Eric headers
 
@@ -109,8 +109,8 @@ Feature: Process company profile
     And the CHS Kafka API is not invoked
 
     Examples:
-      | companyNumber     |
-      | 00006402          |
+      | companyNumber |
+      | 00006402      |
 
   Scenario Outline: Processing company profile information with insufficient access
 
@@ -121,8 +121,8 @@ Feature: Process company profile
     And the CHS Kafka API is not invoked
 
     Examples:
-      | companyNumber         |
-      | 00006402_bad_payload  |
+      | companyNumber        |
+      | 00006402_bad_payload |
 
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
@@ -147,8 +147,8 @@ Feature: Process company profile
     Then I should receive 503 status code
 
     Examples:
-      | companyNumber     |
-      | 00006402          |
+      | companyNumber |
+      | 00006402      |
 
 
   Scenario Outline: Get Company Profile returns previous company as null when its empty
@@ -160,5 +160,5 @@ Feature: Process company profile
     And the Get call response body should match "<result>" file
 
     Examples:
-      | companyNumber         | result                            |
-      | 00006408              | 00006408-getCompanyProfile        |
+      | companyNumber | result                     |
+      | 00006408      | 00006408-getCompanyProfile |

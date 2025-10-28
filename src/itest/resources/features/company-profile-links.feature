@@ -45,9 +45,9 @@ Feature: Process company profile links
     And the Get call response body should match "<result>" file
 
     Examples:
-      | data                  | result                            |
-      | 00006400              | 00006400-getResponse              |
-      | 00006401              | 00006401-getResponse              |
+      | data     | result               |
+      | 00006400 | 00006400-getResponse |
+      | 00006401 | 00006401-getResponse |
 
   Scenario Outline: Retrieve company links without setting Eric headers
 
@@ -57,5 +57,5 @@ Feature: Process company profile links
     Then I should receive 401 status code
 
     Examples:
-      | data                  |
-      | 00006400              |
+      | data     |
+      | 00006400 |

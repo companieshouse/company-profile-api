@@ -4,7 +4,7 @@ import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.company.RegisteredOfficeAddressApi;
 
 public class RegisteredOfficeAddressMapper {
-    
+
     private RegisteredOfficeAddressMapper() {
     }
 

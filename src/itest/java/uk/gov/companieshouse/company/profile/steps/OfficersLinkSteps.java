@@ -8,6 +8,8 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Collections;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -20,10 +22,9 @@ import uk.gov.companieshouse.company.profile.configuration.CucumberContext;
 import uk.gov.companieshouse.company.profile.configuration.WiremockTestConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
-import java.util.Collections;
-import java.util.Optional;
 
 public class OfficersLinkSteps {
+
     private String contextId;
     private static final String ADD_OFFICERS_LINK_ENDPOINT = "/company/00006400/links/officers";
     private static final String DELETE_OFFICERS_LINK_ENDPOINT = "/company/00006400/links/officers/delete";
@@ -39,7 +40,7 @@ public class OfficersLinkSteps {
     private CompanyProfileRepository companyProfileRepository;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
 
         if (mongoDBContainer.getContainerId() == null) {

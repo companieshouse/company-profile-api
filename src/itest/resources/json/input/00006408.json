@@ -32,8 +32,8 @@
     "date_of_creation": "2015-03-04",
     "etag": "5a3c51b439584d98d420143d6a22996571646302",
     "has_insolvency_history": true,
-    "has_charges" : true,
-    "has_been_liquidated" : true,
+    "has_charges": true,
+    "has_been_liquidated": true,
     "jurisdiction": "england-wales",
     "last_full_members_list_date": "2016-03-04",
     "links": {
@@ -41,7 +41,7 @@
       "officers": "/company/00006408/officers",
       "persons_with_significant_control": "/company/00006408/persons-with-significant-control",
       "self": "/company/00006408",
-      "insolvency" : "insolvency"
+      "insolvency": "insolvency"
     },
     "registered_office_address": {
       "address_line_1": "Ground Floor Marlow International",
@@ -55,7 +55,7 @@
     ],
     "type": "ltd",
     "super_secure_managing_officer_count": "1",
-    "previous_company_names" : [
+    "previous_company_names": [
     ]
   },
   "delta_at": "20241129181928456987"

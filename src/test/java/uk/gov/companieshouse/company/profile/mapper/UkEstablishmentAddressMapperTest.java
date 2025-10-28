@@ -28,7 +28,8 @@ class UkEstablishmentAddressMapperTest {
         data.setRegisteredOfficeAddress(registeredOfficeAddress);
         versionedCompanyProfileDocument.setCompanyProfile(data);
 
-        PrivateUkEstablishmentsAddressApi ukEstablishmentAddress = UkEstablishmentAddressMapper.mapToUkEstablishmentAddress(versionedCompanyProfileDocument);
+        PrivateUkEstablishmentsAddressApi ukEstablishmentAddress = UkEstablishmentAddressMapper.mapToUkEstablishmentAddress(
+                versionedCompanyProfileDocument);
         assertNotNull(ukEstablishmentAddress);
         assertEquals(COMPANY_NUMBER, ukEstablishmentAddress.getCompanyNumber());
         assertEquals(LINE_1, ukEstablishmentAddress.getRegisteredOfficeAddress().getAddressLine1());

@@ -2,6 +2,9 @@ package uk.gov.companieshouse.company.profile.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,15 +20,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 @Testcontainers
 @AutoConfigureMockMvc
 @SpringBootTest(classes = CompanyProfileApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class CompanyProfileRepositoryTest {
+
     private static final String COMPANY_NUMBER = "BR123456";
     private static final String PARENT_COMPANY_NUMBER = "FR123456";
     @Container
