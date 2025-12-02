@@ -3,18 +3,20 @@ package uk.gov.companieshouse.company.profile.transform;
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingCompanyProfile;
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingLinks;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 
 class CompanyProfileTransformerTest {
 
@@ -36,7 +38,7 @@ class CompanyProfileTransformerTest {
     }
 
     @Test
-    void shouldTransformCompanyProfileWithLinksWhenThereAreNoExistingLinks(){
+    void shouldTransformCompanyProfileWithLinksWhenThereAreNoExistingLinks() {
         existingLinks = null;
 
         VersionedCompanyProfileDocument document = transformer.transform(new VersionedCompanyProfileDocument(), companyProfile, existingLinks);
@@ -57,7 +59,7 @@ class CompanyProfileTransformerTest {
     }
 
     @Test
-    void shouldTransformCompanyProfileWithLinksWhenThereAreExistingLinks(){
+    void shouldTransformCompanyProfileWithLinksWhenThereAreExistingLinks() {
         VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), companyProfile, existingLinks);
 
         Assertions.assertEquals(companyProfile.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
@@ -76,7 +78,7 @@ class CompanyProfileTransformerTest {
     }
 
     @Test
-    void shouldTransformCompanyProfileWithNoLinksWhenThereAreExistingLinks(){
+    void shouldTransformCompanyProfileWithNoLinksWhenThereAreExistingLinks() {
         VersionedCompanyProfileDocument document = transformer.transform(createExistingCompanyProfile(), companyProfileWithoutLinks, existingLinks);
 
         Assertions.assertEquals(companyProfileWithoutLinks.getData().getCompanyNumber(), document.getCompanyProfile().getCompanyNumber());
@@ -94,7 +96,7 @@ class CompanyProfileTransformerTest {
     }
 
     @Test
-    void shouldTransformCompanyProfileWithNoLinksWhenThereAreNoExistingLinks(){
+    void shouldTransformCompanyProfileWithNoLinksWhenThereAreNoExistingLinks() {
         existingLinks = null;
 
         VersionedCompanyProfileDocument document = transformer.transform(new VersionedCompanyProfileDocument(), companyProfileWithoutLinks, existingLinks);
@@ -112,7 +114,7 @@ class CompanyProfileTransformerTest {
     }
 
     @Test
-    void shouldTransformCompanyProfileWithCareOfName(){
+    void shouldTransformCompanyProfileWithCareOfName() {
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOfName("careOfName");
         roa.setCareOf("careOf");
@@ -129,7 +131,7 @@ class CompanyProfileTransformerTest {
     }
 
     @Test
-    void shouldTransformCompanyProfileWithOnlyCareOf(){
+    void shouldTransformCompanyProfileWithOnlyCareOf() {
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOf("careOf");
         companyProfileWithoutLinks.getData().setRegisteredOfficeAddress(roa);

@@ -1,21 +1,20 @@
 package uk.gov.companieshouse.company.profile.util;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.companieshouse.api.company.Links;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.EXEMPTIONS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.OFFICERS_LINK_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_DELTA_TYPE;
 import static uk.gov.companieshouse.company.profile.util.LinkRequest.PSC_STATEMENTS_LINK_TYPE;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 
 @RunWith(SpringRunner.class)
@@ -60,8 +59,8 @@ public class LinkRequestFactoryTest {
 
     @Test
     public void createLinkRequestThrows() {
-        Executable executable  = () -> linkRequestFactory
+        Executable executable = () -> linkRequestFactory
                 .createLinkRequest("office", MOCK_COMPANY_NUMBER);
-        assertThrows(BadRequestException.class,executable);
+        assertThrows(BadRequestException.class, executable);
     }
 }

@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.company.profile.repository;
 
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,7 +13,6 @@ import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.model.Updated;
 import uk.gov.companieshouse.company.profile.configuration.AbstractMongoConfig;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
-import java.time.LocalDateTime;
 
 @Testcontainers
 @DataMongoTest
@@ -25,7 +25,7 @@ class RepositoryITest extends AbstractMongoConfig {
 
 
     @BeforeAll
-    static void init(){
+    static void init() {
         mongoDBContainer.start();
     }
 
@@ -40,7 +40,8 @@ class RepositoryITest extends AbstractMongoConfig {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
+                updated, false);
         companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
 
         this.companyProfileRepository.save(companyProfileDocument);
@@ -55,7 +56,8 @@ class RepositoryITest extends AbstractMongoConfig {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = new Updated(LocalDateTime.now(),
                 "abc", "company_delta");
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
+                updated, false);
         companyProfileDocument.setId("242424");
 
         this.companyProfileRepository.save(companyProfileDocument);
@@ -65,7 +67,7 @@ class RepositoryITest extends AbstractMongoConfig {
     }
 
     @AfterAll
-    static void tear(){
+    static void tear() {
         mongoDBContainer.stop();
     }
 }

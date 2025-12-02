@@ -10,8 +10,8 @@ Feature: Add psc statements link to company profile
     And   the psc statements link exists for "<company_number>"
 
     Examples:
-      | data_file                  | company_number |
-      | without_links_resource     | 00006400       |
+      | data_file              | company_number |
+      | without_links_resource | 00006400       |
 
   Scenario Outline: Add psc statements link unsuccessfully - company profile resource does not exist
 
@@ -40,8 +40,8 @@ Feature: Add psc statements link to company profile
     Then  the response code should be 409
 
     Examples:
-      | data_file                | company_number |
-      | with_links_resource      | 00006400       |
+      | data_file           | company_number |
+      | with_links_resource | 00006400       |
 
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
@@ -53,8 +53,8 @@ Feature: Add psc statements link to company profile
     Then  the response code should be 503
 
     Examples:
-      | data_file                  | company_number |
-      | without_links_resource     | 00006400       |
+      | data_file              | company_number |
+      | without_links_resource | 00006400       |
 
   Scenario Outline: Add psc statements link unsuccessfully - the database is unavailable
 

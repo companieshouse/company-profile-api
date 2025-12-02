@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.company.profile.serialization;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -19,66 +20,66 @@ import uk.gov.companieshouse.api.exception.BadRequestException;
 @SpringBootTest
 class LocalDateDeSerializerTest {
 
-   private LocalDateDeSerializer deserializer;
+    private LocalDateDeSerializer deserializer;
 
-   private ObjectMapper mapper;
+    private ObjectMapper mapper;
 
-   @BeforeEach
-   void setUp() {
-      deserializer = new LocalDateDeSerializer();
-      mapper = new ObjectMapper();
-   }
+    @BeforeEach
+    void setUp() {
+        deserializer = new LocalDateDeSerializer();
+        mapper = new ObjectMapper();
+    }
 
     @Test
     void dateShouldDeserialize() throws IOException {
-       String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T00:00:00Z\"}}";
+        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T00:00:00Z\"}}";
 
-       LocalDate returnedDate = deserialize(jsonTestString);
-       assertEquals(LocalDate.of(2023, 1, 9), returnedDate);
+        LocalDate returnedDate = deserialize(jsonTestString);
+        assertEquals(LocalDate.of(2023, 1, 9), returnedDate);
 
     }
 
     @Test
-    void deserializeWithMillisecondsTimestamp() throws IOException{
+    void deserializeWithMillisecondsTimestamp() throws IOException {
        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.396Z\"}}";
 
-       LocalDate returnedDate = deserialize(jsonTestString);
-       assertEquals(LocalDate.of(2023,1,9), returnedDate);
+        LocalDate returnedDate = deserialize(jsonTestString);
+        assertEquals(LocalDate.of(2023, 1, 9), returnedDate);
     }
 
     @Test
-    void deserializeWith1digitMillisecondsTimestamp() throws IOException{
+    void deserializeWith1digitMillisecondsTimestamp() throws IOException {
         String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.3Z\"}}";
 
         LocalDate returnedDate = deserialize(jsonTestString);
-        assertEquals(LocalDate.of(2023,1,9), returnedDate);
+        assertEquals(LocalDate.of(2023, 1, 9), returnedDate);
     }
 
     @Test
-    void longStringReturnsLong() throws IOException{
+    void longStringReturnsLong() throws IOException {
        String jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
 
-       LocalDate returnedDate = deserialize(jsonTestString);
-       assertEquals(LocalDate.of(1924, 8, 23), returnedDate);
+        LocalDate returnedDate = deserialize(jsonTestString);
+        assertEquals(LocalDate.of(1924, 8, 23), returnedDate);
 
     }
 
     @Test
-    void testParsedDateWithDateStringAsNull() throws IOException{
-       String jsonTestString = "{\"date\":{\"$date\": null}}}";
+    void testParsedDateWithDateStringAsNull() throws IOException {
+        String jsonTestString = "{\"date\":{\"$date\": null}}}";
 
-       LocalDate returnedDate = deserialize(jsonTestString);
-       assertEquals(null, returnedDate);
+        LocalDate returnedDate = deserialize(jsonTestString);
+        assertNull(returnedDate);
 
     }
 
     @Test
     void invalidStringReturnsError() {
-       String jsonTestString = "{\"date\":{\"$date\": \"NotADate\"}}}";
+        String jsonTestString = "{\"date\":{\"$date\": \"NotADate\"}}}";
 
-       assertThrows(BadRequestException.class, ()->{
-          deserialize(jsonTestString);
-       });
+        assertThrows(BadRequestException.class, () -> {
+            deserialize(jsonTestString);
+        });
     }
 
     @Test
@@ -86,7 +87,7 @@ class LocalDateDeSerializerTest {
 
         String jsonTestString = null;
 
-        assertThrows(NullPointerException.class, ()->{
+        assertThrows(NullPointerException.class, () -> {
             deserialize(jsonTestString);
         });
     }
@@ -102,3 +103,4 @@ class LocalDateDeSerializerTest {
         return deserializer.deserialize(parser, deserializationContext);
     }
 }
+

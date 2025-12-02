@@ -125,8 +125,8 @@ public class ExceptionHandlerConfig {
     }
 
     /**
-     * ResourceStateConflictException handler. Thrown when the requested document already has a resource link or
-     * delta at is outdated.
+     * ResourceStateConflictException handler. Thrown when the requested document already has a resource link or delta at is
+     * outdated.
      *
      * @return error response to return.
      */

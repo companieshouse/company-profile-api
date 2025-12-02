@@ -67,7 +67,7 @@ public class ApplicationConfig {
      */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/company-profile-api/healthcheck");
+        return web -> web.ignoring().requestMatchers("/healthcheck");
     }
 
     @Bean

@@ -9,41 +9,41 @@ Feature: Process uk establishments
     And the GET call response body for the list of uk establishments should match "<result>"
 
     Examples:
-    | companyNumber | result                       |
-    | 00006406      | 00006406-getUkEstablishments |
+      | companyNumber | result                       |
+      | 00006406      | 00006406-getUkEstablishments |
 
 
   Scenario Outline: Sending UK establishments GET request without ERIC headers
 
-  Given Company profile api service is running
-  And a Company Profile exists for "<companyNumber>"
-  When I send a GET request to retrieve UK establishments using company number "<companyNumber>" without Eric headers
-  Then I should receive 401 status code
+    Given Company profile api service is running
+    And a Company Profile exists for "<companyNumber>"
+    When I send a GET request to retrieve UK establishments using company number "<companyNumber>" without Eric headers
+    Then I should receive 401 status code
 
-  Examples:
-  | companyNumber |
-  | 00006406     |
+    Examples:
+      | companyNumber |
+      | 00006406      |
 
   @Ignored
     #    Scenario does not work correctly due to potential issue with API Client library and Apache Client 5 dependency
   Scenario Outline: Sending UK establishments GET request fails due to non existent company
 
-  Given a company profile resource does not exist for "<company_number>"
-  When I send a GET request to retrieve UK establishments using company number "<company_number>"
-  Then the response code should be 404
+    Given a company profile resource does not exist for "<company_number>"
+    When I send a GET request to retrieve UK establishments using company number "<company_number>"
+    Then the response code should be 404
 
-  Examples:
-  | company_number |
-  | 00006406       |
+    Examples:
+      | company_number |
+      | 00006406       |
 
 
   Scenario Outline: Sending UK establishments GET request fails due MongoDB being unavailable
 
-  Given Company profile api service is running
-  And the company profile database is down
-  When I send a GET request to retrieve UK establishments using company number "<company_number>"
-  Then I should receive 503 status code
+    Given Company profile api service is running
+    And the company profile database is down
+    When I send a GET request to retrieve UK establishments using company number "<company_number>"
+    Then I should receive 503 status code
 
-  Examples:
-  | company_number |
-  | 00006406       |
+    Examples:
+      | company_number |
+      | 00006406       |

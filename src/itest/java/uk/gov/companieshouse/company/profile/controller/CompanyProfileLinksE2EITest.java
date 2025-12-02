@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +41,6 @@ import uk.gov.companieshouse.company.profile.CompanyProfileApiApplication;
 import uk.gov.companieshouse.company.profile.api.CompanyProfileApiService;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
-import java.util.Objects;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -49,8 +49,10 @@ class CompanyProfileLinksE2EITest {
 
     private static final String COMPANY_NUMBER = "12345678";
     private static final String UK_ESTABLISHMENTS_LINK = String.format("/company/%s/uk-establishments", COMPANY_NUMBER);
-    private static final String PERSONS_WITH_SIGNIFICANT_CONTROL_STATEMENTS_LINK = String.format("/company/%s/persons-with-significant-control-statements", COMPANY_NUMBER);
-    private static final String PERSONS_WITH_SIGNIFICANT_CONTROL_LINK = String.format("/company/%s/persons-with-significant-control", COMPANY_NUMBER);
+    private static final String PERSONS_WITH_SIGNIFICANT_CONTROL_STATEMENTS_LINK = String.format(
+            "/company/%s/persons-with-significant-control-statements", COMPANY_NUMBER);
+    private static final String PERSONS_WITH_SIGNIFICANT_CONTROL_LINK = String.format(
+            "/company/%s/persons-with-significant-control", COMPANY_NUMBER);
     private static final String OFFICERS_LINK = String.format("/company/%s/officers", COMPANY_NUMBER);
     private static final String INSOLVENCY_LINK = String.format("/company/%s/insolvency", COMPANY_NUMBER);
     private static final String FILING_HISTORY_LINK = String.format("/company/%s/filing-history", COMPANY_NUMBER);
@@ -127,7 +129,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -178,7 +181,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -228,7 +232,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -275,7 +280,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -334,7 +340,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -393,7 +400,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -445,7 +453,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -496,7 +505,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -546,7 +556,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -595,7 +606,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -643,7 +655,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -689,7 +702,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isOk());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
         final Updated updated = actualDocument.getUpdated();
         final Data companyProfile = actualDocument.getCompanyProfile();
 
@@ -736,7 +750,8 @@ class CompanyProfileLinksE2EITest {
         // then
         result.andExpect(MockMvcResultMatchers.status().isConflict());
 
-        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
+        final VersionedCompanyProfileDocument actualDocument = Objects.requireNonNull(
+                mongoTemplate.findById(COMPANY_NUMBER, VersionedCompanyProfileDocument.class));
 
         assertNull(actualDocument.getCompanyProfile().getLinks());
         verifyNoInteractions(companyProfileApiService);
@@ -751,8 +766,7 @@ class CompanyProfileLinksE2EITest {
             case "insolvency" -> links.getInsolvency();
             case "officers" -> links.getOfficers();
             case "persons-with-significant-control" -> links.getPersonsWithSignificantControl();
-            case "persons-with-significant-control-statements" ->
-                    links.getPersonsWithSignificantControlStatements();
+            case "persons-with-significant-control-statements" -> links.getPersonsWithSignificantControlStatements();
             case "uk-establishments" -> links.getUkEstablishments();
             case "registers" -> links.getRegisters();
             default -> "DID NOT MATCH LINK TYPE";

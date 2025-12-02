@@ -23,6 +23,7 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 public class PscLinkSteps {
+
     private String contextId;
     private static final String ADD_PSC_LINK_ENDPOINT = "/company/00006400/links/persons-with-significant-control";
     private static final String DELETE_PSC_LINK_ENDPOINT = "/company/00006400/links/persons-with-significant-control/delete";
@@ -52,7 +53,7 @@ public class PscLinkSteps {
         assertThat(document.get().getCompanyProfile().getLinks().getPersonsWithSignificantControl())
                 .isNullOrEmpty();
     }
-    
+
     @When("a PATCH request is sent to the add psc link endpoint for {string}")
     public void addPscLink(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();

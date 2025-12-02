@@ -24,6 +24,7 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 public class OfficersLinkSteps {
+
     private String contextId;
     private static final String ADD_OFFICERS_LINK_ENDPOINT = "/company/00006400/links/officers";
     private static final String DELETE_OFFICERS_LINK_ENDPOINT = "/company/00006400/links/officers/delete";
@@ -36,7 +37,7 @@ public class OfficersLinkSteps {
     private CompanyProfileRepository companyProfileRepository;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
 
         if (mongoDBContainer.getContainerId() == null) {

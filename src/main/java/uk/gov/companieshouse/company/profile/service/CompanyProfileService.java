@@ -193,7 +193,7 @@ public class CompanyProfileService {
                 LOGGER.info("Company profile is updated in MongoDB", DataMapHolder.getLogMap());
             } else {
                 LOGGER.error(String.format("Chs-kafka-api CHANGED invocation failed. Response code %s.",
-                                statusCode.value()), DataMapHolder.getLogMap());
+                        statusCode.value()), DataMapHolder.getLogMap());
             }
         } catch (DataAccessException dbException) {
             throw new ServiceUnavailableException(dbException.getMessage());
@@ -693,8 +693,9 @@ public class CompanyProfileService {
         return companyProfileRepository
                 .findAllOpenCompanyProfilesByParentNumberSortedByCreation(parentCompanyNumber)
                 .stream()
-                .map(UkEstablishmentAddressMapper::mapToUkEstablishmentAddress).collect(Collectors.collectingAndThen(Collectors.toList(),
-                    PrivateUkEstablishmentsAddressListApi::new
+                .map(UkEstablishmentAddressMapper::mapToUkEstablishmentAddress)
+                .collect(Collectors.collectingAndThen(Collectors.toList(),
+                        PrivateUkEstablishmentsAddressListApi::new
                 ));
     }
 
@@ -736,8 +737,9 @@ public class CompanyProfileService {
 
     private void deltaAtCheck(String requestDeltaAt, LocalDateTime existingDeltaAt) {
         if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
-            throw new ConflictException("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
-                    requestDeltaAt, existingDeltaAt));
+            throw new ConflictException(
+                    "Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
+                            requestDeltaAt, existingDeltaAt));
         }
     }
 }

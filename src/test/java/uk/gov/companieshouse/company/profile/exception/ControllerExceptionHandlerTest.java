@@ -36,6 +36,7 @@ import uk.gov.companieshouse.company.profile.controller.CompanyProfileController
 
 @ExtendWith(MockitoExtension.class)
 class ControllerExceptionHandlerTest {
+
     private static final String X_REQUEST_ID_VALUE = "b74566ce-da4e-41f9-bda5-2e672eff8733";
     private static final String X_REQUEST_ID = "x-request-id";
 
@@ -62,22 +63,22 @@ class ControllerExceptionHandlerTest {
 
 
     /**
-     * Verifies the response exception status as well as whether the expected context-id,
-     * message and exception itself have been passed to the logger.
+     * Verifies the response exception status as well as whether the expected context-id, message and exception itself have been
+     * passed to the logger.
      */
     @ParameterizedTest
     @MethodSource("provideExceptionParameters")
     void testHandleExceptionsUsingExceptionHandler(int expectedStatus, String expectedMsg,
-                                                   Class<Throwable> exceptionClass) throws Exception {
+            Class<Throwable> exceptionClass) throws Exception {
 
         when(companyProfileController.processCompanyProfile(anyString(), any())).thenThrow(exceptionClass);
         CompanyProfile companyProfile = new CompanyProfile();
 
         mockMvc.perform(MockMvcRequestBuilders
-                .put("/company/12345678/internal")
-                .header(X_REQUEST_ID, X_REQUEST_ID_VALUE)
-                .content(gson.toJson(companyProfile))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .put("/company/12345678/internal")
+                        .header(X_REQUEST_ID, X_REQUEST_ID_VALUE)
+                        .content(gson.toJson(companyProfile))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().is(expectedStatus));
     }
 

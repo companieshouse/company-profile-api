@@ -17,5 +17,4 @@
   "test_automation_repo": "https://github.com/companieshouse/taf-api-karate",
   "service_area": "tbc",
   "service_component": "tbc",
-  "healthcheck_endpoint": "/company-profile-api/healthcheck"
 }

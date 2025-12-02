@@ -39,18 +39,18 @@
       "officers": "/company/00006405/officers",
       "persons_with_significant_control": "/company/00006405/persons-with-significant-control",
       "self": "/company/00006405",
-      "insolvency" : "insolvency"
+      "insolvency": "insolvency"
     },
-    "branch_company_details" : {
-      "parent_company_number" : "00006406",
-      "parent_company_name" : "RENABLE PHARMA LTD",
-      "business_activity" : "liquidation"
+    "branch_company_details": {
+      "parent_company_number": "00006406",
+      "parent_company_name": "RENABLE PHARMA LTD",
+      "business_activity": "liquidation"
     },
     "registered_office_address": {
-      "region" : "Prestwick",
-      "address_line_1" : " 5 Shawfarm Road",
-      "locality" : "Ayrshire",
-      "postal_code" : "KA9 2TR"
+      "region": "Prestwick",
+      "address_line_1": " 5 Shawfarm Road",
+      "locality": "Ayrshire",
+      "postal_code": "KA9 2TR"
     },
     "sic_codes": [
       "72110"

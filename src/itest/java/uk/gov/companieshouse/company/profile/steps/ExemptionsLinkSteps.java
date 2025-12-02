@@ -36,7 +36,7 @@ public class ExemptionsLinkSteps {
     private CompanyProfileRepository companyProfileRepository;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
 
         if (mongoDBContainer.getContainerId() == null) {

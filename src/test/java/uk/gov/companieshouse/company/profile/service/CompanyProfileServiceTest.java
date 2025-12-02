@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -97,6 +99,7 @@ import uk.gov.companieshouse.company.profile.util.TestHelper;
 
 @ExtendWith(MockitoExtension.class)
 class CompanyProfileServiceTest {
+
     private static final String IS_OVERSEAS_COMPANY_FILE_DISABLED_FIELD = "isOverseasCompanyFileDisabled";
     private static final boolean IS_OVERSEAS_COMPANY_FILE_DISABLED = false;
     private static final String MOCK_COMPANY_NUMBER = "6146287";
@@ -139,7 +142,8 @@ class CompanyProfileServiceTest {
     @Mock
     private CompanyProfileTransformer companyProfileTransformer;
 
-    @InjectMocks @Spy
+    @InjectMocks
+    @Spy
     CompanyProfileService companyProfileService;
 
     static TestHelper testHelper;
@@ -195,6 +199,7 @@ class CompanyProfileServiceTest {
         companyData.setType("ltd");
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
+
         VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         theCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         theCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
@@ -218,6 +223,7 @@ class CompanyProfileServiceTest {
         companyData.setRegisteredOfficeAddress(roa);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
+
         VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         theCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         theCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
@@ -242,6 +248,7 @@ class CompanyProfileServiceTest {
         companyData.setRegisteredOfficeAddress(roa);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
+
         VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
         theCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         theCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
@@ -263,7 +270,8 @@ class CompanyProfileServiceTest {
         companyData.setCompanyName("String");
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData,
+                localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         mockCompanyProfileDocument.getCompanyProfile().setCompanyStatus("String");
         CompanyDetails mockCompanyDetails = new CompanyDetails();
@@ -278,7 +286,7 @@ class CompanyProfileServiceTest {
         CompanyDetails companyDetailsActual =
                 companyProfileService.getCompanyDetails(MOCK_COMPANY_NUMBER);
 
-        assertEquals(mockCompanyDetailsOP,companyDetailsActual);
+        assertEquals(mockCompanyDetailsOP, companyDetailsActual);
     }
 
     @Test
@@ -346,7 +354,8 @@ class CompanyProfileServiceTest {
         Updated updated = new Updated(localDateTime,
                 null, "company-profile");
 
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData,
+                localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         mockCompanyProfileDocument.setCompanyProfile(companyData);
 
@@ -374,7 +383,8 @@ class CompanyProfileServiceTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
 
-        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        VersionedCompanyProfileDocument mockCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData,
+                localDateTime, updated, false);
         mockCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
         mockCompanyProfileDocument.version(0L);
 
@@ -1520,7 +1530,6 @@ class CompanyProfileServiceTest {
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_STATEMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
                 false);
 
-
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
         assertEquals("Resource state conflict; persons-with-significant-control-statements" +
@@ -1823,7 +1832,6 @@ class CompanyProfileServiceTest {
         // when
         Executable executable = () -> companyProfileService.processLinkRequest(PSC_LINK_TYPE, MOCK_COMPANY_NUMBER,
                 false);
-
 
         // then
         Exception exception = assertThrows(ResourceStateConflictException.class, executable);
@@ -2216,7 +2224,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When Resource Not Found exception is thrown and that it is handled well by the CompanyProfileService")
-    void testRetrieveCompanyNumberResourceNotFoundException(){
+    void testRetrieveCompanyNumberResourceNotFoundException() {
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER));
@@ -2446,6 +2454,7 @@ class CompanyProfileServiceTest {
                 theCompanyProfile);
 
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_PARENT_COMPANY_NUMBER);
+
         Assertions.assertEquals(theCompanyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
     }
 
@@ -2777,7 +2786,6 @@ class CompanyProfileServiceTest {
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(existingCompanyProfileDocument));
         when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(companyProfileDocument);
 
-
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
                 theCompanyProfile);
 
@@ -2790,23 +2798,35 @@ class CompanyProfileServiceTest {
         private static List<VersionedCompanyProfileDocument> ukEstablishmentsAddressesTestInput;
         private static VersionedCompanyProfileDocument companyProfileDocument1;
         private static VersionedCompanyProfileDocument companyProfileDocument2;
+        private MockedStatic<UkEstablishmentAddressMapper> ukEstablishmentAddressMapper;
 
         @BeforeAll
         static void setup() {
-            companyProfileDocument1 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISHMENT_COMPANY_NUMBER, "open", LocalDate.of(2021, 1, 1));
-            companyProfileDocument2 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISTMENT_COMPANY_NUMBER_2, "open", LocalDate.of(2020, 1, 1));
+            companyProfileDocument1 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISHMENT_COMPANY_NUMBER, "open",
+                    LocalDate.of(2021, 1, 1));
+            companyProfileDocument2 = testHelper.createCompanyProfileTypeUkEstablishment(UK_ESTABLISTMENT_COMPANY_NUMBER_2,
+                    "open", LocalDate.of(2020, 1, 1));
 
             ukEstablishmentsAddressesTestInput = Arrays.asList(
-                companyProfileDocument2,
-                companyProfileDocument1
-        );
+                    companyProfileDocument2,
+                    companyProfileDocument1
+            );
+        }
+
+        @BeforeEach
+        void initStaticMock() {
+            ukEstablishmentAddressMapper = mockStatic(UkEstablishmentAddressMapper.class);
+        }
+
+        @AfterEach
+        void closeStaticMock() {
+            if (ukEstablishmentAddressMapper != null) {
+                ukEstablishmentAddressMapper.close();
+            }
         }
 
         @Test
         void testGetUkEstablishmentsAddressesWithNoUkEstiablishments() {
-
-            mockStatic(UkEstablishmentAddressMapper.class);
-
             RegisteredOfficeAddressApi registeredOfficeAddressApi1 = new RegisteredOfficeAddressApi();
             registeredOfficeAddressApi1.setAddressLine1("line 1");
             registeredOfficeAddressApi1.setPostalCode("AB1 2CD");
@@ -2831,11 +2851,11 @@ class CompanyProfileServiceTest {
             when(companyProfileRepository
                     .findAllOpenCompanyProfilesByParentNumberSortedByCreation(MOCK_PARENT_COMPANY_NUMBER))
                     .thenReturn(ukEstablishmentsAddressesTestInput);
-            when(UkEstablishmentAddressMapper
-                    .mapToUkEstablishmentAddress(companyProfileDocument1))
+            ukEstablishmentAddressMapper.when(() -> UkEstablishmentAddressMapper
+                            .mapToUkEstablishmentAddress(companyProfileDocument1))
                     .thenReturn(ukEstablishmentAddress1);
-            when(UkEstablishmentAddressMapper
-                    .mapToUkEstablishmentAddress(companyProfileDocument2))
+            ukEstablishmentAddressMapper.when(() -> UkEstablishmentAddressMapper
+                            .mapToUkEstablishmentAddress(companyProfileDocument2))
                     .thenReturn(ukEstablishmentAddress2);
 
             PrivateUkEstablishmentsAddressListApi addresses = companyProfileService
@@ -2846,5 +2866,5 @@ class CompanyProfileServiceTest {
         }
     }
 
-    
+
 }

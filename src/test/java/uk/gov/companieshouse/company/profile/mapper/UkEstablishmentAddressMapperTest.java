@@ -3,25 +3,18 @@ package uk.gov.companieshouse.company.profile.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
- 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.junit.jupiter.api.Test;
 import uk.gov.companieshouse.api.company.Data;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
 import uk.gov.companieshouse.api.model.ukestablishments.PrivateUkEstablishmentsAddressApi;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 
-@ExtendWith(MockitoExtension.class)
 class UkEstablishmentAddressMapperTest {
-    
+
     private static final String POSTAL_CODE = "TE57 1NG";
     private static final String LINE_1 = "123 Test St";
     private static final String COMPANY_NUMBER = "12345678";
-    @Mock
-    private RegisteredOfficeAddressMapper registeredOfficeAddressMapper;
 
     @Test
     void testMapToUkEstablishmentAddress() {
@@ -35,7 +28,8 @@ class UkEstablishmentAddressMapperTest {
         data.setRegisteredOfficeAddress(registeredOfficeAddress);
         versionedCompanyProfileDocument.setCompanyProfile(data);
 
-        PrivateUkEstablishmentsAddressApi ukEstablishmentAddress = UkEstablishmentAddressMapper.mapToUkEstablishmentAddress(versionedCompanyProfileDocument);
+        PrivateUkEstablishmentsAddressApi ukEstablishmentAddress = UkEstablishmentAddressMapper.mapToUkEstablishmentAddress(
+                versionedCompanyProfileDocument);
         assertNotNull(ukEstablishmentAddress);
         assertEquals(COMPANY_NUMBER, ukEstablishmentAddress.getCompanyNumber());
         assertEquals(LINE_1, ukEstablishmentAddress.getRegisteredOfficeAddress().getAddressLine1());
@@ -49,7 +43,7 @@ class UkEstablishmentAddressMapperTest {
         });
     }
 
-    @Test 
+    @Test
     void testMapToUkEstablishmentAddressWithNullCompanyProfile() {
         VersionedCompanyProfileDocument versionedCompanyProfileDocument = new VersionedCompanyProfileDocument();
         versionedCompanyProfileDocument.setCompanyProfile(null);

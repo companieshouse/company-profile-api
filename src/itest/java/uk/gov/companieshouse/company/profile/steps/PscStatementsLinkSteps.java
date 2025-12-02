@@ -23,6 +23,7 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 import uk.gov.companieshouse.company.profile.repository.CompanyProfileRepository;
 
 public class PscStatementsLinkSteps {
+
     private String contextId;
     private static final String ADD_PSC_STATEMENTS_LINK_ENDPOINT = "/company/00006400/links/persons-with-significant-control-statements";
     private static final String DELETE_PSC_STATEMENTS_LINK_ENDPOINT = "/company/00006400/links/persons-with-significant-control-statements/delete";
@@ -35,7 +36,7 @@ public class PscStatementsLinkSteps {
     private CompanyProfileRepository companyProfileRepository;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         WiremockTestConfig.setupWiremock();
 
         if (mongoDBContainer.getContainerId() == null) {

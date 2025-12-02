@@ -60,6 +60,6 @@ public class LinkRequestFactory {
         }
         LinkTypeData linkTypeData = linkRequestMap.get(linkType);
         return new LinkRequest(DataMapHolder.getRequestId(), companyNumber, linkType,
-                linkTypeData.getDeltaType(), linkTypeData.getLinkGetter());
+                linkTypeData.deltaType(), linkTypeData.linkGetter());
     }
 }

@@ -14,7 +14,7 @@ public enum CucumberContext {
 
     @SuppressWarnings("unchecked")
     public <T> T get(String name) {
-        return (T)testContexts.get()
+        return (T) testContexts.get()
                 .get(name);
     }
 

@@ -15,4 +15,5 @@ import uk.gov.companieshouse.company.profile.configuration.AbstractIntegrationTe
 @CucumberContextConfiguration
 @TestPropertySource(properties = {"mongodb.transactional = true"})
 public class CucumberFeaturesRunnerITest extends AbstractIntegrationTest {
+
 }

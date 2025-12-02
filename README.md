@@ -42,7 +42,7 @@ The service is implemented in Java 21 using Spring Boot 3.3
 2. Enable the following services using the command `chs-dev services enable <service>`.
     * `company-profile-api`
 
-3. Boot up the services' containers on docker using tilt `chs-dev up`.
+3. Boot up the services' containers in docker-chs-development using `chs-dev up`.
 
 ### Building the docker image
 
