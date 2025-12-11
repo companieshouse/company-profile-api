@@ -22,14 +22,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,9 +37,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -50,6 +46,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import uk.gov.companieshouse.api.company.CompanyDetails;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Data;
@@ -856,6 +857,10 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Add uk establishments link request returns 409 not found when resource state conflict exception is thrown")
     void addUkEstablishmentsLinkConflict() throws Exception {
+        addDeleteUkEstablishmentsLinkConflict();
+    }
+
+    private void addDeleteUkEstablishmentsLinkConflict() throws Exception {
         doThrow(new ResourceStateConflictException("Conflict in resource state"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
@@ -872,6 +877,10 @@ class CompanyProfileControllerTest {
     @Test()
     @DisplayName("Add uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
     void addUkEstablishmentsLinkServiceUnavailable() throws Exception {
+        addDeleteUkEstablishmentsLinkServiceUnavailable();
+    }
+
+    private void addDeleteUkEstablishmentsLinkServiceUnavailable() throws Exception {
         doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
                 .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
 
@@ -888,6 +897,10 @@ class CompanyProfileControllerTest {
     @Test()
     @DisplayName("Add uk establishments link request returns 500 internal server error when a runtime exception is thrown")
     void addUkEstablishmentsLinkInternalServerError() throws Exception {
+        addDeleteUkEstablishmentsLinkInternalServerError();
+    }
+
+    private void addDeleteUkEstablishmentsLinkInternalServerError() throws Exception {
         doThrow(new RuntimeException()).when(companyProfileService)
                 .processLinkRequest(anyString(), anyString(), anyBoolean());
 
@@ -933,49 +946,19 @@ class CompanyProfileControllerTest {
     @Test
     @DisplayName("Delete uk establishments link request returns 409 not found when resource state conflict exception is thrown")
     void deleteUkEstablishmentsLinkConflict() throws Exception {
-        doThrow(new ResourceStateConflictException("Conflict in resource state"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
-
-        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isConflict());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
+        addDeleteUkEstablishmentsLinkConflict();
     }
 
     @Test()
     @DisplayName("Delete uk establishments link request returns 503 service unavailable when a service unavailable exception is thrown")
     void deleteUkEstablishmentsLinkServiceUnavailable() throws Exception {
-        doThrow(new ServiceUnavailableException("Service unavailable - connection issue"))
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
-
-        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isServiceUnavailable());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
+        addDeleteUkEstablishmentsLinkServiceUnavailable();
     }
 
     @Test()
     @DisplayName("Delete uk establishments link request returns 500 internal server error when a runtime exception is thrown")
     void deleteUkEstablishmentsLinkInternalServerError() throws Exception {
-        doThrow(new RuntimeException())
-                .when(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
-
-        mockMvc.perform(patch(UK_ESTABLISHMENTS_LINK_URL)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", X_REQUEST_ID)
-                        .header("ERIC-Identity", ERIC_IDENTITY)
-                        .header("ERIC-Identity-Type", ERIC_IDENTITY_TYPE)
-                        .header("ERIC-Authorised-Key-Privileges", "internal-app"))
-                .andExpect(status().isInternalServerError());
-        verify(companyProfileService).processLinkRequest(anyString(), anyString(), anyBoolean());
+        addDeleteUkEstablishmentsLinkInternalServerError();
     }
 
     @Test
@@ -1060,8 +1043,6 @@ class CompanyProfileControllerTest {
     void testSearchCompanyProfile() throws Exception {
         Data mockData = new Data();
         mockData.setCompanyNumber(MOCK_COMPANY_NUMBER);
-
-        ResponseEntity<Data> expectedResponse = new ResponseEntity<>(mockData, HttpStatus.OK);
 
         when(companyProfileService.retrieveCompanyNumber(MOCK_COMPANY_NUMBER)).thenReturn(mockData);
 
@@ -1173,7 +1154,6 @@ class CompanyProfileControllerTest {
     @DisplayName("Retrieve list of uk establishments for given parent company number")
     void testGetUkEstablishmentsStatusOK() throws Exception {
         UkEstablishmentsList ukEstablishmentsList = new UkEstablishmentsList();
-        ResponseEntity<UkEstablishmentsList> expectedResponse = new ResponseEntity<>(ukEstablishmentsList, HttpStatus.OK);
 
         when(companyProfileService.getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(ukEstablishmentsList);
 

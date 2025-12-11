@@ -4,10 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.time.LocalDate;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,6 +21,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.exception.BadRequestException;
 import uk.gov.companieshouse.api.exception.DocumentNotFoundException;

@@ -18,15 +18,16 @@ import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocume
 
 public class TestHelper {
 
-    public final static String notFoundErrorString =
-            "{\n"
-                    + "    \"errors\": [\n"
-                    + "        {\n"
-                    + "            \"type\": \"ch:service\",\n"
-                    + "            \"error\": \"company-profile-not-found\"\n"
-                    + "        }\n"
-                    + "    ]\n"
-                    + "}";
+    // checked by @see https://jsonformatter.org/json-pretty-print
+    public static final String NOT_FOUND_ERROR_STRING = """
+            {
+                "errors": [
+                    {
+                        "type": "ch:service",
+                        "error": "company-profile-not-found"
+                    }
+                ]
+            }""";
 
     public String createJsonCompanyProfilePayload() throws IOException {
         InputStreamReader exampleJsonPayload = new InputStreamReader(

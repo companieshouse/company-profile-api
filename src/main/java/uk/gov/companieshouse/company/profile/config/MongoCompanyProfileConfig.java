@@ -22,8 +22,13 @@ public class MongoCompanyProfileConfig extends AbstractMongoClientConfiguration 
     @Value("${spring.data.mongodb.uri}")
     private String databaseUri;
 
+    private final MongoCustomConversions mongoCustomConversions;
+
     @Autowired
-    MongoCustomConversions mongoCustomConversions;
+    public MongoCompanyProfileConfig(MongoCustomConversions mongoCustomConversions) {
+        super();
+        this.mongoCustomConversions = mongoCustomConversions;
+    }
 
     @Bean
     MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {

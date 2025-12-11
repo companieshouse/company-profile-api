@@ -35,9 +35,6 @@ import static uk.gov.companieshouse.company.profile.util.LinkRequest.UK_ESTABLIS
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingCompanyProfile;
 import static uk.gov.companieshouse.company.profile.util.TestHelper.createExistingLinks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
-import com.mongodb.client.result.UpdateResult;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -64,6 +62,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
+import com.mongodb.client.result.UpdateResult;
+
 import uk.gov.companieshouse.api.company.Accounts;
 import uk.gov.companieshouse.api.company.AnnualReturn;
 import uk.gov.companieshouse.api.company.BranchCompanyDetails;
@@ -147,41 +148,41 @@ class CompanyProfileServiceTest {
 
     static TestHelper testHelper;
 
-    private final Gson gson = new Gson();
-    private static CompanyProfile COMPANY_PROFILE;
-    private static VersionedCompanyProfileDocument COMPANY_PROFILE_DOCUMENT;
-    private static Links EXISTING_LINKS;
-    private static VersionedCompanyProfileDocument EXISTING_COMPANY_PROFILE_DOCUMENT;
-    private static VersionedCompanyProfileDocument EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT;
-    private static List<VersionedCompanyProfileDocument> UK_ESTABLISHMENTS_TEST_INPUT;
-    private static List<UkEstablishment> UK_ESTABLISHMENTS_TEST_OUTPUT;
-    private static VersionedCompanyProfileDocument EXISTING_UK_ESTABLISHMENT_COMPANY;
-    private static VersionedCompanyProfileDocument EXISTING_PARENT_COMPANY;
+    private static CompanyProfile companyProfile;
+    private static VersionedCompanyProfileDocument companyProfileDocument;
+    private static Links existingLinks;
+    private static VersionedCompanyProfileDocument existingCompanyProfileDocument;
+    private static VersionedCompanyProfileDocument existingParentCompanyProfileDocument;
+    private static List<VersionedCompanyProfileDocument> ukEstablishmentsTestInput;
+    private static List<UkEstablishment> ukEstablishmentsTestOutput;
+    private static VersionedCompanyProfileDocument existingUkEstablishmentCompany;
+    private static VersionedCompanyProfileDocument existingParentCompany;
     private static final String DELTA_AT = "20241129123010123789";
 
     private final LinkRequest chargesLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
             CHARGES_LINK_TYPE, CHARGES_DELTA_TYPE, CHARGES_GET);
     private final LinkRequest insolvencyLinkRequest = new LinkRequest(MOCK_CONTEXT_ID, MOCK_COMPANY_NUMBER,
             INSOLVENCY_LINK_TYPE, INSOLVENCY_DELTA_TYPE, INSOLVENCY_GET);
-    private final String CHARGES_LINK = String.format("/company/%s/charges", MOCK_COMPANY_NUMBER);
-    private final String INSOLVENCY_LINK = String.format("/company/%s/insolvency", MOCK_COMPANY_NUMBER);
+    private static final String CHARGES_LINK = String.format("/company/%s/charges", MOCK_COMPANY_NUMBER);
+    private static final String INSOLVENCY_LINK = String.format("/company/%s/insolvency", MOCK_COMPANY_NUMBER);
 
     @BeforeAll
     static void setUp() throws IOException {
         testHelper = new TestHelper();
-        COMPANY_PROFILE = testHelper.createCompanyProfileObject();
-        COMPANY_PROFILE_DOCUMENT = testHelper.createCompanyProfileDocument();
-        EXISTING_LINKS = createExistingLinks();
-        EXISTING_COMPANY_PROFILE_DOCUMENT = createExistingCompanyProfile();
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT = createExistingCompanyProfile();
-        UK_ESTABLISHMENTS_TEST_INPUT = Arrays.asList(
+        
+        companyProfile = testHelper.createCompanyProfileObject();
+        companyProfileDocument = testHelper.createCompanyProfileDocument();
+        existingLinks = createExistingLinks();
+        existingCompanyProfileDocument = createExistingCompanyProfile();
+        existingParentCompanyProfileDocument = createExistingCompanyProfile();
+        ukEstablishmentsTestInput = Arrays.asList(
                 testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 1),
                 testHelper.createUkEstablishmentTestInput(MOCK_COMPANY_NUMBER + 2));
-        UK_ESTABLISHMENTS_TEST_OUTPUT = Arrays.asList(
+        ukEstablishmentsTestOutput = Arrays.asList(
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 1),
                 testHelper.createUkEstablishmentTestOutput(MOCK_COMPANY_NUMBER + 2));
-        EXISTING_UK_ESTABLISHMENT_COMPANY = testHelper.createCompanyProfileTypeUkEstablishment(MOCK_COMPANY_NUMBER);
-        EXISTING_PARENT_COMPANY = testHelper.createParentCompanyProfile(ANOTHER_PARENT_COMPANY_NUMBER);
+        existingUkEstablishmentCompany = testHelper.createCompanyProfileTypeUkEstablishment(MOCK_COMPANY_NUMBER);
+        existingParentCompany = testHelper.createParentCompanyProfile(ANOTHER_PARENT_COMPANY_NUMBER);
     }
 
     @BeforeEach
@@ -198,17 +199,17 @@ class CompanyProfileServiceTest {
         companyData.setType("ltd");
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
-                updated, false);
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().setCompanyStatus("string");
+
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        theCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        theCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(companyProfileDocument));
+                .thenReturn(Optional.of(theCompanyProfileDocument));
 
         VersionedCompanyProfileDocument companyProfileActual = companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertEquals(companyProfileDocument, companyProfileActual);
+        assertEquals(theCompanyProfileDocument, companyProfileActual);
     }
 
     @Test
@@ -222,17 +223,17 @@ class CompanyProfileServiceTest {
         companyData.setRegisteredOfficeAddress(roa);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
-                updated, false);
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().setCompanyStatus("string");
+
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        theCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        theCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(companyProfileDocument));
+                .thenReturn(Optional.of(theCompanyProfileDocument));
 
         VersionedCompanyProfileDocument companyProfileActual = companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertEquals(companyProfileDocument, companyProfileActual);
+        assertEquals(theCompanyProfileDocument, companyProfileActual);
         assertEquals("careOf", companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
         assertNull(companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
     }
@@ -247,24 +248,24 @@ class CompanyProfileServiceTest {
         companyData.setRegisteredOfficeAddress(roa);
         LocalDateTime localDateTime = LocalDateTime.now();
         Updated updated = mock(Updated.class);
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime,
-                updated, false);
-        companyProfileDocument.setId(MOCK_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().setCompanyStatus("string");
+
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument(companyData, localDateTime, updated, false);
+        theCompanyProfileDocument.setId(MOCK_COMPANY_NUMBER);
+        theCompanyProfileDocument.getCompanyProfile().setCompanyStatus("string");
 
         when(companyProfileRepository.findById(anyString()))
-                .thenReturn(Optional.of(companyProfileDocument));
+                .thenReturn(Optional.of(theCompanyProfileDocument));
 
         VersionedCompanyProfileDocument companyProfileActual = companyProfileService.get(MOCK_COMPANY_NUMBER);
 
-        assertEquals(companyProfileDocument, companyProfileActual);
+        assertEquals(theCompanyProfileDocument, companyProfileActual);
         assertEquals("careOfName", companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOf());
         assertNull(companyProfileActual.getCompanyProfile().getRegisteredOfficeAddress().getCareOfName());
     }
 
     @Test
     @DisplayName("When company details is retrieved successfully then it is returned")
-    void getCompanyDetails() throws JsonProcessingException {
+    void getCompanyDetails() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyName("String");
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -301,7 +302,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("When no company profile is retrieved then throw ResourceNotFoundException")
-    void getNoCompanyDetailsReturned() throws JsonProcessingException {
+    void getNoCompanyDetailsReturned() {
         when(companyProfileRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
@@ -346,7 +347,7 @@ class CompanyProfileServiceTest {
     }
 
     @Test
-    void when_insolvency_data_is_given_then_data_should_be_saved() throws Exception {
+    void when_insolvency_data_is_given_then_data_should_be_saved() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setLinks(new Links());
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -1756,16 +1757,16 @@ class CompanyProfileServiceTest {
     }
 
     private CompanyProfile mockCompanyProfileWithoutInsolvency() {
-        CompanyProfile companyProfile = new CompanyProfile();
-        Data data = new Data();
-        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        CompanyProfile theCompanyProfile = new CompanyProfile();
+        Data theData = new Data();
+        theData.setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        Links links = new Links();
-        links.setOfficers("officer");
+        Links theLinks = new Links();
+        theLinks.setOfficers("officer");
 
-        data.setLinks(links);
-        companyProfile.setData(data);
-        return companyProfile;
+        theData.setLinks(theLinks);
+        theCompanyProfile.setData(theData);
+        return theCompanyProfile;
     }
 
     @Test
@@ -2040,9 +2041,9 @@ class CompanyProfileServiceTest {
                 Links::getPersonsWithSignificantControl);
         when(linkRequestFactory.createLinkRequest(PSC_LINK_TYPE,
                 MOCK_COMPANY_NUMBER)).thenReturn(officersLinkRequest);
-        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        EXISTING_COMPANY_PROFILE_DOCUMENT.version(null);
-        EXISTING_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setPersonsWithSignificantControl(String.format(
+        when(companyProfileRepository.findById(any())).thenReturn(Optional.of(existingCompanyProfileDocument));
+        existingCompanyProfileDocument.version(null);
+        existingCompanyProfileDocument.getCompanyProfile().getLinks().setPersonsWithSignificantControl(String.format(
                 "/company/%s/persons-with-significant-control", MOCK_COMPANY_NUMBER));
         when(mongoTemplate.save(any())).thenThrow(ServiceUnavailableException.class);
 
@@ -2059,30 +2060,29 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Put company profile")
     void putCompanyProfileSuccessfully() {
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(
-                Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(existingParentCompanyProfileDocument));
+        existingParentCompanyProfileDocument.getCompanyProfile().getLinks().setUkEstablishments(null);
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileTransformer.transform(any(), any(), any()))
-                .thenReturn(COMPANY_PROFILE_DOCUMENT.version(0L));
+                .thenReturn(companyProfileDocument.version(0L));
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                companyProfile);
 
-        Assertions.assertNotNull(COMPANY_PROFILE);
-        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
-        Assertions.assertNull(COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().getOverseas());
-        verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(companyProfile);
+        Assertions.assertNotNull(companyProfileDocument);
+        Assertions.assertNull(companyProfileDocument.getCompanyProfile().getLinks().getOverseas());
+        verify(companyProfileRepository).insert(companyProfileDocument);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Put company profile fails when delta is stale")
     void putCompanyProfileThrowsConflictExceptionsWhenStaleDelta() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(companyProfileDocument));
 
         Executable actual = () -> companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                companyProfile);
 
         assertThrows(ConflictException.class, actual);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
@@ -2095,27 +2095,27 @@ class CompanyProfileServiceTest {
     @DisplayName("Put company profile with existing links")
     void putCompanyProfileWithExistingLinksSuccessfully() {
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
-                .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+                .thenReturn(Optional.of(existingParentCompanyProfileDocument));
+        existingParentCompanyProfileDocument.getCompanyProfile().getLinks().setUkEstablishments(null);
 
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
-                .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingCompanyProfileDocument));
+        when(companyProfileTransformer.transform(existingCompanyProfileDocument, companyProfile, existingLinks))
+                .thenReturn(existingCompanyProfileDocument);
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                companyProfile);
 
-        Assertions.assertNotNull(COMPANY_PROFILE);
-        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
-        Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
-        Assertions.assertNotNull(EXISTING_LINKS);
-        verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(companyProfile);
+        Assertions.assertNotNull(companyProfileDocument);
+        Assertions.assertNotNull(existingCompanyProfileDocument);
+        Assertions.assertNotNull(existingLinks);
+        verify(companyProfileRepository).save(existingCompanyProfileDocument);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("When a company number is provided to retrieve company profile successfully then it is returned")
-    void testRetrieveCompanyNumber() throws ResourceNotFoundException, JsonProcessingException {
+    void testRetrieveCompanyNumber() throws ResourceNotFoundException {
         document.setCompanyProfile(new Data());
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(document));
@@ -2128,13 +2128,13 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("An empty list of company names or corporate annotations stored in Mongo should not be returned")
-    void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException, JsonProcessingException {
+    void testRetrieveCompanyNumberWithEmptyList() throws ResourceNotFoundException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
-        Data data = new Data();
-        data.setCompanyNumber(MOCK_COMPANY_NUMBER);
-        data.setCorporateAnnotation(Collections.emptyList());
-        data.setPreviousCompanyNames(Collections.emptyList());
-        doc.setCompanyProfile(data);
+        Data theData = new Data();
+        theData.setCompanyNumber(MOCK_COMPANY_NUMBER);
+        theData.setCorporateAnnotation(Collections.emptyList());
+        theData.setPreviousCompanyNames(Collections.emptyList());
+        doc.setCompanyProfile(theData);
 
         when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(doc));
 
@@ -2150,12 +2150,12 @@ class CompanyProfileServiceTest {
     @DisplayName("When retrieving company profile then it is returned with careOf")
     void testRetrieveCompanyNumberCareOf() throws ResourceNotFoundException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
-        Data data = new Data();
+        Data theData = new Data();
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOf("careOf");
         roa.setCareOfName("careOfName");
-        data.setRegisteredOfficeAddress(roa);
-        doc.setCompanyProfile(data);
+        theData.setRegisteredOfficeAddress(roa);
+        doc.setCompanyProfile(theData);
 
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
 
@@ -2171,11 +2171,11 @@ class CompanyProfileServiceTest {
     @DisplayName("When retrieving company profile without careOf then it is returned with careOf populated by careOfName")
     void testRetrieveCompanyNumberCareOfName() throws ResourceNotFoundException {
         VersionedCompanyProfileDocument doc = new VersionedCompanyProfileDocument();
-        Data data = new Data();
+        Data theData = new Data();
         RegisteredOfficeAddress roa = new RegisteredOfficeAddress();
         roa.setCareOfName("careOfName");
-        data.setRegisteredOfficeAddress(roa);
-        doc.setCompanyProfile(data);
+        theData.setRegisteredOfficeAddress(roa);
+        doc.setCompanyProfile(theData);
 
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(doc));
 
@@ -2189,7 +2189,7 @@ class CompanyProfileServiceTest {
 
     @Test
     @DisplayName("Retrieve date of cessation on a company number with dissolution date")
-    void testRetrieveCompanyNumberCessationDate() throws ResourceNotFoundException, JsonProcessingException {
+    void testRetrieveCompanyNumberCessationDate() throws ResourceNotFoundException {
         VersionedCompanyProfileDocument profileDocument = new VersionedCompanyProfileDocument();
         Data profileData = new Data();
         profileData.setDateOfDissolution(LocalDate.of(2019, 1, 1));
@@ -2234,12 +2234,11 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("When company number is provided delete company profile")
     void testDeleteCompanyProfile() {
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(
-                Optional.ofNullable(EXISTING_COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.ofNullable(existingCompanyProfileDocument));
         companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(MOCK_COMPANY_NUMBER);
-        verify(companyProfileRepository, times(1)).delete(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository, times(1)).delete(existingCompanyProfileDocument);
         verify(companyProfileService, times((0))).checkForDeleteLink(any());
     }
 
@@ -2247,22 +2246,22 @@ class CompanyProfileServiceTest {
     @DisplayName("Check delete link should be called when deleting Uk establishments")
     void testDeleteCompanyProfileUkEstablishments() {
         when(companyProfileRepository.findById(UK_ESTABLISHMENT_COMPANY_NUMBER)).
-                thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
+                thenReturn(Optional.ofNullable(existingUkEstablishmentCompany));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
-                .thenReturn(Optional.ofNullable(EXISTING_PARENT_COMPANY));
+                .thenReturn(Optional.ofNullable(existingParentCompany));
         companyProfileService.deleteCompanyProfile(UK_ESTABLISHMENT_COMPANY_NUMBER, MOCK_DELTA_AT);
 
         verify(companyProfileRepository, times(1)).findById(UK_ESTABLISHMENT_COMPANY_NUMBER);
         verify(companyProfileRepository, times(1)).findById(ANOTHER_PARENT_COMPANY_NUMBER);
         verify(companyProfileService, times(1)).checkForDeleteLinkUkEstablishmentParent(any());
-        verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
+        verify(companyProfileRepository, times(1)).delete(existingUkEstablishmentCompany);
     }
 
     @Test
     @DisplayName("Check that child Uk establishment should still be deleted when parent is not found")
     void shouldStillDeleteChildUkEstablishmentWhenParentNotFound() {
         when(companyProfileRepository.findById(UK_ESTABLISHMENT_COMPANY_NUMBER))
-                .thenReturn(Optional.ofNullable(EXISTING_UK_ESTABLISHMENT_COMPANY));
+                .thenReturn(Optional.ofNullable(existingUkEstablishmentCompany));
         when(companyProfileRepository.findById(ANOTHER_PARENT_COMPANY_NUMBER))
                 .thenReturn(Optional.empty());
 
@@ -2271,7 +2270,7 @@ class CompanyProfileServiceTest {
         verify(companyProfileRepository).findById(UK_ESTABLISHMENT_COMPANY_NUMBER);
         verify(companyProfileRepository).findById(ANOTHER_PARENT_COMPANY_NUMBER);
         verify(companyProfileService).checkForDeleteLinkUkEstablishmentParent(any());
-        verify(companyProfileRepository, times(1)).delete(EXISTING_UK_ESTABLISHMENT_COMPANY);
+        verify(companyProfileRepository, times(1)).delete(existingUkEstablishmentCompany);
     }
 
     @Test
@@ -2305,7 +2304,7 @@ class CompanyProfileServiceTest {
     @DisplayName("When deltaAt is stale throw conflict exception")
     void testDeleteCompanyProfileStaleDeltaAt() {
         // given
-        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.ofNullable(COMPANY_PROFILE_DOCUMENT));
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.ofNullable(companyProfileDocument));
 
         // when
         Executable actual = () -> companyProfileService.deleteCompanyProfile(MOCK_COMPANY_NUMBER, "20001129123010123789");
@@ -2358,10 +2357,10 @@ class CompanyProfileServiceTest {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus(companyStatus);
         companyData.setType(companyType);
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument();
+        theCompanyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(companyProfileDocument);
+        companyProfileService.determineCanFile(theCompanyProfileDocument);
 
         assertEquals(companyData.getCanFile(), expectedCanFile);
     }
@@ -2371,12 +2370,12 @@ class CompanyProfileServiceTest {
     void testDetermineCanFileCompanyTypeNull() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
         companyData.setCompanyStatus("active");
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument();
+        theCompanyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineCanFile(companyProfileDocument);
+        companyProfileService.determineCanFile(theCompanyProfileDocument);
 
-        assertEquals(companyData.getCanFile(), false);
+        assertFalse(companyData.getCanFile());
     }
 
     @Test
@@ -2391,26 +2390,26 @@ class CompanyProfileServiceTest {
         when(confirmationStatement.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
         when(annualReturn.getNextDue()).thenReturn(LocalDate.of(2050, 1, 1));
 
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument();
+        theCompanyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineOverdue(companyProfileDocument);
+        companyProfileService.determineOverdue(theCompanyProfileDocument);
 
-        assertEquals(false, confirmationStatement.getOverdue());
-        assertEquals(false, nextAccounts.getOverdue());
-        assertEquals(false, annualReturn.getOverdue());
+        assertFalse(confirmationStatement.getOverdue());
+        assertFalse(nextAccounts.getOverdue());
+        assertFalse(annualReturn.getOverdue());
     }
 
     @Test
     @DisplayName("Overdue set to true when next due fields are before current date")
     void testDetermineOverdueTrue() {
-        VersionedCompanyProfileDocument companyProfileDocument = COMPANY_PROFILE_DOCUMENT;
+        VersionedCompanyProfileDocument theCompanyProfileDocument = companyProfileDocument;
 
-        companyProfileService.determineOverdue(companyProfileDocument);
+        companyProfileService.determineOverdue(theCompanyProfileDocument);
 
-        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getConfirmationStatement().getOverdue());
-        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAccounts().getNextAccounts().getOverdue());
-        assertEquals(true, COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getAnnualReturn().getOverdue());
+        assertEquals(true, companyProfileDocument.getCompanyProfile().getConfirmationStatement().getOverdue());
+        assertEquals(true, companyProfileDocument.getCompanyProfile().getAccounts().getNextAccounts().getOverdue());
+        assertEquals(true, companyProfileDocument.getCompanyProfile().getAnnualReturn().getOverdue());
     }
 
     @Test
@@ -2425,10 +2424,10 @@ class CompanyProfileServiceTest {
         when(confirmationStatement.getNextDue()).thenReturn(null);
         when(annualReturn.getNextDue()).thenReturn(null);
 
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument();
+        theCompanyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineOverdue(companyProfileDocument);
+        companyProfileService.determineOverdue(theCompanyProfileDocument);
 
         assertEquals(false, confirmationStatement.getOverdue());
         assertEquals(false, nextAccounts.getOverdue());
@@ -2438,49 +2437,47 @@ class CompanyProfileServiceTest {
     @Test
     @DisplayName("Add new uk establishments links successfully")
     void addNewUkEstablishmentsLinkSuccessfully() {
-        VersionedCompanyProfileDocument companyProfileDocument = EXISTING_COMPANY_PROFILE_DOCUMENT;
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = existingCompanyProfileDocument;
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingCompanyProfileDocument));
+        existingParentCompanyProfileDocument.getCompanyProfile().getLinks().setUkEstablishments(null);
 
-        companyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
-        companyProfileDocument.getCompanyProfile().setCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
-        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(
-                Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
+        theCompanyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
+        theCompanyProfileDocument.getCompanyProfile().setCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
+        when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.of(existingParentCompanyProfileDocument));
 
         BranchCompanyDetails branchCompanyDetails = new BranchCompanyDetails();
         branchCompanyDetails.setParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
-        CompanyProfile companyProfile = COMPANY_PROFILE;
-        companyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
+        CompanyProfile theCompanyProfile = companyProfile;
+        theCompanyProfile.getData().setBranchCompanyDetails(branchCompanyDetails);
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                companyProfile);
+                theCompanyProfile);
 
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_PARENT_COMPANY_NUMBER);
-        Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(),
-                String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+
+        Assertions.assertEquals(theCompanyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
     }
 
     @Test
     @DisplayName("Put company profile with existing links")
     void putUkEstablishmentAndOverseasSuccessfully() {
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER))
-                .thenReturn(Optional.of(EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT));
-        EXISTING_PARENT_COMPANY_PROFILE_DOCUMENT.getCompanyProfile().getLinks().setUkEstablishments(null);
+                .thenReturn(Optional.of(existingParentCompanyProfileDocument));
+        existingParentCompanyProfileDocument.getCompanyProfile().getLinks().setUkEstablishments(null);
 
-        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileTransformer.transform(EXISTING_COMPANY_PROFILE_DOCUMENT, COMPANY_PROFILE, EXISTING_LINKS))
-                .thenReturn(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.of(existingCompanyProfileDocument));
+        when(companyProfileTransformer.transform(existingCompanyProfileDocument, companyProfile, existingLinks))
+                .thenReturn(existingCompanyProfileDocument);
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                companyProfile);
 
-        Assertions.assertNotNull(COMPANY_PROFILE);
-        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
-        Assertions.assertNotNull(EXISTING_COMPANY_PROFILE_DOCUMENT);
-        Assertions.assertNotNull(EXISTING_LINKS);
-        Assertions.assertEquals(COMPANY_PROFILE.getData().getLinks().getOverseas(),
-                String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
-        verify(companyProfileRepository).save(EXISTING_COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(companyProfile);
+        Assertions.assertNotNull(companyProfileDocument);
+        Assertions.assertNotNull(existingCompanyProfileDocument);
+        Assertions.assertNotNull(existingLinks);
+        Assertions.assertEquals(companyProfile.getData().getLinks().getOverseas(), String.format("/company/%s", MOCK_PARENT_COMPANY_NUMBER));
+        verify(companyProfileRepository).save(existingCompanyProfileDocument);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
@@ -2491,7 +2488,7 @@ class CompanyProfileServiceTest {
 
         assertThrows(ServiceUnavailableException.class, () -> {
             companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                    COMPANY_PROFILE);
+                    companyProfile);
         });
         verifyNoInteractions(companyProfileApiService);
     }
@@ -2534,7 +2531,7 @@ class CompanyProfileServiceTest {
         when(links.getUkEstablishments()).thenReturn(String.format(
                 "/company/%s/uk-establishments", MOCK_COMPANY_NUMBER));
         when(companyProfileRepository.findAllByParentCompanyNumber(MOCK_COMPANY_NUMBER))
-                .thenReturn(UK_ESTABLISHMENTS_TEST_INPUT);
+                .thenReturn(ukEstablishmentsTestInput);
 
         // when
         companyProfileService.processLinkRequest(UK_ESTABLISHMENTS_LINK_TYPE, MOCK_COMPANY_NUMBER,
@@ -2672,12 +2669,12 @@ class CompanyProfileServiceTest {
     void createParentCompanyForUkEstablishment() {
         when(companyProfileRepository.findById(MOCK_COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(companyProfileDocument);
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                COMPANY_PROFILE);
+                companyProfile);
 
-        verify(companyProfileRepository).insert(COMPANY_PROFILE_DOCUMENT);
+        verify(companyProfileRepository).insert(companyProfileDocument);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_COMPANY_NUMBER);
         verify(companyProfileApiService).invokeChsKafkaApi(MOCK_PARENT_COMPANY_NUMBER);
     }
@@ -2687,26 +2684,26 @@ class CompanyProfileServiceTest {
     void testDetermineOverDueAllNull() {
         Data companyData = new Data().companyNumber(MOCK_COMPANY_NUMBER);
 
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setCompanyProfile(companyData);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument();
+        theCompanyProfileDocument.setCompanyProfile(companyData);
 
-        companyProfileService.determineOverdue(companyProfileDocument);
+        companyProfileService.determineOverdue(theCompanyProfileDocument);
 
-        assertEquals(confirmationStatement.getOverdue(), false);
-        assertEquals(nextAccounts.getOverdue(), false);
-        assertEquals(annualReturn.getOverdue(), false);
+        assertFalse(confirmationStatement.getOverdue());
+        assertFalse(nextAccounts.getOverdue());
+        assertFalse(annualReturn.getOverdue());
     }
 
     @Test
     @DisplayName("Returns a list of UK establishments for given parent company number")
     void testGetUKEstablishmentsReturnsCorrectData() {
-        VersionedCompanyProfileDocument companyProfileDocument = new VersionedCompanyProfileDocument();
-        companyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
+        VersionedCompanyProfileDocument theCompanyProfileDocument = new VersionedCompanyProfileDocument();
+        theCompanyProfileDocument.setId(MOCK_PARENT_COMPANY_NUMBER);
         // given
         when(companyProfileRepository.findById(MOCK_PARENT_COMPANY_NUMBER)).thenReturn(
-                Optional.of(companyProfileDocument));
+                Optional.of(theCompanyProfileDocument));
         when(companyProfileRepository.findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER))
-                .thenReturn(UK_ESTABLISHMENTS_TEST_INPUT);
+                .thenReturn(ukEstablishmentsTestInput);
 
         // when
         UkEstablishmentsList result = companyProfileService.getUkEstablishments(MOCK_PARENT_COMPANY_NUMBER);
@@ -2714,7 +2711,7 @@ class CompanyProfileServiceTest {
         // then
         assertEquals("/company/321033", result.getLinks().getSelf());
         assertEquals("related-companies", result.getKind());
-        assertEquals(UK_ESTABLISHMENTS_TEST_OUTPUT, result.getItems());
+        assertEquals(ukEstablishmentsTestOutput, result.getItems());
         verify(companyProfileRepository).findById(MOCK_PARENT_COMPANY_NUMBER);
         verify(companyProfileRepository).findAllByParentCompanyNumber(MOCK_PARENT_COMPANY_NUMBER);
     }
@@ -2738,61 +2735,61 @@ class CompanyProfileServiceTest {
         profileToTransform.setHasMortgages(true);
         profileToTransform.getData().setCompanyNumber("6146287");
         when(companyProfileTransformer.transform(existingDoc, profileToTransform, null))
-                .thenReturn(COMPANY_PROFILE_DOCUMENT);
+                .thenReturn(companyProfileDocument);
 
-        CompanyProfile companyProfile = new CompanyProfile()
+        CompanyProfile theCompanyProfile = new CompanyProfile()
                 .deltaAt(DELTA_AT);
-        companyProfile.setData(new Data());
-        companyProfile.getData().setHasCharges(null);
-        companyProfile.getData().setHasBeenLiquidated(null);
-        companyProfile.getData().setCompanyNumber("6146287");
+        theCompanyProfile.setData(new Data());
+        theCompanyProfile.getData().setHasCharges(null);
+        theCompanyProfile.getData().setHasBeenLiquidated(null);
+        theCompanyProfile.getData().setCompanyNumber("6146287");
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                companyProfile);
+                theCompanyProfile);
         verify(companyProfileTransformer).transform(existingDoc, profileToTransform, null);
 
-        Assertions.assertNotNull(COMPANY_PROFILE_DOCUMENT);
-        verify(companyProfileRepository).save(COMPANY_PROFILE_DOCUMENT);
+        Assertions.assertNotNull(companyProfileDocument);
+        verify(companyProfileRepository).save(companyProfileDocument);
         verify(companyProfileRepository).findById(MOCK_COMPANY_NUMBER);
     }
 
     @Test
     void updateCompanyProfileWhenHasChargesIsFalse() {
-        CompanyProfile companyProfile = new CompanyProfile()
+        CompanyProfile theCompanyProfile = new CompanyProfile()
                 .deltaAt(DELTA_AT);
-        Links links = new Links();
-        companyProfile.setData(new Data());
-        companyProfile.getData().setLinks(links);
-        companyProfile.getData().setHasCharges(false);
-        companyProfile.getData().setHasBeenLiquidated(false);
-        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+        Links theLinks = new Links();
+        theCompanyProfile.setData(new Data());
+        theCompanyProfile.getData().setLinks(theLinks);
+        theCompanyProfile.getData().setHasCharges(false);
+        theCompanyProfile.getData().setHasBeenLiquidated(false);
+        theCompanyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(existingCompanyProfileDocument));
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(companyProfileDocument);
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                companyProfile);
+                theCompanyProfile);
 
-        assertFalse(companyProfile.getData().getHasCharges());
+        assertFalse(theCompanyProfile.getData().getHasCharges());
     }
 
     @Test
     void updateCompanyProfileWhenHasChargesIsNull() {
-        CompanyProfile companyProfile = new CompanyProfile()
+        CompanyProfile theCompanyProfile = new CompanyProfile()
                 .deltaAt(DELTA_AT);
-        Links links = new Links();
-        companyProfile.setData(new Data());
-        companyProfile.getData().setLinks(links);
-        companyProfile.getData().setHasCharges(null);
-        companyProfile.getData().setHasBeenLiquidated(false);
-        companyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
+        Links theLinks = new Links();
+        theCompanyProfile.setData(new Data());
+        theCompanyProfile.getData().setLinks(theLinks);
+        theCompanyProfile.getData().setHasCharges(null);
+        theCompanyProfile.getData().setHasBeenLiquidated(false);
+        theCompanyProfile.getData().setCompanyNumber(MOCK_COMPANY_NUMBER);
 
-        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(EXISTING_COMPANY_PROFILE_DOCUMENT));
-        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(COMPANY_PROFILE_DOCUMENT);
+        when(companyProfileRepository.findById(anyString())).thenReturn(Optional.of(existingCompanyProfileDocument));
+        when(companyProfileTransformer.transform(any(), any(), any())).thenReturn(companyProfileDocument);
 
         companyProfileService.processCompanyProfile(MOCK_COMPANY_NUMBER,
-                companyProfile);
+                theCompanyProfile);
 
-        assertFalse(companyProfile.getData().getHasCharges());
+        assertFalse(theCompanyProfile.getData().getHasCharges());
     }
 
     @Nested

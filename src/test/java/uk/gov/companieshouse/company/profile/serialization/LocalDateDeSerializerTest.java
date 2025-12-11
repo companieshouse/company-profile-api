@@ -4,14 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import uk.gov.companieshouse.api.exception.BadRequestException;
 
 @SpringBootTest
@@ -38,7 +41,7 @@ class LocalDateDeSerializerTest {
 
     @Test
     void deserializeWithMillisecondsTimestamp() throws IOException {
-        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.396Z\"}}";
+       String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T18:19:39.396Z\"}}";
 
         LocalDate returnedDate = deserialize(jsonTestString);
         assertEquals(LocalDate.of(2023, 1, 9), returnedDate);
@@ -54,7 +57,7 @@ class LocalDateDeSerializerTest {
 
     @Test
     void longStringReturnsLong() throws IOException {
-        String jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
+       String jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
 
         LocalDate returnedDate = deserialize(jsonTestString);
         assertEquals(LocalDate.of(1924, 8, 23), returnedDate);
@@ -100,3 +103,4 @@ class LocalDateDeSerializerTest {
         return deserializer.deserialize(parser, deserializationContext);
     }
 }
+
