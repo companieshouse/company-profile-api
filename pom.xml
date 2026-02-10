@@ -66,7 +66,7 @@
 
     <assertj-core.version>3.27.7</assertj-core.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
-    <logback-core.version>1.5.26</logback-core.version>
+    <logback-core.version>1.5.28</logback-core.version>
     <guava.version>33.5.0-android</guava.version>
     <log4j-api.version>2.25.3</log4j-api.version>
   </properties>
@@ -104,6 +104,12 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-core</artifactId>
+        <version>${logback-core.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
         <version>${logback-core.version}</version>
         <scope>compile</scope>
       </dependency>
