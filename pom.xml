@@ -65,6 +65,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <assertj-core.version>3.27.7</assertj-core.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
   </properties>
 
   <profiles>
@@ -90,6 +91,12 @@
         <artifactId>assertj-core</artifactId>
         <version>${assertj-core.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+        <scope>compile</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
