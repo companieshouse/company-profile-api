@@ -67,6 +67,7 @@
     <assertj-core.version>3.27.7</assertj-core.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
     <logback-core.version>1.5.26</logback-core.version>
+    <guava.version>33.5.0-android</guava.version>
   </properties>
 
   <profiles>
@@ -103,6 +104,12 @@
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-core</artifactId>
         <version>${logback-core.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
         <scope>compile</scope>
       </dependency>
     </dependencies>
