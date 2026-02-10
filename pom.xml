@@ -66,6 +66,7 @@
 
     <assertj-core.version>3.27.7</assertj-core.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
+    <logback-core.version>1.5.26</logback-core.version>
   </properties>
 
   <profiles>
@@ -96,6 +97,12 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${commons-lang3.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback-core.version}</version>
         <scope>compile</scope>
       </dependency>
     </dependencies>
