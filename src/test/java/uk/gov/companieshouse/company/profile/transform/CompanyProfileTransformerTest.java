@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import uk.gov.companieshouse.api.company.CompanyProfile;
 import uk.gov.companieshouse.api.company.Links;
 import uk.gov.companieshouse.api.company.RegisteredOfficeAddress;
+import uk.gov.companieshouse.api.company.SensitiveData;
 import uk.gov.companieshouse.company.profile.model.VersionedCompanyProfileDocument;
 import uk.gov.companieshouse.company.profile.util.TestHelper;
 
@@ -52,6 +53,9 @@ class CompanyProfileTransformerTest {
         Assertions.assertEquals(companyProfile.getData().getLinks(), document.getCompanyProfile().getLinks());
         Assertions.assertEquals(newChargesLink, document.getCompanyProfile().getLinks().getCharges());
         Assertions.assertNull(document.getCompanyProfile().getLinks().getInsolvency());
+
+        // Check that sensitive data is not included in the resulting document
+        Assertions.assertNull(document.getSensitiveData());
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
@@ -144,5 +148,18 @@ class CompanyProfileTransformerTest {
 
         Assertions.assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().getAt().toEpochSecond(ZoneOffset.MIN) < 2);
+    }
+
+    @Test
+    void shouldTransformCompanyDeltaWithRegisteredEmailAddressToSensitiveData() {
+        companyProfile.setSensitiveData(new SensitiveData());
+        companyProfile.getSensitiveData().setRegisteredEmailAddress("john@example.com");
+
+        VersionedCompanyProfileDocument document = transformer.transform(
+                new VersionedCompanyProfileDocument(), companyProfile, existingLinks);
+
+        Assertions.assertNotNull(document.getSensitiveData());
+        Assertions.assertEquals("john@example.com",
+                document.getSensitiveData().getRegisteredEmailAddress());
     }
 }
