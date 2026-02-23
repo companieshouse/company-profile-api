@@ -58,6 +58,12 @@ public class CompanyProfileTransformer {
             companyProfileDocument.setHasMortgages(companyProfile.getHasMortgages());
         }
         companyProfileDocument.setUpdated(new Updated().setAt(LocalDateTime.now()));
+
+        // Set SensitiveData in the document
+        if (companyProfile.getSensitiveData() != null) {
+            companyProfileDocument.setSensitiveData(companyProfile.getSensitiveData());
+        }
+
         return companyProfileDocument;
     }
 
