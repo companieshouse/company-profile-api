@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.apache.commons.io.FileUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,7 +35,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
@@ -171,7 +171,7 @@ public class CompanyProfileSteps {
     @When("I send PATCH request with raw payload {string} and company number {string}")
     public void i_send_put_request_with_raw_payload(String dataFile, String companyNumber) throws IOException {
         File file = new ClassPathResource("/json/input/" + dataFile + ".json").getFile();
-        String rawPayload = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+        String rawPayload = readFileToString(file, StandardCharsets.UTF_8);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
