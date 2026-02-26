@@ -18,12 +18,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>21</java.version>
-    <spring-boot-starter.version>3.5.7</spring-boot-starter.version>
+    <spring-boot-starter.version>3.5.9</spring-boot-starter.version>
 
     <main.class>uk.gov.companieshouse.company.profile.CompanyProfileApiApplication</main.class>
 
     <!-- Internal -->
-    <structured-logging.version>3.0.43</structured-logging.version>
+    <structured-logging.version>3.0.48</structured-logging.version>
     <api-sdk-java.version>6.4.11</api-sdk-java.version>
     <private-api-sdk-java.version>4.0.456</private-api-sdk-java.version>
     <data-sync-api-sdk-java.version>1.0.11</data-sync-api-sdk-java.version>
@@ -63,6 +63,13 @@
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <assertj-core.version>3.27.7</assertj-core.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
+    <logback-core.version>1.5.28</logback-core.version>
+    <guava.version>33.5.0-android</guava.version>
+    <log4j-api.version>2.25.3</log4j-api.version>
+    <tomcat-embed-core.version>11.0.18</tomcat-embed-core.version>
   </properties>
 
   <profiles>
@@ -83,19 +90,58 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj-core.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback-core.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback-core.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j-api.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat-embed-core.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <!--Spring dependencies-->
   <dependencies>
-    <!--Transitive deps start here-->
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.19.0</version>
-    </dependency>
-    <!--end transitive dependencies-->
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
@@ -197,11 +243,6 @@
     </dependency>
 
     <!--Test Dependencies-->
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.wiremock</groupId>
       <artifactId>wiremock-standalone</artifactId>
