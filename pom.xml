@@ -69,6 +69,7 @@
     <logback-core.version>1.5.28</logback-core.version>
     <guava.version>33.5.0-android</guava.version>
     <log4j-api.version>2.25.3</log4j-api.version>
+    <tomcat-embed-core.version>11.0.18</tomcat-embed-core.version>
   </properties>
 
   <profiles>
@@ -124,6 +125,17 @@
         <artifactId>log4j-api</artifactId>
         <version>${log4j-api.version}</version>
         <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat-embed-core.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>
