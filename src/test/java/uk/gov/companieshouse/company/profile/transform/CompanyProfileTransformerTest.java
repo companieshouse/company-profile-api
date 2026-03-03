@@ -153,13 +153,13 @@ class CompanyProfileTransformerTest {
     @Test
     void shouldTransformCompanyDeltaWithRegisteredEmailAddressToSensitiveData() {
         companyProfile.setSensitiveData(new SensitiveData());
-        companyProfile.getSensitiveData().setRegisteredEmailAddress("john@example.com");
+        companyProfile.getSensitiveData().setEmailAddress("john@example.com");
 
         VersionedCompanyProfileDocument document = transformer.transform(
                 new VersionedCompanyProfileDocument(), companyProfile, existingLinks);
 
         Assertions.assertNotNull(document.getSensitiveData());
         Assertions.assertEquals("john@example.com",
-                document.getSensitiveData().getRegisteredEmailAddress());
+                document.getSensitiveData().getEmailAddress());
     }
 }
