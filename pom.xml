@@ -70,6 +70,7 @@
     <guava.version>33.5.0-android</guava.version>
     <log4j-api.version>2.25.3</log4j-api.version>
     <tomcat-embed-core.version>11.0.18</tomcat-embed-core.version>
+    <jackson.version>2.21.1</jackson.version>
   </properties>
 
   <profiles>
@@ -136,6 +137,11 @@
             <artifactId>commons-lang</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
