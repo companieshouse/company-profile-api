@@ -24,11 +24,14 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import uk.gov.companieshouse.api.company.Data;
+import uk.gov.companieshouse.api.company.SensitiveData;
 import uk.gov.companieshouse.api.converter.EnumWriteConverter;
 import uk.gov.companieshouse.api.filter.CustomCorsFilter;
 import uk.gov.companieshouse.company.profile.auth.EricTokenAuthenticationFilter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataReadConverter;
 import uk.gov.companieshouse.company.profile.converter.CompanyProfileDataWriteConverter;
+import uk.gov.companieshouse.company.profile.converter.SensitiveDataReadConverter;
+import uk.gov.companieshouse.company.profile.converter.SensitiveDataWriteConverter;
 import uk.gov.companieshouse.company.profile.serialization.LocalDateDeSerializer;
 import uk.gov.companieshouse.company.profile.serialization.LocalDateSerializer;
 import uk.gov.companieshouse.environment.EnvironmentReader;
@@ -92,6 +95,8 @@ public class ApplicationConfig {
         return new MongoCustomConversions(List.of(
                 new CompanyProfileDataWriteConverter(objectMapper),
                 new CompanyProfileDataReadConverter(objectMapper, Data.class),
+                new SensitiveDataWriteConverter(objectMapper),
+                new SensitiveDataReadConverter(objectMapper, SensitiveData.class),
                 new EnumWriteConverter()));
     }
 
