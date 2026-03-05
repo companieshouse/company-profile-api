@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.company.CompanyProfile;
@@ -59,9 +60,14 @@ public class CompanyProfileTransformer {
         }
         companyProfileDocument.setUpdated(new Updated().setAt(LocalDateTime.now()));
 
-        // Set SensitiveData in the document
-        if (companyProfile.getSensitiveData() != null) {
+        // Set SensitiveData in the document. If incoming request does not include sensitiveData
+        // or contains a blank email, we explicitly clear any existing sensitiveData to avoid
+        // carrying stale values from previous deltas.
+        if (companyProfile.getSensitiveData() != null
+                && StringUtils.isNotBlank(companyProfile.getSensitiveData().getEmailAddress())) {
             companyProfileDocument.setSensitiveData(companyProfile.getSensitiveData());
+        } else {
+            companyProfileDocument.setSensitiveData(null);
         }
 
         return companyProfileDocument;

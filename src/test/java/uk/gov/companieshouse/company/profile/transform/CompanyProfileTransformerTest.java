@@ -162,4 +162,58 @@ class CompanyProfileTransformerTest {
         Assertions.assertEquals("john@example.com",
                 document.getSensitiveData().getEmailAddress());
     }
+
+    @Test
+    void shouldClearExistingSensitiveDataWhenIncomingSensitiveDataIsMissing() {
+        // existing document has sensitive data
+        VersionedCompanyProfileDocument existingDoc = new VersionedCompanyProfileDocument();
+        SensitiveData oldSd = new SensitiveData();
+        oldSd.setEmailAddress("old@example.com");
+        existingDoc.setSensitiveData(oldSd);
+
+        // incoming companyProfile does not set sensitiveData (null)
+        // use companyProfile (created in setUp) which has no sensitiveData set
+        VersionedCompanyProfileDocument document = transformer.transform(existingDoc, companyProfile, existingLinks);
+
+        // sensitiveData should be cleared to avoid carrying stale values
+        Assertions.assertNull(document.getSensitiveData());
+    }
+
+    @Test
+    void shouldClearExistingSensitiveDataWhenIncomingEmailIsBlank() {
+        // existing document has sensitive data
+        VersionedCompanyProfileDocument existingDoc = new VersionedCompanyProfileDocument();
+        SensitiveData oldSd = new SensitiveData();
+        oldSd.setEmailAddress("old@example.com");
+        existingDoc.setSensitiveData(oldSd);
+
+        // incoming companyProfile sets sensitiveData with blank email
+        SensitiveData blankSd = new SensitiveData();
+        blankSd.setEmailAddress("");
+        companyProfile.setSensitiveData(blankSd);
+
+        VersionedCompanyProfileDocument document = transformer.transform(existingDoc, companyProfile, existingLinks);
+
+        // blank email should result in sensitiveData being cleared
+        Assertions.assertNull(document.getSensitiveData());
+    }
+
+    @Test
+    void shouldClearExistingSensitiveDataWhenIncomingEmailIsWhitespace() {
+        // existing document has sensitive data
+        VersionedCompanyProfileDocument existingDoc = new VersionedCompanyProfileDocument();
+        SensitiveData oldSd = new SensitiveData();
+        oldSd.setEmailAddress("old@example.com");
+        existingDoc.setSensitiveData(oldSd);
+
+        // incoming companyProfile sets sensitiveData with whitespace-only email
+        SensitiveData wsSd = new SensitiveData();
+        wsSd.setEmailAddress("   ");
+        companyProfile.setSensitiveData(wsSd);
+
+        VersionedCompanyProfileDocument document = transformer.transform(existingDoc, companyProfile, existingLinks);
+
+        // whitespace-only email should be considered blank and cleared
+        Assertions.assertNull(document.getSensitiveData());
+    }
 }
